@@ -13,6 +13,14 @@ document.addEventListener("DOMContentLoaded", () => {
         enableFocusMode(!document.body.classList.contains("focus-mode")),
       ),
     );
+  document.addEventListener("keydown", (event) => {
+    if (
+      event.key === "Escape" &&
+      document.body.classList.contains("focus-mode")
+    ) {
+      enableFocusMode(false);
+    }
+  });
   const pop = document.querySelector("[data-reward-pop]");
   if (pop) {
     setTimeout(() => pop.remove(), 3000);

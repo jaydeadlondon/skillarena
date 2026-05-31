@@ -72,7 +72,8 @@ async def save_progress(
         progress = LessonProgress(user_id=user.id, lesson_id=lesson_id)
         db.add(progress)
 
-    progress.watched_seconds = max(progress.watched_seconds, watched_seconds)
+    safe_watched_seconds = int(watched_seconds or 0)
+    progress.watched_seconds = max(progress.watched_seconds or 0, safe_watched_seconds)
 
     if completed and not progress.completed:
         progress.completed = True

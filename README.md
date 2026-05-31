@@ -16,7 +16,7 @@ The current MVP includes:
 - Daily quest data model and demo quests.
 - Server-rendered English UI using FastAPI and Jinja templates.
 - Dark RPG / gaming dashboard styling.
-- Focus Mode toggle for a cleaner learning interface.
+- Focus Mode toggle for a cleaner learning interface. Press `Exit Focus Mode` or `Esc` to leave it.
 - PvP quiz battles with server-side answer validation.
 - Basic admin panel for courses, lessons, quests, users, and PvP questions.
 - Demo seed data for local development.
@@ -233,6 +233,8 @@ After pulling new model changes, run:
 ```bash
 docker compose exec web python scripts/create_db.py
 ```
+
+Focus Mode stores its state in browser localStorage. If you ever get stuck in Focus Mode, press `Esc`, click `Exit Focus Mode`, or clear `localStorage.focusMode` in browser devtools.
 
 If the web app behaves like it is using old Python code, restart the container:
 

@@ -204,6 +204,24 @@ select {
 .focus-mode .side-noise {
   display: none;
 }
+.focus-exit {
+  display: none;
+  position: fixed;
+  right: 18px;
+  top: 18px;
+  z-index: 50;
+  border: 1px solid #866617;
+  background: linear-gradient(180deg, #f7c948, #9a6416);
+  color: #17120a;
+  font-weight: 900;
+  padding: 10px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: 0 16px 50px rgba(0, 0, 0, 0.35);
+}
+.focus-mode .focus-exit {
+  display: block;
+}
 .reward-pop {
   position: fixed;
   right: 20px;
