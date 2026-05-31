@@ -9,7 +9,7 @@
 <body>
   <main class="shell">
     <nav class="nav">
-      <a class="brand" href="/">Skill<span>Arena</span></a>
+      <a class="brand" href="{% if user %}/dashboard{% else %}/{% endif %}">Skill<span>Arena</span></a>
       <div class="nav-links">
         {% if user %}
           <a href="/dashboard">Dashboard</a>
@@ -20,7 +20,7 @@
           <button class="btn" data-focus-toggle type="button">Focus Mode</button>
           <form method="post" action="/auth/logout"><button class="btn danger" type="submit">Log out</button></form>
         {% else %}
-          <a class="btn primary" href="/auth/steam">Sign in with Steam</a>
+          <a class="btn primary" href="/auth/steam">Log in with Steam</a>
           <a class="btn" href="/auth/steam/mock">Dev mock login</a>
         {% endif %}
       </div>
@@ -29,5 +29,5 @@
   </main>
   <button class="focus-exit" data-focus-toggle type="button" aria-label="Exit Focus Mode">Exit Focus Mode</button>
   <script src="/static/js/app.js"></script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a047bc39293ff415',t:'MTc4MDI0ODkyOA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</body>
 </html>

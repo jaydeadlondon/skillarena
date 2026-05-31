@@ -1,13 +1,24 @@
 {% extends "base.html" %}
 {% block content %}
+{% if request.query_params.get('auth_error') %}
+<div class="card" style="border-color:#fb7185;margin-bottom:18px">
+  <strong>Steam sign-in failed.</strong>
+  <p class="muted">{{ request.query_params.get('auth_error') }}</p>
+</div>
+{% endif %}
 <section class="hero">
   <div class="card">
     <span class="badge">⚔️ Dark RPG learning platform</span>
     <h1>Turn focus into power.</h1>
     <p class="muted">SkillArena helps learners build momentum with small goals, quests, PvP quiz battles, rewards, and a Steam-vs-study balance profile.</p>
     <div style="display:flex;gap:12px;margin-top:22px;flex-wrap:wrap">
-      <a class="btn primary" href="/auth/steam">Enter with Steam</a>
-      <a class="btn" href="/auth/steam/mock">Try MVP mock login</a>
+      {% if user %}
+        <a class="btn primary" href="/dashboard">Go to Dashboard</a>
+        <a class="btn" href="/courses">Continue learning</a>
+      {% else %}
+        <a class="btn primary" href="/auth/steam">Log in with Steam</a>
+        <a class="btn" href="/auth/steam/mock">Try MVP mock login</a>
+      {% endif %}
     </div>
   </div>
   <div class="card side-noise">
