@@ -6,7 +6,7 @@ from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse, RedirectResponse
 
 from app.core.config import get_settings
-from app.models.user import User
+from app.models.user import User, UserRole
 from app.routers.deps import DbSession, user_by_steam_id
 from app.services.steam import SteamService, SteamServiceError
 
@@ -55,6 +55,7 @@ async def mock_steam_login(request: Request, db: DbSession) -> RedirectResponse:
             steam_id=steam_id,
             display_name="Mock Steam Knight",
             avatar_url="",
+            role=UserRole.ADMIN,
             skill_points=150,
             steam_playtime_2w_minutes=840,
         )
@@ -77,11 +78,13 @@ async def steam_callback(request: Request, db: DbSession) -> RedirectResponse:
         return RedirectResponse(f"/?auth_error={str(exc)}", status_code=303)
 
     user = await user_by_steam_id(db, steam_id)
+    is_configured_admin = steam_id in settings.admin_steam_id_set
     if user is None:
         user = User(
             steam_id=steam_id,
             display_name=profile.get("personaname", "Steam Adventurer"),
             avatar_url=profile.get("avatarfull", ""),
+            role=UserRole.ADMIN if is_configured_admin else UserRole.USER,
             steam_playtime_2w_minutes=playtime_minutes,
         )
         db.add(user)
@@ -89,6 +92,8 @@ async def steam_callback(request: Request, db: DbSession) -> RedirectResponse:
         user.display_name = profile.get("personaname", user.display_name)
         user.avatar_url = profile.get("avatarfull", user.avatar_url)
         user.steam_playtime_2w_minutes = playtime_minutes
+        if is_configured_admin:
+            user.role = UserRole.ADMIN
 
     await db.commit()
     await db.refresh(user)
