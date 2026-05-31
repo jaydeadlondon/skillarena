@@ -9,6 +9,7 @@ from app.models.gamification import Achievement, Quest
 from app.models.pvp import PvpBattle
 from app.models.user import User
 from app.routers.deps import DbSession, get_current_user, require_user
+from app.services.achievements import evaluate_all_achievements
 
 router = APIRouter(tags=["pages"])
 
@@ -132,12 +133,14 @@ async def course_detail(
 
 @router.get("/profile")
 async def profile(request: Request, db: DbSession, user: User = Depends(require_user)):
+    await evaluate_all_achievements(db, user)
+    await db.commit()
     achievements = (
         (
             await db.execute(
                 select(Achievement)
-                .join(Achievement.users)
                 .where(Achievement.users.any(user_id=user.id))
+                .order_by(Achievement.created_at.desc())
                 .limit(20)
             )
         )

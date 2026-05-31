@@ -6,6 +6,7 @@ from sqlalchemy.orm import selectinload
 from app.models.course import Course, Lesson, LessonProgress
 from app.models.user import User
 from app.routers.deps import DbSession, require_user
+from app.services.achievements import evaluate_learning_achievements
 from app.services.rewards import add_skill_points
 from app.services.video import to_embed_url
 
@@ -83,6 +84,7 @@ async def save_progress(
             "lesson",
             lesson_id,
         )
+        await evaluate_learning_achievements(db, user)
 
     await db.commit()
-    return RedirectResponse(f"/learn/lessons/{lesson_id}", status_code=303)
+    return RedirectResponse(f"/learn/lessons/{lesson_id}?completed=1", status_code=303)

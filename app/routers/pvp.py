@@ -13,6 +13,7 @@ from app.models.pvp import (
 )
 from app.models.user import User
 from app.routers.deps import DbSession, require_user
+from app.services.achievements import evaluate_pvp_achievements
 from app.services.rewards import add_skill_points
 
 router = APIRouter(prefix="/pvp", tags=["pvp"])
@@ -115,6 +116,15 @@ async def finish_battle_if_ready(db: DbSession, battle: PvpBattle) -> None:
     if winner:
         prize = battle.reward_points + battle.entry_fee_points * 2
         await add_skill_points(db, winner, prize, "PvP battle won", "pvp", battle.id)
+        await evaluate_pvp_achievements(db, winner)
+
+    challenger = await db.get(User, battle.challenger_id)
+    if challenger:
+        await evaluate_pvp_achievements(db, challenger)
+    if battle.opponent_id:
+        opponent = await db.get(User, battle.opponent_id)
+        if opponent:
+            await evaluate_pvp_achievements(db, opponent)
 
 
 @router.get("")

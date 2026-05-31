@@ -6,9 +6,14 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from sqlalchemy import select
+import app.models.course
+import app.models.gamification
+import app.models.pvp
+import app.models.user
+from sqlalchemy import inspect, select
 
-from app.db.session import AsyncSessionLocal
+from app.db.base import Base
+from app.db.session import AsyncSessionLocal, engine
 from app.models.course import Course, Lesson, VideoProvider
 from app.models.gamification import (
     Achievement,
@@ -21,7 +26,55 @@ from app.models.pvp import PvpQuestion
 from app.models.user import User, UserRole
 
 
+async def ensure_tables_exist() -> None:
+    async with engine.begin() as conn:
+        existing_tables = await conn.run_sync(
+            lambda sync_conn: set(inspect(sync_conn).get_table_names())
+        )
+        required_tables = set(Base.metadata.tables.keys())
+        missing_tables = sorted(required_tables - existing_tables)
+        if missing_tables:
+            print(f"Missing tables detected: {', '.join(missing_tables)}")
+            await conn.run_sync(Base.metadata.create_all)
+            print("Missing tables created.")
+
+
+async def upsert_achievement(
+    db,
+    *,
+    code: str,
+    title: str,
+    description: str,
+    achievement_type: AchievementType,
+    threshold: int,
+    reward_points: int,
+    badge_icon: str,
+) -> None:
+    achievement = await db.scalar(select(Achievement).where(Achievement.code == code))
+    if achievement is None:
+        db.add(
+            Achievement(
+                code=code,
+                title=title,
+                description=description,
+                achievement_type=achievement_type,
+                threshold=threshold,
+                reward_points=reward_points,
+                badge_icon=badge_icon,
+            )
+        )
+    else:
+        achievement.title = title
+        achievement.description = description
+        achievement.achievement_type = achievement_type
+        achievement.threshold = threshold
+        achievement.reward_points = reward_points
+        achievement.badge_icon = badge_icon
+
+
 async def main() -> None:
+    await ensure_tables_exist()
+
     async with AsyncSessionLocal() as db:
         existing = await db.scalar(
             select(Course).where(Course.slug == "focus-fundamentals")
@@ -87,43 +140,91 @@ async def main() -> None:
                 ]
             )
 
-        if (
-            await db.scalar(
-                select(Achievement).where(Achievement.code == "first_lesson")
-            )
-            is None
-        ):
-            db.add_all(
-                [
-                    Achievement(
-                        code="first_lesson",
-                        title="First Spark",
-                        description="Complete your first lesson.",
-                        achievement_type=AchievementType.LESSONS,
-                        threshold=1,
-                        reward_points=10,
-                        badge_icon="✨",
-                    ),
-                    Achievement(
-                        code="seven_day_streak",
-                        title="Flame Keeper",
-                        description="Keep a 7-day learning streak.",
-                        achievement_type=AchievementType.STREAK,
-                        threshold=7,
-                        reward_points=70,
-                        badge_icon="🔥",
-                    ),
-                    Achievement(
-                        code="study_over_steam",
-                        title="Balance Breaker",
-                        description="Study more than you play on Steam over two weeks.",
-                        achievement_type=AchievementType.BALANCE,
-                        threshold=1,
-                        reward_points=100,
-                        badge_icon="⚖️",
-                    ),
-                ]
-            )
+        achievements = [
+            dict(
+                code="first_lesson",
+                title="First Spark",
+                description="Complete your first lesson.",
+                achievement_type=AchievementType.LESSONS,
+                threshold=1,
+                reward_points=10,
+                badge_icon="✨",
+            ),
+            dict(
+                code="five_lessons",
+                title="Quest Apprentice",
+                description="Complete five lessons.",
+                achievement_type=AchievementType.LESSONS,
+                threshold=5,
+                reward_points=25,
+                badge_icon="📜",
+            ),
+            dict(
+                code="ten_study_minutes",
+                title="Focus Ember",
+                description="Collect ten minutes of study time.",
+                achievement_type=AchievementType.STUDY_MINUTES,
+                threshold=10,
+                reward_points=15,
+                badge_icon="🕯️",
+            ),
+            dict(
+                code="one_study_hour",
+                title="Arcane Hour",
+                description="Collect one full hour of study time.",
+                achievement_type=AchievementType.STUDY_MINUTES,
+                threshold=60,
+                reward_points=40,
+                badge_icon="⏳",
+            ),
+            dict(
+                code="seven_day_streak",
+                title="Flame Keeper",
+                description="Keep a 7-day learning streak.",
+                achievement_type=AchievementType.STREAK,
+                threshold=7,
+                reward_points=70,
+                badge_icon="🔥",
+            ),
+            dict(
+                code="first_duel",
+                title="Arena Initiate",
+                description="Participate in your first PvP quiz battle.",
+                achievement_type=AchievementType.PVP_WINS,
+                threshold=1,
+                reward_points=10,
+                badge_icon="⚔️",
+            ),
+            dict(
+                code="first_pvp_win",
+                title="Arena Victor",
+                description="Win your first PvP quiz battle.",
+                achievement_type=AchievementType.PVP_WINS,
+                threshold=1,
+                reward_points=30,
+                badge_icon="🏆",
+            ),
+            dict(
+                code="five_pvp_wins",
+                title="Duel Champion",
+                description="Win five PvP quiz battles.",
+                achievement_type=AchievementType.PVP_WINS,
+                threshold=5,
+                reward_points=100,
+                badge_icon="👑",
+            ),
+            dict(
+                code="study_over_steam",
+                title="Balance Breaker",
+                description="Study more than you play on Steam over two weeks.",
+                achievement_type=AchievementType.BALANCE,
+                threshold=1,
+                reward_points=100,
+                badge_icon="⚖️",
+            ),
+        ]
+        for achievement_data in achievements:
+            await upsert_achievement(db, **achievement_data)
 
         if (
             await db.scalar(
