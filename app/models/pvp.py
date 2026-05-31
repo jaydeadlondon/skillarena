@@ -1,6 +1,6 @@
 from enum import StrEnum
 
-from sqlalchemy import Boolean, ForeignKey, Integer, String, Text
+from sqlalchemy import Boolean, ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base, created_at, updated_at
@@ -31,6 +31,8 @@ class PvpQuestion(Base):
     created_at: Mapped[created_at]
     updated_at: Mapped[updated_at]
 
+    battle_links = relationship("PvpBattleQuestion", back_populates="question")
+
 
 class PvpBattle(Base):
     __tablename__ = "pvp_battles"
@@ -58,3 +60,80 @@ class PvpBattle(Base):
     challenger = relationship("User", foreign_keys=[challenger_id])
     opponent = relationship("User", foreign_keys=[opponent_id])
     winner = relationship("User", foreign_keys=[winner_id])
+    question_links = relationship(
+        "PvpBattleQuestion",
+        back_populates="battle",
+        cascade="all, delete-orphan",
+        order_by="PvpBattleQuestion.position",
+    )
+    submissions = relationship(
+        "PvpBattleSubmission", back_populates="battle", cascade="all, delete-orphan"
+    )
+
+
+class PvpBattleQuestion(Base):
+    __tablename__ = "pvp_battle_questions"
+    __table_args__ = (
+        UniqueConstraint("battle_id", "question_id", name="uq_pvp_battle_question"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    battle_id: Mapped[int] = mapped_column(
+        ForeignKey("pvp_battles.id", ondelete="CASCADE"), nullable=False
+    )
+    question_id: Mapped[int] = mapped_column(
+        ForeignKey("pvp_questions.id", ondelete="CASCADE"), nullable=False
+    )
+    position: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
+    created_at: Mapped[created_at]
+
+    battle = relationship("PvpBattle", back_populates="question_links")
+    question = relationship("PvpQuestion", back_populates="battle_links")
+
+
+class PvpBattleSubmission(Base):
+    __tablename__ = "pvp_battle_submissions"
+    __table_args__ = (
+        UniqueConstraint("battle_id", "user_id", name="uq_pvp_battle_submission_user"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    battle_id: Mapped[int] = mapped_column(
+        ForeignKey("pvp_battles.id", ondelete="CASCADE"), nullable=False
+    )
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    score: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    total_questions: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    created_at: Mapped[created_at]
+
+    battle = relationship("PvpBattle", back_populates="submissions")
+    user = relationship("User")
+    answers = relationship(
+        "PvpBattleAnswer", back_populates="submission", cascade="all, delete-orphan"
+    )
+
+
+class PvpBattleAnswer(Base):
+    __tablename__ = "pvp_battle_answers"
+    __table_args__ = (
+        UniqueConstraint(
+            "submission_id", "question_id", name="uq_pvp_submission_question"
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    submission_id: Mapped[int] = mapped_column(
+        ForeignKey("pvp_battle_submissions.id", ondelete="CASCADE"), nullable=False
+    )
+    question_id: Mapped[int] = mapped_column(
+        ForeignKey("pvp_questions.id", ondelete="CASCADE"), nullable=False
+    )
+    selected_option: Mapped[str] = mapped_column(String(1), nullable=False)
+    correct_option: Mapped[str] = mapped_column(String(1), nullable=False)
+    is_correct: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    created_at: Mapped[created_at]
+
+    submission = relationship("PvpBattleSubmission", back_populates="answers")
+    question = relationship("PvpQuestion")

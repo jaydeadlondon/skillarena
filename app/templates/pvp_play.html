@@ -2,17 +2,72 @@
 {% block title %}Battle #{{ battle.id }} · SkillArena{% endblock %}
 {% block content %}
 <section class="card">
+  <span class="badge">⚔️ {{ battle.status.value|upper }}</span>
   <h1>Battle #{{ battle.id }}</h1>
-  <p class="muted">Answer in your head for now, then submit your score. Next iteration will validate each answer server-side.</p>
-  <form class="form" method="post" action="/pvp/{{ battle.id }}/submit">
-    {% for q in questions %}
+  <p class="muted">
+    Answer the quiz. The server now validates every answer and calculates the score automatically.
+  </p>
+  <div class="grid cols-3">
+    <div class="stat"><strong>{{ battle.challenger_score }}</strong><p>Challenger score</p></div>
+    <div class="stat"><strong>{{ battle.opponent_score }}</strong><p>Opponent score</p></div>
+    <div class="stat"><strong>+{{ battle.reward_points + battle.entry_fee_points * 2 }}</strong><p>Winner prize</p></div>
+  </div>
+</section>
+
+{% if battle.status.value == 'waiting' %}
+  <section class="card" style="margin-top:18px">
+    <h2>Waiting for opponent</h2>
+    <p class="muted">You can inspect the questions, but final result appears after another player joins and submits answers.</p>
+  </section>
+{% endif %}
+
+{% if submission %}
+  <section class="card" style="margin-top:18px">
+    <h2>Your result: {{ submission.score }}/{{ submission.total_questions }}</h2>
+    {% if opponent_submission %}
+      <p class="muted">Opponent has submitted too.</p>
+    {% else %}
+      <p class="muted">Waiting for the other player to submit.</p>
+    {% endif %}
+    {% if battle.status.value == 'finished' %}
+      {% if battle.winner_id == user.id %}
+        <div data-reward-pop>Victory! Prize claimed ⚔️</div>
+        <p><span class="badge">🏆 You won this duel</span></p>
+      {% else %}
+        <p><span class="badge">Defeat. Learn, retry, conquer.</span></p>
+      {% endif %}
+    {% endif %}
+  </section>
+
+  <section class="grid" style="margin-top:18px">
+    {% for answer in submission.answers %}
       <div class="card">
-        <strong>{{ loop.index }}. {{ q.question }}</strong>
-        <p>A. {{ q.option_a }}</p><p>B. {{ q.option_b }}</p><p>C. {{ q.option_c }}</p><p>D. {{ q.option_d }}</p>
+        <span class="badge">{% if answer.is_correct %}✅ Correct{% else %}❌ Wrong{% endif %}</span>
+        <h3>{{ answer.question.question }}</h3>
+        <p>Your answer: <strong>{{ answer.selected_option }}</strong></p>
+        <p>Correct answer: <strong>{{ answer.correct_option }}</strong></p>
       </div>
     {% endfor %}
-    <label>Your score <input class="input" type="number" name="score" min="0" max="{{ questions|length }}" value="0"></label>
-    <button class="btn primary" type="submit">Submit score</button>
-  </form>
-</section>
+  </section>
+{% else %}
+  <section class="card" style="margin-top:18px">
+    <h2>Quiz questions</h2>
+    {% if not questions %}
+      <p class="muted">No active PvP questions yet. Ask an admin to create questions.</p>
+    {% else %}
+      <form class="form" method="post" action="/pvp/{{ battle.id }}/submit">
+        {% for q in questions %}
+          <div class="card">
+            <strong>{{ loop.index }}. {{ q.question }}</strong>
+            <label><input type="radio" name="question_{{ q.id }}" value="A" required> A. {{ q.option_a }}</label>
+            <label><input type="radio" name="question_{{ q.id }}" value="B"> B. {{ q.option_b }}</label>
+            <label><input type="radio" name="question_{{ q.id }}" value="C"> C. {{ q.option_c }}</label>
+            <label><input type="radio" name="question_{{ q.id }}" value="D"> D. {{ q.option_d }}</label>
+          </div>
+        {% endfor %}
+        <button class="btn primary" type="submit">Submit answers</button>
+      </form>
+    {% endif %}
+  </section>
+{% endif %}
 {% endblock %}
