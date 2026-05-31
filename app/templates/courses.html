@@ -1,6 +1,9 @@
 {% extends "base.html" %}
 {% block title %}Courses · SkillArena{% endblock %}
 {% block content %}
+{% if request.query_params.get('lesson_completed') %}
+<div data-reward-pop>Lesson completed! Rewards claimed ✨</div>
+{% endif %}
 <h1>Course map</h1>
 <div class="grid cols-3">
   {% for course in courses %}

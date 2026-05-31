@@ -53,12 +53,19 @@ async def lesson_page(
 @router.post("/lessons/{lesson_id}/progress")
 async def save_progress(
     lesson_id: int,
+    request: Request,
     db: DbSession,
     user: User = Depends(require_user),
     watched_seconds: int = Form(0),
     completed: bool = Form(False),
 ):
-    lesson = await db.get(Lesson, lesson_id)
+    lesson = (
+        await db.execute(
+            select(Lesson)
+            .where(Lesson.id == lesson_id)
+            .options(selectinload(Lesson.course))
+        )
+    ).scalar_one_or_none()
     progress = (
         await db.execute(
             select(LessonProgress).where(
@@ -88,4 +95,9 @@ async def save_progress(
         await evaluate_learning_achievements(db, user)
 
     await db.commit()
-    return RedirectResponse(f"/learn/lessons/{lesson_id}?completed=1", status_code=303)
+
+    if lesson and lesson.course:
+        return RedirectResponse(
+            f"/courses/{lesson.course.slug}?lesson_completed=1", status_code=303
+        )
+    return RedirectResponse("/courses?lesson_completed=1", status_code=303)

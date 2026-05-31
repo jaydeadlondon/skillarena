@@ -1,6 +1,9 @@
 {% extends "base.html" %}
 {% block title %}{{ course.title }} · SkillArena{% endblock %}
 {% block content %}
+{% if request.query_params.get('lesson_completed') %}
+<div data-reward-pop>Lesson completed! Rewards claimed ✨</div>
+{% endif %}
 <div class="card">
   <span class="badge">{{ course.category }}</span>
   <h1>{{ course.title }}</h1>
