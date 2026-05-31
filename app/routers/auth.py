@@ -25,7 +25,9 @@ def _steam_urls_from_request(request: Request) -> tuple[str, str]:
 @router.get("/steam")
 async def steam_login(request: Request) -> RedirectResponse:
     realm, return_to = _steam_urls_from_request(request)
-    return RedirectResponse(steam.build_login_url(realm=realm, return_to=return_to), status_code=303)
+    return RedirectResponse(
+        steam.build_login_url(realm=realm, return_to=return_to), status_code=303
+    )
 
 
 @router.get("/steam/login-url")
