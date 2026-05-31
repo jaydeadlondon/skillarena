@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}PvP · SkillArena{% endblock %}
+{% block content %}
+<section class="card">
+  <h1>PvP Quiz Battles</h1>
+  <p class="muted">Entry fee: 10 Skill Points. Winner takes the reward. MVP uses simple quiz scoring.</p>
+  <form method="post" action="/pvp/create"><button class="btn primary" type="submit">Create battle</button></form>
+</section>
+<section class="card" style="margin-top:18px">
+  <h2>Lobby · {{ questions_count }} active questions</h2>
+  <table class="table"><tr><th>ID</th><th>Status</th><th>Score</th><th>Action</th></tr>
+  {% for battle in battles %}
+    <tr><td>#{{ battle.id }}</td><td>{{ battle.status.value }}</td><td>{{ battle.challenger_score }}:{{ battle.opponent_score }}</td><td>
+      {% if battle.status.value == 'waiting' and battle.challenger_id != user.id %}<form method="post" action="/pvp/{{ battle.id }}/join"><button class="btn" type="submit">Join</button></form>{% endif %}
+      {% if battle.challenger_id == user.id or battle.opponent_id == user.id %}<a class="btn" href="/pvp/{{ battle.id }}/play">Play</a>{% endif %}
+    </td></tr>
+  {% endfor %}
+  </table>
+</section>
+{% endblock %}

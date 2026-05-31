@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Dashboard · SkillArena{% endblock %}
+{% block content %}
+<div class="grid cols-3">
+  <div class="card"><span class="badge">💰 Skill Points</span><h2>{{ user.skill_points }}</h2><p class="muted">Spend on cosmetics or PvP entry fees.</p></div>
+  <div class="card"><span class="badge">🔥 Streak</span><h2>{{ user.current_streak_days }} days</h2><p class="muted">Best: {{ user.best_streak_days }} days.</p></div>
+  <div class="card"><span class="badge">📚 Lessons</span><h2>{{ completed_lessons }}</h2><p class="muted">Completed across {{ courses_count }} available courses.</p></div>
+</div>
+
+<section class="grid cols-2" style="margin-top:18px">
+  <div class="card">
+    <h2>Steam vs Study · last 2 weeks</h2>
+    {% set total = steam_minutes_2w + study_minutes_2w %}
+    {% set study_pct = (study_minutes_2w * 100 / total) if total else 0 %}
+    <p>Steam: <strong>{{ (steam_minutes_2w / 60)|round(1) }}h</strong> · Study: <strong>{{ (study_minutes_2w / 60)|round(1) }}h</strong></p>
+    <div class="progress"><span style="width: {{ study_pct }}%"></span></div>
+    <p class="muted">The glowing part is your study share. Keep pushing the balance toward learning.</p>
+  </div>
+  <div class="card">
+    <h2>Daily mini quests</h2>
+    {% for quest in active_quests %}
+      <p><span class="badge">+{{ quest.reward_points }} SP</span> {{ quest.title }}</p>
+    {% else %}
+      <p class="muted">No quests yet. Ask an admin to create one.</p>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="card" style="margin-top:18px">
+  <h2>Recent PvP battles</h2>
+  {% for battle in battles %}
+    <p>#{{ battle.id }} · {{ battle.status.value }} · scores {{ battle.challenger_score }}:{{ battle.opponent_score }}</p>
+  {% else %}
+    <p class="muted">No battles yet. Create your first quiz duel.</p>
+  {% endfor %}
+</section>
+{% endblock %}

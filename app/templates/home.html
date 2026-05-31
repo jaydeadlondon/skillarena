@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="hero">
+  <div class="card">
+    <span class="badge">⚔️ Dark RPG learning platform</span>
+    <h1>Turn focus into power.</h1>
+    <p class="muted">SkillArena helps learners build momentum with small goals, quests, PvP quiz battles, rewards, and a Steam-vs-study balance profile.</p>
+    <div style="display:flex;gap:12px;margin-top:22px;flex-wrap:wrap">
+      <a class="btn primary" href="/auth/steam">Enter with Steam</a>
+      <a class="btn" href="/auth/steam/mock">Try MVP mock login</a>
+    </div>
+  </div>
+  <div class="card side-noise">
+    <h2>Core loop</h2>
+    <div class="grid">
+      <div class="stat"><strong>1</strong><p>Pick a tiny lesson goal.</p></div>
+      <div class="stat"><strong>2</strong><p>Earn Skill Points and streak rewards.</p></div>
+      <div class="stat"><strong>3</strong><p>Challenge others in PvP quizzes.</p></div>
+    </div>
+  </div>
+</section>
+{% endblock %}

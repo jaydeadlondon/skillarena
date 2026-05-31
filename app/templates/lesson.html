@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}{{ lesson.title }} · SkillArena{% endblock %}
+{% block content %}
+<div class="card">
+  <a class="badge" href="/courses/{{ course.slug }}">← {{ course.title }}</a>
+  <h1>{{ lesson.title }}</h1>
+  <p class="muted">Tiny goal: watch this lesson, then mark it complete. Your timer is simplified for MVP.</p>
+  <iframe class="video-frame" src="{{ embed_url }}" allowfullscreen></iframe>
+  <p>{{ lesson.content }}</p>
+  <form class="form" method="post" action="/learn/lessons/{{ lesson.id }}/progress" id="progressForm">
+    <input type="hidden" name="watched_seconds" id="watchedSeconds" value="{{ progress.watched_seconds if progress else 0 }}">
+    <input type="hidden" name="completed" value="true">
+    <button class="btn primary" type="submit">Complete lesson · +{{ lesson.reward_points }} SP</button>
+  </form>
+</div>
+<script>
+let seconds = Number(document.getElementById('watchedSeconds').value || 0);
+setInterval(()=>{ seconds += 5; document.getElementById('watchedSeconds').value = seconds; }, 5000);
+</script>
+{% endblock %}

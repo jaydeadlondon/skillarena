@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Battle #{{ battle.id }} · SkillArena{% endblock %}
+{% block content %}
+<section class="card">
+  <h1>Battle #{{ battle.id }}</h1>
+  <p class="muted">Answer in your head for now, then submit your score. Next iteration will validate each answer server-side.</p>
+  <form class="form" method="post" action="/pvp/{{ battle.id }}/submit">
+    {% for q in questions %}
+      <div class="card">
+        <strong>{{ loop.index }}. {{ q.question }}</strong>
+        <p>A. {{ q.option_a }}</p><p>B. {{ q.option_b }}</p><p>C. {{ q.option_c }}</p><p>D. {{ q.option_d }}</p>
+      </div>
+    {% endfor %}
+    <label>Your score <input class="input" type="number" name="score" min="0" max="{{ questions|length }}" value="0"></label>
+    <button class="btn primary" type="submit">Submit score</button>
+  </form>
+</section>
+{% endblock %}

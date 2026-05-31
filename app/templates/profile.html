@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Profile · SkillArena{% endblock %}
+{% block content %}
+<section class="card">
+  <div style="display:flex;gap:18px;align-items:center;flex-wrap:wrap">
+    {% if user.avatar_url %}<img class="avatar" src="{{ user.avatar_url }}" alt="Steam avatar">{% else %}<div class="avatar"></div>{% endif %}
+    <div>
+      <span class="badge">{{ user.selected_title or 'Apprentice Adventurer' }}</span>
+      <h1>{{ user.display_name }}</h1>
+      <p class="muted">Steam ID: {{ user.steam_id }}</p>
+    </div>
+  </div>
+</section>
+<div class="grid cols-3" style="margin-top:18px">
+  <div class="card"><h2>{{ user.skill_points }}</h2><p class="muted">Skill Points</p></div>
+  <div class="card"><h2>{{ study_hours_total }}h</h2><p class="muted">Total study time</p></div>
+  <div class="card"><h2>{{ (user.steam_playtime_2w_minutes / 60)|round(1) }}h</h2><p class="muted">Steam in last 2 weeks</p></div>
+</div>
+<section class="card" style="margin-top:18px">
+  <h2>Earned achievements</h2>
+  {% for achievement in achievements %}
+    <span class="badge">{{ achievement.badge_icon }} {{ achievement.title }}</span>
+  {% else %}
+    <p class="muted">No achievements yet. Complete a lesson to start your collection.</p>
+  {% endfor %}
+</section>
+{% endblock %}
