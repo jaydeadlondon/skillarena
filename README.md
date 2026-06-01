@@ -16,11 +16,11 @@ The current MVP includes:
 - Cosmetic shop with purchasable/equippable profile frames, backgrounds, and auras.
 - Daily quests page with automatic progress tracking and claimable Skill Point rewards.
 - Pomodoro-style focus sessions with selectable timers, Skill Point rewards, and streak support.
+- Onboarding flow for learning goals, experience level, weekly target, and preferred focus session length.
 - Learning streak system with LeetCode-style navbar streak indicator, 14-day timeline, and streak achievements.
 - Active-time tracking that only counts visible, recently active browser time and updates lesson progress automatically.
 - Server-rendered English UI using FastAPI and Jinja templates.
 - Dark RPG / gaming dashboard styling.
-- Focus Mode toggle for a cleaner learning interface. Press `Exit Focus Mode` or `Esc` to leave it.
 - PvP quiz battles with server-side answer validation, battle history, result display, and tie refunds.
 - Admin panel for courses, lessons, quests, PvP questions, users, role changes, Skill Point adjustments, and cosmetics.
 - Demo seed data for local development.
@@ -202,6 +202,7 @@ Admin panel:
 /learn/lessons/{id}       Lesson player
 /activity/heartbeat       Activity tracking endpoint
 /focus                    Pomodoro-style focus sessions
+/onboarding               User onboarding and learning setup
 /quests                   Daily quests
 /streaks                  Learning streaks
 /profile                  User profile
@@ -219,17 +220,18 @@ Admin panel:
 ## MVP gameplay loop
 
 1. User signs in with Steam.
-2. User opens the dashboard and sees Skill Points, quests, study stats, and Steam-vs-study balance.
-3. User selects a course.
-4. User completes small lessons.
-5. Lesson progress increases study time, course progress, and rewards Skill Points.
-6. Completed courses grant course rewards and guide the user to the next learning step.
-7. User builds a daily streak through lessons, focus sessions, study time, or PvP wins.
-8. User completes daily quests and claims extra Skill Points.
-9. User joins PvP quiz battles and pays an entry fee.
-10. Server validates PvP answers and pays the winner.
-11. User spends Skill Points in the cosmetic shop.
-12. User profile displays progress, achievements, and earned identity markers.
+2. User completes onboarding with learning goal and focus preferences.
+3. User opens the dashboard and sees Skill Points, quests, study stats, and Steam-vs-study balance.
+4. User selects a course.
+5. User completes small lessons.
+6. Lesson progress increases study time, course progress, and rewards Skill Points.
+7. Completed courses grant course rewards and guide the user to the next learning step.
+8. User builds a daily streak through lessons, focus sessions, study time, or PvP wins.
+9. User completes daily quests and claims extra Skill Points.
+10. User joins PvP quiz battles and pays an entry fee.
+11. Server validates PvP answers and pays the winner.
+12. User spends Skill Points in the cosmetic shop.
+13. User profile displays progress, achievements, and earned identity markers.
 
 ## Legal content policy
 
@@ -249,8 +251,6 @@ After pulling new model changes, run:
 ```bash
 docker compose exec web python scripts/create_db.py
 ```
-
-Focus Mode stores its state in browser localStorage. If you ever get stuck in Focus Mode, press `Esc`, click `Exit Focus Mode`, or clear `localStorage.focusMode` in browser devtools.
 
 If the web app behaves like it is using old Python code, restart the container:
 
