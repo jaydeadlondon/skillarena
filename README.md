@@ -20,7 +20,7 @@ The current MVP includes:
 - Server-rendered English UI using FastAPI and Jinja templates.
 - Dark RPG / gaming dashboard styling.
 - Focus Mode toggle for a cleaner learning interface. Press `Exit Focus Mode` or `Esc` to leave it.
-- PvP quiz battles with server-side answer validation.
+- PvP quiz battles with server-side answer validation, battle history, result display, and tie refunds.
 - Admin panel for courses, lessons, quests, PvP questions, users, role changes, Skill Point adjustments, and cosmetics.
 - Demo seed data for local development.
 
@@ -205,6 +205,7 @@ Admin panel:
 /profile                  User profile
 /shop                     Cosmetic shop
 /pvp                      PvP lobby
+/pvp/history              PvP battle history
 /pvp/{id}/play            PvP battle page
 /admin                    Admin panel
 /admin/users              Admin user management
