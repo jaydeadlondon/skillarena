@@ -10,12 +10,13 @@ The current MVP includes:
 - Steam Web API integration for profile data and recent playtime.
 - PostgreSQL database with SQLAlchemy async models.
 - Course catalog with legal external video embeds, including YouTube/Vimeo links.
-- Lesson pages with simplified study-time tracking.
+- Lesson pages with active heartbeat-based activity tracking for site, lesson, course, PvP, and other sections.
 - User profiles with Steam-vs-study time comparison.
 - Skill Points currency.
 - Cosmetic shop with purchasable/equippable profile frames, backgrounds, and auras.
 - Daily quests page with automatic progress tracking and claimable Skill Point rewards.
 - Learning streak system with LeetCode-style navbar streak indicator, 14-day timeline, and streak achievements.
+- Active-time tracking that only counts visible, recently active browser time and updates lesson progress automatically.
 - Server-rendered English UI using FastAPI and Jinja templates.
 - Dark RPG / gaming dashboard styling.
 - Focus Mode toggle for a cleaner learning interface. Press `Exit Focus Mode` or `Esc` to leave it.
@@ -198,6 +199,7 @@ Admin panel:
 /courses                  Course catalog
 /courses/{slug}           Course detail
 /learn/lessons/{id}       Lesson player
+/activity/heartbeat       Activity tracking endpoint
 /quests                   Daily quests
 /streaks                  Learning streaks
 /profile                  User profile
