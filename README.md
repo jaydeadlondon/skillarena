@@ -13,6 +13,7 @@ The current MVP includes:
 - Lesson pages with simplified study-time tracking.
 - User profiles with Steam-vs-study time comparison.
 - Skill Points currency.
+- Cosmetic shop with purchasable/equippable profile frames, backgrounds, and auras.
 - Daily quest data model and demo quests.
 - Server-rendered English UI using FastAPI and Jinja templates.
 - Dark RPG / gaming dashboard styling.
@@ -197,6 +198,7 @@ Admin panel:
 /courses/{slug}           Course detail
 /learn/lessons/{id}       Lesson player
 /profile                  User profile
+/shop                     Cosmetic shop
 /pvp                      PvP lobby
 /pvp/{id}/play            PvP battle page
 /admin                    Admin panel

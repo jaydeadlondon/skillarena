@@ -1,13 +1,24 @@
 {% extends "base.html" %}
 {% block title %}Profile · SkillArena{% endblock %}
 {% block content %}
-<section class="card">
+{% set bg = equipped_by_type.get('profile_background') %}
+{% set frame = equipped_by_type.get('profile_frame') %}
+{% set aura = equipped_by_type.get('aura') %}
+<section class="card profile-card" {% if bg %}data-profile-background style="--profile-background: {{ bg.preview_value }}"{% endif %}>
   <div style="display:flex;gap:18px;align-items:center;flex-wrap:wrap">
-    {% if user.avatar_url %}<img class="avatar" src="{{ user.avatar_url }}" alt="Steam avatar">{% else %}<div class="avatar"></div>{% endif %}
+    <div class="profile-avatar-frame" style="--profile-frame: {{ frame.preview_value if frame else 'transparent' }}; --profile-aura: {{ aura.preview_value if aura else 'transparent' }}">
+      {% if user.avatar_url %}<img class="avatar" src="{{ user.avatar_url }}" alt="Steam avatar">{% else %}<div class="avatar"></div>{% endif %}
+    </div>
     <div>
       <span class="badge">{{ user.selected_title or 'Apprentice Adventurer' }}</span>
       <h1>{{ user.display_name }}</h1>
       <p class="muted">Steam ID: {{ user.steam_id }}</p>
+      <p>
+        {% if bg %}<span class="badge">Background: {{ bg.name }}</span>{% endif %}
+        {% if frame %}<span class="badge">Frame: {{ frame.name }}</span>{% endif %}
+        {% if aura %}<span class="badge">Aura: {{ aura.name }}</span>{% endif %}
+      </p>
+      <a class="btn" href="/shop">Open cosmetic shop</a>
     </div>
   </div>
 </section>

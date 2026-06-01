@@ -6,24 +6,24 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-import app.models.course
-import app.models.gamification
-import app.models.pvp
-import app.models.user
-from sqlalchemy import inspect, select
+import app.models.course  # noqa: F401,E402
+import app.models.gamification  # noqa: F401,E402
+import app.models.pvp  # noqa: F401,E402
+import app.models.user  # noqa: F401,E402
+from sqlalchemy import inspect, select  # noqa: E402
 
-from app.db.base import Base
-from app.db.session import AsyncSessionLocal, engine
-from app.models.course import Course, Lesson, VideoProvider
-from app.models.gamification import (
+from app.db.base import Base  # noqa: E402
+from app.db.session import AsyncSessionLocal, engine  # noqa: E402
+from app.models.course import Course, Lesson, VideoProvider  # noqa: E402
+from app.models.gamification import (  # noqa: E402
     Achievement,
     AchievementType,
     CosmeticItem,
     Quest,
     QuestFrequency,
 )
-from app.models.pvp import PvpQuestion
-from app.models.user import User, UserRole
+from app.models.pvp import PvpQuestion  # noqa: E402
+from app.models.user import User, UserRole  # noqa: E402
 
 
 async def ensure_tables_exist() -> None:
@@ -226,30 +226,62 @@ async def main() -> None:
         for achievement_data in achievements:
             await upsert_achievement(db, **achievement_data)
 
-        if (
-            await db.scalar(
-                select(CosmeticItem).where(CosmeticItem.code == "violet_aura")
+        cosmetics = [
+            dict(
+                code="violet_aura",
+                name="Violet Aura",
+                item_type="aura",
+                price_points=120,
+                preview_value="#8b5cf6",
+            ),
+            dict(
+                code="gold_frame",
+                name="Golden Frame",
+                item_type="profile_frame",
+                price_points=200,
+                preview_value="#f7c948",
+            ),
+            dict(
+                code="emerald_frame",
+                name="Emerald Frame",
+                item_type="profile_frame",
+                price_points=90,
+                preview_value="#36d399",
+            ),
+            dict(
+                code="abyss_background",
+                name="Abyss Background",
+                item_type="profile_background",
+                price_points=140,
+                preview_value="#111827",
+            ),
+            dict(
+                code="arcane_background",
+                name="Arcane Background",
+                item_type="profile_background",
+                price_points=180,
+                preview_value="#6d28d9",
+            ),
+            dict(
+                code="ember_aura",
+                name="Ember Aura",
+                item_type="aura",
+                price_points=160,
+                preview_value="#fb923c",
+            ),
+        ]
+        for cosmetic_data in cosmetics:
+            cosmetic = await db.scalar(
+                select(CosmeticItem).where(CosmeticItem.code == cosmetic_data["code"])
             )
-            is None
-        ):
-            db.add_all(
-                [
-                    CosmeticItem(
-                        code="violet_aura",
-                        name="Violet Aura",
-                        item_type="profile_background",
-                        price_points=120,
-                        preview_value="#6d28d9",
-                    ),
-                    CosmeticItem(
-                        code="gold_frame",
-                        name="Golden Frame",
-                        item_type="profile_frame",
-                        price_points=200,
-                        preview_value="#f7c948",
-                    ),
-                ]
-            )
+            if cosmetic is None:
+                db.add(CosmeticItem(**cosmetic_data))
+            else:
+                cosmetic.name = cosmetic_data["name"]
+                cosmetic.item_type = cosmetic_data["item_type"]
+                cosmetic.price_points = cosmetic_data["price_points"]
+                cosmetic.preview_value = cosmetic_data["preview_value"]
+                cosmetic.is_active = True
 
         if (
             await db.scalar(

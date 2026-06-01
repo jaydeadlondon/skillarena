@@ -114,8 +114,33 @@ class CosmeticItem(Base):
     name: Mapped[str] = mapped_column(String(120), nullable=False)
     item_type: Mapped[str] = mapped_column(
         String(40), nullable=False
-    )  # frame, background, cursor, etc.
+    )  # profile_frame, profile_background, aura
     price_points: Mapped[int] = mapped_column(Integer, nullable=False)
     preview_value: Mapped[str] = mapped_column(String(120), nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     created_at: Mapped[created_at]
+
+    owners = relationship(
+        "UserCosmetic", back_populates="item", cascade="all, delete-orphan"
+    )
+
+
+class UserCosmetic(Base):
+    __tablename__ = "user_cosmetics"
+    __table_args__ = (
+        UniqueConstraint("user_id", "cosmetic_item_id", name="uq_user_cosmetic_item"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    cosmetic_item_id: Mapped[int] = mapped_column(
+        ForeignKey("cosmetic_items.id", ondelete="CASCADE"), nullable=False
+    )
+    is_equipped: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    created_at: Mapped[created_at]
+    updated_at: Mapped[updated_at]
+
+    user = relationship("User", back_populates="cosmetics")
+    item = relationship("CosmeticItem", back_populates="owners")

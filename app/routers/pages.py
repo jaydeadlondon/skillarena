@@ -5,7 +5,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import selectinload
 
 from app.models.course import Course, Lesson, LessonProgress
-from app.models.gamification import Achievement, Quest
+from app.models.gamification import Achievement, Quest, UserCosmetic
 from app.models.pvp import PvpBattle
 from app.models.user import User
 from app.routers.deps import DbSession, get_current_user, require_user
@@ -147,6 +147,22 @@ async def profile(request: Request, db: DbSession, user: User = Depends(require_
         .scalars()
         .all()
     )
+    equipped_cosmetics = (
+        (
+            await db.execute(
+                select(UserCosmetic)
+                .where(
+                    UserCosmetic.user_id == user.id, UserCosmetic.is_equipped.is_(True)
+                )
+                .options(selectinload(UserCosmetic.item))
+            )
+        )
+        .scalars()
+        .all()
+    )
+    equipped_by_type = {
+        cosmetic.item.item_type: cosmetic.item for cosmetic in equipped_cosmetics
+    }
     study_seconds = await db.scalar(
         select(func.coalesce(func.sum(LessonProgress.watched_seconds), 0)).where(
             LessonProgress.user_id == user.id
@@ -159,6 +175,7 @@ async def profile(request: Request, db: DbSession, user: User = Depends(require_
             "request": request,
             "user": user,
             "achievements": achievements,
+            "equipped_by_type": equipped_by_type,
             "study_hours_total": round((study_seconds or 0) / 3600, 1),
         },
     )

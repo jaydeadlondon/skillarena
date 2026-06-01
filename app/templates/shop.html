@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Shop · SkillArena{% endblock %}
+{% block content %}
+{% if request.query_params.get('success') %}
+  <div data-reward-pop>
+    {% if request.query_params.get('success') == 'purchased' %}Cosmetic purchased ✨{% elif request.query_params.get('success') == 'equipped' %}Cosmetic equipped ⚔️{% else %}Cosmetic updated{% endif %}
+  </div>
+{% endif %}
+{% if request.query_params.get('error') %}
+<div class="card" style="border-color:#fb7185;margin-bottom:18px">
+  <strong>Shop action failed.</strong>
+  {% if request.query_params.get('error') == 'not-enough-points' %}
+    <p class="muted">Not enough Skill Points. Complete lessons, quests, achievements, or PvP battles to earn more.</p>
+  {% elif request.query_params.get('error') == 'not-owned' %}
+    <p class="muted">You do not own this cosmetic yet.</p>
+  {% else %}
+    <p class="muted">{{ request.query_params.get('error') }}</p>
+  {% endif %}
+</div>
+{% endif %}
+
+<section class="card">
+  <span class="badge">💰 {{ user.skill_points }} Skill Points</span>
+  <h1>Cosmetic Shop</h1>
+  <p class="muted">Spend Skill Points on profile cosmetics. Badges, achievements, frames earned from achievements, and titles are not sold here — they stay merit-based.</p>
+</section>
+
+<section class="grid cols-3" style="margin-top:18px">
+  {% for item in items %}
+    {% set owned = owned_by_item_id.get(item.id) %}
+    <div class="card shop-item">
+      <div class="cosmetic-preview {{ item.item_type }}" style="--preview: {{ item.preview_value }}">
+        <span>{{ item.name[:1] }}</span>
+      </div>
+      <span class="badge">{{ item.item_type.replace('_', ' ') }}</span>
+      <h2>{{ item.name }}</h2>
+      <p class="muted">Price: <strong>{{ item.price_points }}</strong> Skill Points</p>
+      {% if owned %}
+        {% if owned.is_equipped %}
+          <span class="badge">✅ Equipped</span>
+          <form method="post" action="/shop/{{ item.id }}/unequip" style="margin-top:12px">
+            <button class="btn" type="submit">Unequip</button>
+          </form>
+        {% else %}
+          <span class="badge">Owned</span>
+          <form method="post" action="/shop/{{ item.id }}/equip" style="margin-top:12px">
+            <button class="btn primary" type="submit">Equip</button>
+          </form>
+        {% endif %}
+      {% else %}
+        <form method="post" action="/shop/{{ item.id }}/buy">
+          <button class="btn primary" type="submit" {% if user.skill_points < item.price_points %}disabled{% endif %}>Buy</button>
+        </form>
+      {% endif %}
+    </div>
+  {% else %}
+    <div class="card"><p class="muted">No cosmetics yet. Seed demo data or add cosmetics later through admin tools.</p></div>
+  {% endfor %}
+</section>
+{% endblock %}

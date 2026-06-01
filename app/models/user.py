@@ -47,6 +47,9 @@ class User(Base):
         "UserAchievement", back_populates="user", cascade="all, delete-orphan"
     )
     currency_transactions = relationship("CurrencyTransaction", back_populates="user")
+    cosmetics = relationship(
+        "UserCosmetic", back_populates="user", cascade="all, delete-orphan"
+    )
 
 
 class CurrencyTransaction(Base):
