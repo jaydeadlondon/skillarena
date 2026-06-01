@@ -5,7 +5,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.course import LessonProgress
-from app.models.gamification import Quest, QuestFrequency, UserQuest
+from app.models.gamification import Quest, QuestFrequency, UserActivityDay, UserQuest
 from app.models.pvp import BattleStatus, PvpBattle
 from app.models.user import User
 from app.services.rewards import add_skill_points
@@ -23,13 +23,20 @@ async def calculate_metric_value(db: AsyncSession, user: User, metric: str) -> i
     start = day_start()
 
     if metric == "study_minutes":
-        seconds = await db.scalar(
+        tracked_seconds = await db.scalar(
+            select(func.coalesce(func.sum(UserActivityDay.seconds), 0)).where(
+                UserActivityDay.user_id == user.id,
+                UserActivityDay.activity_date == datetime.now(UTC).date(),
+                UserActivityDay.activity_type == "lesson",
+            )
+        )
+        progress_seconds = await db.scalar(
             select(func.coalesce(func.sum(LessonProgress.watched_seconds), 0)).where(
                 LessonProgress.user_id == user.id,
                 LessonProgress.updated_at >= start,
             )
         )
-        return int(seconds or 0) // 60
+        return max(int(tracked_seconds or 0), int(progress_seconds or 0)) // 60
 
     if metric == "lessons_completed":
         count = await db.scalar(

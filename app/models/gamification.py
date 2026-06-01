@@ -116,6 +116,30 @@ class UserAchievement(Base):
     achievement = relationship("Achievement", back_populates="users")
 
 
+class UserActivityDay(Base):
+    __tablename__ = "user_activity_days"
+    __table_args__ = (
+        UniqueConstraint(
+            "user_id",
+            "activity_date",
+            "activity_type",
+            name="uq_user_activity_day_type",
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    activity_date: Mapped[date] = mapped_column(Date, nullable=False)
+    activity_type: Mapped[str] = mapped_column(String(40), nullable=False)
+    seconds: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    created_at: Mapped[created_at]
+    updated_at: Mapped[updated_at]
+
+    user = relationship("User", back_populates="activity_days")
+
+
 class UserStreakDay(Base):
     __tablename__ = "user_streak_days"
     __table_args__ = (

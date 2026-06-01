@@ -4,7 +4,17 @@ from fastapi.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
 
 from app.core.config import get_settings
-from app.routers import admin, auth, learning, pages, pvp, quests, shop, streaks
+from app.routers import (
+    activity,
+    admin,
+    auth,
+    learning,
+    pages,
+    pvp,
+    quests,
+    shop,
+    streaks,
+)
 
 settings = get_settings()
 
@@ -17,6 +27,7 @@ app.mount("/static", StaticFiles(directory="app/static"), name="static")
 app.state.templates = Jinja2Templates(directory="app/templates")
 
 app.include_router(auth.router)
+app.include_router(activity.router)
 app.include_router(pages.router)
 app.include_router(learning.router)
 app.include_router(pvp.router)

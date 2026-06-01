@@ -7,6 +7,7 @@ from app.models.gamification import (
     Quest,
     QuestFrequency,
     UserAchievement,
+    UserActivityDay,
     UserQuest,
     UserStreakDay,
 )
@@ -38,6 +39,7 @@ __all__ = [
     "QuestFrequency",
     "User",
     "UserAchievement",
+    "UserActivityDay",
     "UserCosmetic",
     "UserQuest",
     "UserStreakDay",

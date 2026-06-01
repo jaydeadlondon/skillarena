@@ -10,6 +10,7 @@ from app.models.pvp import PvpBattle
 from app.models.user import User
 from app.routers.deps import DbSession, get_current_user, require_user
 from app.services.achievements import evaluate_all_achievements
+from app.services.activity import get_activity_summary
 from app.services.quests import get_daily_quest_cards
 from app.services.streaks import get_streak_timeline, sync_user_streak
 
@@ -42,6 +43,7 @@ async def dashboard(
     )
     await sync_user_streak(db, user)
     streak_timeline = await get_streak_timeline(db, user, days=7)
+    activity_summary = await get_activity_summary(db, user)
     daily_quest_cards = await get_daily_quest_cards(db, user)
     await db.flush()
     battles = (
@@ -78,6 +80,7 @@ async def dashboard(
             "courses_count": courses_count or 0,
             "completed_lessons": completed_lessons or 0,
             "streak_timeline": streak_timeline,
+            "activity_summary": activity_summary,
             "daily_quest_cards": daily_quest_cards[:4],
             "daily_quests_completed": sum(
                 1 for card in daily_quest_cards if card["user_quest"].completed

@@ -53,6 +53,9 @@ class User(Base):
     streak_days = relationship(
         "UserStreakDay", back_populates="user", cascade="all, delete-orphan"
     )
+    activity_days = relationship(
+        "UserActivityDay", back_populates="user", cascade="all, delete-orphan"
+    )
 
 
 class CurrencyTransaction(Base):

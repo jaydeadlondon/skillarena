@@ -5,7 +5,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.course import LessonProgress
-from app.models.gamification import UserStreakDay
+from app.models.gamification import UserActivityDay, UserStreakDay
 from app.models.pvp import BattleStatus, PvpBattle
 from app.models.user import User
 from app.services.achievements import unlock_achievement
@@ -31,12 +31,22 @@ async def calculate_day_activity(
     start = date_start(day)
     end = date_end(day)
 
-    study_seconds = await db.scalar(
+    tracked_lesson_seconds = await db.scalar(
+        select(func.coalesce(func.sum(UserActivityDay.seconds), 0)).where(
+            UserActivityDay.user_id == user.id,
+            UserActivityDay.activity_date == day,
+            UserActivityDay.activity_type == "lesson",
+        )
+    )
+    progress_lesson_seconds = await db.scalar(
         select(func.coalesce(func.sum(LessonProgress.watched_seconds), 0)).where(
             LessonProgress.user_id == user.id,
             LessonProgress.updated_at >= start,
             LessonProgress.updated_at < end,
         )
+    )
+    study_seconds = max(
+        int(tracked_lesson_seconds or 0), int(progress_lesson_seconds or 0)
     )
     lessons_completed = await db.scalar(
         select(func.count(LessonProgress.id)).where(

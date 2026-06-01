@@ -9,6 +9,14 @@
 
 <section class="grid cols-2" style="margin-top:18px">
   <div class="card">
+    <h2>Today on SkillArena</h2>
+    <p>Site: <strong>{{ (activity_summary.site_seconds / 60)|round(1) }} min</strong></p>
+    <p>Lessons: <strong>{{ (activity_summary.lesson_seconds / 60)|round(1) }} min</strong> · PvP: <strong>{{ (activity_summary.pvp_seconds / 60)|round(1) }} min</strong></p>
+    {% set site_total = activity_summary.site_seconds if activity_summary.site_seconds else 1 %}
+    <div class="progress"><span style="width: {{ (activity_summary.lesson_seconds * 100 / site_total)|round(0) }}%"></span></div>
+    <p class="muted">The glowing part is lesson time share. Timer counts only visible, recently active browser time.</p>
+  </div>
+  <div class="card">
     <h2>Steam vs Study · last 2 weeks</h2>
     {% set total = steam_minutes_2w + study_minutes_2w %}
     {% set study_pct = (study_minutes_2w * 100 / total) if total else 0 %}
@@ -16,6 +24,9 @@
     <div class="progress"><span style="width: {{ study_pct }}%"></span></div>
     <p class="muted">The glowing part is your study share. Keep pushing the balance toward learning.</p>
   </div>
+</section>
+
+<section class="grid cols-2" style="margin-top:18px">
   <div class="card">
     <h2>Daily quests</h2>
     <p class="muted">{{ daily_quests_completed }}/{{ daily_quests_total }} completed today</p>
