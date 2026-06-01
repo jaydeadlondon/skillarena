@@ -15,7 +15,7 @@ The current MVP includes:
 - Skill Points currency.
 - Cosmetic shop with purchasable/equippable profile frames, backgrounds, and auras.
 - Daily quests page with automatic progress tracking and claimable Skill Point rewards.
-- Learning streak system with 14-day timeline and streak achievements.
+- Learning streak system with LeetCode-style navbar streak indicator, 14-day timeline, and streak achievements.
 - Server-rendered English UI using FastAPI and Jinja templates.
 - Dark RPG / gaming dashboard styling.
 - Focus Mode toggle for a cleaner learning interface. Press `Exit Focus Mode` or `Esc` to leave it.
@@ -271,6 +271,7 @@ docker compose exec web python scripts/seed_demo.py
 Planned next improvements:
 
 - Automatic achievement evaluation.
+- Cosmetic shop and profile customization.
 - Stronger quest progress and claim flow.
 - Better study-time tracking based on video playback and page activity.
 - Real-time PvP through WebSockets.
