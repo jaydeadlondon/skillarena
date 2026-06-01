@@ -17,6 +17,7 @@ The current MVP includes:
 - Daily quests page with automatic progress tracking and claimable Skill Point rewards.
 - Pomodoro-style focus sessions with selectable timers, Skill Point rewards, and streak support.
 - Onboarding flow for learning goals, experience level, weekly target, and preferred focus session length.
+- Notifications page and reward animations for Skill Point rewards, refunds, and system updates.
 - Learning streak system with LeetCode-style navbar streak indicator, 14-day timeline, and streak achievements.
 - Active-time tracking that only counts visible, recently active browser time and updates lesson progress automatically.
 - Server-rendered English UI using FastAPI and Jinja templates.
@@ -203,6 +204,7 @@ Admin panel:
 /activity/heartbeat       Activity tracking endpoint
 /focus                    Pomodoro-style focus sessions
 /onboarding               User onboarding and learning setup
+/notifications            User notifications
 /quests                   Daily quests
 /streaks                  Learning streaks
 /profile                  User profile
