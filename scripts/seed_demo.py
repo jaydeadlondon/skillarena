@@ -164,6 +164,14 @@ async def main() -> None:
                 reward_points=20,
             ),
             dict(
+                title="Focus for 15 minutes",
+                description="Complete focused learning time today.",
+                frequency=QuestFrequency.DAILY,
+                target_metric="focus_minutes",
+                target_value=15,
+                reward_points=25,
+            ),
+            dict(
                 title="Win one quiz duel",
                 description="Challenge another learner and win a PvP quiz battle.",
                 frequency=QuestFrequency.DAILY,
