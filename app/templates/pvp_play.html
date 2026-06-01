@@ -4,14 +4,13 @@
 <section class="card">
   <span class="badge">⚔️ {{ battle.status.value|upper }}</span>
   <h1>Battle #{{ battle.id }}</h1>
-  <p class="muted">
-    Answer the quiz. The server now validates every answer and calculates the score automatically.
-  </p>
+  <p class="muted">Answer the quiz. The server validates every answer and calculates the score automatically.</p>
   <div class="grid cols-3">
     <div class="stat"><strong>{{ battle.challenger_score }}</strong><p>Challenger score</p></div>
     <div class="stat"><strong>{{ battle.opponent_score }}</strong><p>Opponent score</p></div>
-    <div class="stat"><strong>+{{ battle.reward_points + battle.entry_fee_points * 2 }}</strong><p>Winner prize</p></div>
+    <div class="stat"><strong>{% if battle.status.value == 'finished' and not battle.winner_id %}Refund{% else %}+{{ battle.reward_points + battle.entry_fee_points * 2 }}{% endif %}</strong><p>{% if battle.status.value == 'finished' and not battle.winner_id %}Tie result{% else %}Winner prize{% endif %}</p></div>
   </div>
+  <p style="margin-top:14px"><a class="btn" href="/pvp/history">Battle history</a> <a class="btn" href="/pvp">Back to lobby</a></p>
 </section>
 
 {% if battle.status.value == 'waiting' %}
@@ -25,12 +24,15 @@
   <section class="card" style="margin-top:18px">
     <h2>Your result: {{ submission.score }}/{{ submission.total_questions }}</h2>
     {% if opponent_submission %}
-      <p class="muted">Opponent has submitted too.</p>
+      <p class="muted">Opponent result: {{ opponent_submission.score }}/{{ opponent_submission.total_questions }}</p>
     {% else %}
       <p class="muted">Waiting for the other player to submit.</p>
     {% endif %}
     {% if battle.status.value == 'finished' %}
-      {% if battle.winner_id == user.id %}
+      {% if not battle.winner_id %}
+        <div data-reward-pop>Tie! Entry fee refunded 🤝</div>
+        <p><span class="badge">🤝 Tie — both players got entry fee back</span></p>
+      {% elif battle.winner_id == user.id %}
         <div data-reward-pop>Victory! Prize claimed ⚔️</div>
         <p><span class="badge">🏆 You won this duel</span></p>
       {% else %}

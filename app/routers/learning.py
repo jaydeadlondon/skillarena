@@ -20,10 +20,14 @@ def templates(request: Request):
 
 
 @router.get("/lessons/{lesson_id}")
-async def lesson_page(lesson_id: int, request: Request, db: DbSession, user: User = Depends(require_user)):
+async def lesson_page(
+    lesson_id: int, request: Request, db: DbSession, user: User = Depends(require_user)
+):
     lesson = (
         await db.execute(
-            select(Lesson).where(Lesson.id == lesson_id).options(selectinload(Lesson.course))
+            select(Lesson)
+            .where(Lesson.id == lesson_id)
+            .options(selectinload(Lesson.course))
         )
     ).scalar_one()
     progress = (
@@ -34,7 +38,10 @@ async def lesson_page(lesson_id: int, request: Request, db: DbSession, user: Use
             )
         )
     ).scalar_one_or_none()
-    return templates(request).TemplateResponse(request, "lesson.html", {
+    return templates(request).TemplateResponse(
+        request,
+        "lesson.html",
+        {
             "request": request,
             "user": user,
             "lesson": lesson,
@@ -56,7 +63,9 @@ async def save_progress(
 ):
     lesson = (
         await db.execute(
-            select(Lesson).where(Lesson.id == lesson_id).options(selectinload(Lesson.course))
+            select(Lesson)
+            .where(Lesson.id == lesson_id)
+            .options(selectinload(Lesson.course))
         )
     ).scalar_one_or_none()
     progress = (
@@ -78,15 +87,26 @@ async def save_progress(
     course_completed = False
     if completed and not progress.completed:
         progress.completed = True
-        await add_skill_points(db, user, lesson.reward_points if lesson else 10, "Lesson completed", "lesson", lesson_id)
+        await add_skill_points(
+            db,
+            user,
+            lesson.reward_points if lesson else 10,
+            "Lesson completed",
+            "lesson",
+            lesson_id,
+        )
         await evaluate_learning_achievements(db, user)
         await sync_user_streak(db, user)
         if lesson and lesson.course:
-            course_completed = await maybe_award_course_completion(db, user, lesson.course)
+            course_completed = await maybe_award_course_completion(
+                db, user, lesson.course
+            )
 
     await db.commit()
 
     if lesson and lesson.course:
         query = "course_completed=1" if course_completed else "lesson_completed=1"
-        return RedirectResponse(f"/courses/{lesson.course.slug}?{query}", status_code=303)
+        return RedirectResponse(
+            f"/courses/{lesson.course.slug}?{query}", status_code=303
+        )
     return RedirectResponse("/courses?lesson_completed=1", status_code=303)

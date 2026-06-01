@@ -108,26 +108,49 @@ async def finish_battle_if_ready(db: DbSession, battle: PvpBattle) -> None:
         return
 
     battle.status = BattleStatus.FINISHED
-    if battle.challenger_score >= battle.opponent_score:
-        battle.winner_id = battle.challenger_id
-    else:
-        battle.winner_id = battle.opponent_id
-
-    winner = await db.get(User, battle.winner_id)
-    if winner:
-        prize = battle.reward_points + battle.entry_fee_points * 2
-        await add_skill_points(db, winner, prize, "PvP battle won", "pvp", battle.id)
-        await evaluate_pvp_achievements(db, winner)
-
     challenger = await db.get(User, battle.challenger_id)
+    opponent = await db.get(User, battle.opponent_id) if battle.opponent_id else None
+
+    if battle.challenger_score == battle.opponent_score:
+        battle.winner_id = None
+        if challenger:
+            await add_skill_points(
+                db,
+                challenger,
+                battle.entry_fee_points,
+                "PvP tie refund",
+                "pvp",
+                battle.id,
+            )
+        if opponent:
+            await add_skill_points(
+                db,
+                opponent,
+                battle.entry_fee_points,
+                "PvP tie refund",
+                "pvp",
+                battle.id,
+            )
+    else:
+        battle.winner_id = (
+            battle.challenger_id
+            if battle.challenger_score > battle.opponent_score
+            else battle.opponent_id
+        )
+        winner = await db.get(User, battle.winner_id)
+        if winner:
+            prize = battle.reward_points + battle.entry_fee_points * 2
+            await add_skill_points(
+                db, winner, prize, "PvP battle won", "pvp", battle.id
+            )
+            await evaluate_pvp_achievements(db, winner)
+
     if challenger:
         await evaluate_pvp_achievements(db, challenger)
         await sync_user_streak(db, challenger)
-    if battle.opponent_id:
-        opponent = await db.get(User, battle.opponent_id)
-        if opponent:
-            await evaluate_pvp_achievements(db, opponent)
-            await sync_user_streak(db, opponent)
+    if opponent:
+        await evaluate_pvp_achievements(db, opponent)
+        await sync_user_streak(db, opponent)
 
 
 @router.get("")
@@ -156,6 +179,32 @@ async def pvp_lobby(
             "questions_count": questions_count or 0,
             "entry_fee": ENTRY_FEE,
         },
+    )
+
+
+@router.get("/history")
+async def pvp_history(
+    request: Request, db: DbSession, user: User = Depends(require_user)
+):
+    battles = (
+        (
+            await db.execute(
+                select(PvpBattle)
+                .where(
+                    (PvpBattle.challenger_id == user.id)
+                    | (PvpBattle.opponent_id == user.id)
+                )
+                .order_by(PvpBattle.created_at.desc())
+                .limit(50)
+            )
+        )
+        .scalars()
+        .all()
+    )
+    return templates(request).TemplateResponse(
+        request,
+        "pvp_history.html",
+        {"request": request, "user": user, "battles": battles},
     )
 
 

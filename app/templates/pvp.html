@@ -17,8 +17,11 @@
 <section class="card">
   <h1>PvP Quiz Battles</h1>
   <p class="muted">Entry fee: {{ entry_fee }} Skill Points. The server validates answers and automatically pays the winner.</p>
-  <p><span class="badge">{{ questions_count }} active questions</span></p>
-  <form method="post" action="/pvp/create"><button class="btn primary" type="submit">Create battle</button></form>
+  <p><span class="badge">{{ questions_count }} active questions</span> <span class="badge">Tie refunds entry fees</span></p>
+  <div style="display:flex;gap:12px;flex-wrap:wrap">
+    <form method="post" action="/pvp/create"><button class="btn primary" type="submit">Create battle</button></form>
+    <a class="btn" href="/pvp/history">Battle history</a>
+  </div>
 </section>
 <section class="card" style="margin-top:18px">
   <h2>Lobby</h2>

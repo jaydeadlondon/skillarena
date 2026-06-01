@@ -9,7 +9,9 @@ from app.models.user import CurrencyTransaction, User
 from app.services.rewards import add_skill_points
 
 
-async def get_course_progress(db: AsyncSession, user: User, course: Course) -> dict[str, Any]:
+async def get_course_progress(
+    db: AsyncSession, user: User, course: Course
+) -> dict[str, Any]:
     lesson_ids = [lesson.id for lesson in course.lessons]
     total = len(lesson_ids)
     if total == 0:
@@ -23,15 +25,23 @@ async def get_course_progress(db: AsyncSession, user: User, course: Course) -> d
         }
 
     progresses = (
-        await db.execute(
-            select(LessonProgress).where(
-                LessonProgress.user_id == user.id,
-                LessonProgress.lesson_id.in_(lesson_ids),
+        (
+            await db.execute(
+                select(LessonProgress).where(
+                    LessonProgress.user_id == user.id,
+                    LessonProgress.lesson_id.in_(lesson_ids),
+                )
             )
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
     progress_by_lesson = {progress.lesson_id: progress for progress in progresses}
-    completed = sum(1 for lesson_id in lesson_ids if progress_by_lesson.get(lesson_id) and progress_by_lesson[lesson_id].completed)
+    completed = sum(
+        1
+        for lesson_id in lesson_ids
+        if progress_by_lesson.get(lesson_id) and progress_by_lesson[lesson_id].completed
+    )
     next_lesson = None
     for lesson in course.lessons:
         progress = progress_by_lesson.get(lesson.id)
@@ -60,25 +70,39 @@ async def get_course_progress(db: AsyncSession, user: User, course: Course) -> d
     }
 
 
-async def maybe_award_course_completion(db: AsyncSession, user: User, course: Course) -> bool:
+async def maybe_award_course_completion(
+    db: AsyncSession, user: User, course: Course
+) -> bool:
     progress = await get_course_progress(db, user, course)
     if not progress["is_completed"] or progress["course_reward_claimed"]:
         return False
-    await add_skill_points(db, user, course.reward_points, "Course completed", "course", course.id)
+    await add_skill_points(
+        db, user, course.reward_points, "Course completed", "course", course.id
+    )
     return True
 
 
-async def find_continue_lesson(db: AsyncSession, user: User) -> tuple[Course | None, Lesson | None, dict[str, Any] | None]:
+async def find_continue_lesson(
+    db: AsyncSession, user: User
+) -> tuple[Course | None, Lesson | None, dict[str, Any] | None]:
     courses = (
-        await db.execute(
-            select(Course)
-            .where(Course.is_published.is_(True))
-            .options(selectinload(Course.lessons))
-            .order_by(Course.title)
+        (
+            await db.execute(
+                select(Course)
+                .where(Course.is_published.is_(True))
+                .options(selectinload(Course.lessons))
+                .order_by(Course.title)
+            )
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
 
-    best_candidate: tuple[Course | None, Lesson | None, dict[str, Any] | None] = (None, None, None)
+    best_candidate: tuple[Course | None, Lesson | None, dict[str, Any] | None] = (
+        None,
+        None,
+        None,
+    )
     best_completed = -1
     for course in courses:
         progress = await get_course_progress(db, user, course)
