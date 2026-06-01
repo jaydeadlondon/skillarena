@@ -19,11 +19,14 @@
 </div>
 {% endif %}
 
-<section class="card">
-  <span class="badge">💰 {{ user.skill_points }} Skill Points</span>
-  <h1>Cosmetic Shop</h1>
-  <p class="muted">Spend Skill Points on profile cosmetics. Badges, achievements, frames earned from achievements, and titles are not sold here — they stay merit-based.</p>
-</section>
+<header class="page-head">
+  <div>
+    <span class="badge">💰 {{ user.skill_points }} Skill Points</span>
+    <h1>Cosmetic Shop</h1>
+    <p class="muted">Spend Skill Points on profile cosmetics. Badges, achievements, and titles stay merit-based.</p>
+  </div>
+  <div class="page-actions"><a class="btn" href="/profile">View profile</a></div>
+</header>
 
 <section class="grid cols-3" style="margin-top:18px">
   {% for item in items %}

@@ -4,7 +4,14 @@
 {% if request.query_params.get('lesson_completed') %}
 <div data-reward-pop>Lesson completed! Rewards claimed ✨</div>
 {% endif %}
-<h1>Course map</h1>
+<header class="page-head">
+  <div>
+    <span class="badge">🗺️ Learning map</span>
+    <h1>Course map</h1>
+    <p class="muted">Choose a path, continue from your progress, and collect rewards.</p>
+  </div>
+  <div class="page-actions"><a class="btn" href="/dashboard">Dashboard</a></div>
+</header>
 <div class="grid cols-3">
   {% for card in course_cards %}
     {% set course = card.course %}
@@ -18,7 +25,7 @@
       <div class="progress"><span style="width: {{ progress.percent }}%"></span></div>
     </a>
   {% else %}
-    <div class="card"><p class="muted">No published courses yet.</p></div>
+    <div class="empty-state">No published courses yet. Check back later or ask an admin to publish a course.</div>
   {% endfor %}
 </div>
 {% endblock %}

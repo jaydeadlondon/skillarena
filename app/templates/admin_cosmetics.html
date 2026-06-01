@@ -1,8 +1,9 @@
 {% extends "base.html" %}
 {% block title %}Admin Cosmetics · SkillArena{% endblock %}
 {% block content %}
-<a class="badge" href="/admin">← Admin forge</a>
-<h1>Cosmetic management</h1>
+<header class="page-head">
+  <div><a class="badge" href="/admin">← Admin forge</a><h1>Cosmetic management</h1><p class="muted">Create, price, preview, and activate shop cosmetics.</p></div>
+</header>
 {% if request.query_params.get('success') %}<div data-reward-pop>Cosmetic updated ✨</div>{% endif %}
 {% if request.query_params.get('error') %}<div class="card" style="border-color:#fb7185;margin-bottom:18px"><strong>Action failed.</strong><p class="muted">{{ request.query_params.get('error') }}</p></div>{% endif %}
 

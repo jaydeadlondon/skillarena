@@ -4,6 +4,14 @@
 {% set bg = equipped_by_type.get('profile_background') %}
 {% set frame = equipped_by_type.get('profile_frame') %}
 {% set aura = equipped_by_type.get('aura') %}
+<header class="page-head">
+  <div>
+    <span class="badge">Hero profile</span>
+    <h1>Profile</h1>
+    <p class="muted">Your learning identity, achievements, cosmetics, and Steam balance.</p>
+  </div>
+  <div class="page-actions"><a class="btn" href="/shop">Customize</a></div>
+</header>
 <section class="card profile-card" {% if bg %}data-profile-background style="--profile-background: {{ bg.preview_value }}"{% endif %}>
   <div style="display:flex;gap:18px;align-items:center;flex-wrap:wrap">
     <div class="profile-avatar-frame" style="--profile-frame: {{ frame.preview_value if frame else 'transparent' }}; --profile-aura: {{ aura.preview_value if aura else 'transparent' }}">

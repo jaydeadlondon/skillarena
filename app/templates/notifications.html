@@ -4,12 +4,14 @@
 {% if request.query_params.get('success') == 'read-all' %}
 <div data-reward-pop>Notifications cleared ✨</div>
 {% endif %}
-<section class="card">
-  <span class="badge">🔔 {{ unread_count }} unread</span>
-  <h1>Notifications</h1>
-  <p class="muted">Rewards, refunds, achievements, focus sessions, and system updates appear here.</p>
-  <form method="post" action="/notifications/read-all"><button class="btn" type="submit">Mark all as read</button></form>
-</section>
+<header class="page-head">
+  <div>
+    <span class="badge">🔔 {{ unread_count }} unread</span>
+    <h1>Notifications</h1>
+    <p class="muted">Rewards, refunds, achievements, focus sessions, and system updates appear here.</p>
+  </div>
+  <div class="page-actions"><form method="post" action="/notifications/read-all"><button class="btn" type="submit">Mark all as read</button></form></div>
+</header>
 
 <section class="grid" style="margin-top:18px">
   {% for notification in notifications %}

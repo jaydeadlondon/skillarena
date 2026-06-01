@@ -21,7 +21,7 @@ The current MVP includes:
 - Learning streak system with LeetCode-style navbar streak indicator, 14-day timeline, and streak achievements.
 - Active-time tracking that only counts visible, recently active browser time and updates lesson progress automatically.
 - Server-rendered English UI using FastAPI and Jinja templates.
-- Dark RPG / gaming dashboard styling.
+- Polished dark RPG UI with compact navigation, responsive cards, improved empty states, hover states, and page headers.
 - PvP quiz battles with server-side answer validation, battle history, result display, and tie refunds.
 - Admin panel for courses, lessons, quests, PvP questions, users, role changes, Skill Point adjustments, and cosmetics.
 - Demo seed data for local development.

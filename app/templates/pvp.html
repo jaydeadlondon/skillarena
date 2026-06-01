@@ -14,15 +14,18 @@
 </div>
 {% endif %}
 
-<section class="card">
-  <h1>PvP Quiz Battles</h1>
-  <p class="muted">Entry fee: {{ entry_fee }} Skill Points. The server validates answers and automatically pays the winner.</p>
-  <p><span class="badge">{{ questions_count }} active questions</span> <span class="badge">Tie refunds entry fees</span></p>
-  <div style="display:flex;gap:12px;flex-wrap:wrap">
+<header class="page-head">
+  <div>
+    <span class="badge">⚔️ Arena</span>
+    <h1>PvP Quiz Battles</h1>
+    <p class="muted">Entry fee: {{ entry_fee }} Skill Points. Server-validated answers, fair tie refunds.</p>
+    <p><span class="badge">{{ questions_count }} active questions</span> <span class="badge">Tie refunds entry fees</span></p>
+  </div>
+  <div class="page-actions">
     <form method="post" action="/pvp/create"><button class="btn primary" type="submit">Create battle</button></form>
     <a class="btn" href="/pvp/history">Battle history</a>
   </div>
-</section>
+</header>
 <section class="card" style="margin-top:18px">
   <h2>Lobby</h2>
   <table class="table"><tr><th>ID</th><th>Status</th><th>Score</th><th>Prize</th><th>Action</th></tr>

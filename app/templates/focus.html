@@ -8,10 +8,15 @@
 <div class="card" style="border-color:#fb7185;margin-bottom:18px"><strong>Focus action failed.</strong><p class="muted">{{ request.query_params.get('error') }}</p></div>
 {% endif %}
 
+<header class="page-head">
+  <div>
+    <span class="badge">🧘 ADHD-friendly focus</span>
+    <h1>Focus Sessions</h1>
+    <p class="muted">Pick a timer, stay active, and claim Skill Points when the session ends.</p>
+  </div>
+  <div class="page-actions"><a class="btn" href="/quests">Daily quests</a></div>
+</header>
 <section class="card">
-  <span class="badge">🧘 ADHD-friendly focus mode</span>
-  <h1>Focus Sessions</h1>
-  <p class="muted">Pick a timer, stay active on the page, and claim Skill Points when the session ends. Focus sessions also help your streak.</p>
   <div class="grid cols-3">
     <div class="stat"><strong>{{ completed_today }}</strong><p>Sessions today</p></div>
     <div class="stat"><strong>{{ total_today_minutes }}</strong><p>Focus minutes today</p></div>

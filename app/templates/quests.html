@@ -17,10 +17,15 @@
 </div>
 {% endif %}
 
+<header class="page-head">
+  <div>
+    <span class="badge">📜 Daily reset</span>
+    <h1>Daily Quests</h1>
+    <p class="muted">Small daily objectives for steady progress. Claim Skill Points and keep momentum alive.</p>
+  </div>
+  <div class="page-actions"><a class="btn" href="/focus">Start focus</a><a class="btn" href="/courses">Learn</a></div>
+</header>
 <section class="card">
-  <span class="badge">📜 Daily reset</span>
-  <h1>Daily Quests</h1>
-  <p class="muted">Small daily objectives for steady progress. Complete quests, claim Skill Points, and spend them in the cosmetic shop or PvP battles.</p>
   <div class="grid cols-3">
     <div class="stat"><strong>{{ quest_cards|length }}</strong><p>Total quests</p></div>
     <div class="stat"><strong>{{ completed_count }}</strong><p>Completed today</p></div>

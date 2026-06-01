@@ -1,11 +1,12 @@
 {% extends "base.html" %}
 {% block title %}Admin Users · SkillArena{% endblock %}
 {% block content %}
-<a class="badge" href="/admin">← Admin forge</a>
-<h1>User management</h1>
+<header class="page-head">
+  <div><a class="badge" href="/admin">← Admin forge</a><h1>User management</h1><p class="muted">Manage roles, streaks, and Skill Point adjustments.</p></div>
+</header>
 {% if request.query_params.get('success') %}<div data-reward-pop>User updated ✨</div>{% endif %}
 {% if request.query_params.get('error') %}<div class="card" style="border-color:#fb7185;margin-bottom:18px"><strong>Action failed.</strong><p class="muted">{{ request.query_params.get('error') }}</p></div>{% endif %}
-<section class="card">
+<section class="card table-wrap">
   <table class="table">
     <tr><th>User</th><th>Role</th><th>Skill Points</th><th>Streak</th><th>Role action</th><th>Points action</th></tr>
     {% for u in users %}
