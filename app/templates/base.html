@@ -13,9 +13,9 @@
       <div class="nav-links">
         {% if user %}
           <a href="/dashboard">Dashboard</a>
+          <a class="streak-pill" href="/streaks" title="Current learning streak">🔥 {{ user.current_streak_days }}</a>
           <a href="/courses">Courses</a>
           <a href="/quests">Quests</a>
-          <a href="/streaks">Streaks</a>
           <a href="/pvp">PvP Battles</a>
           <a href="/shop">Shop</a>
           <a href="/profile">Profile</a>
@@ -32,5 +32,5 @@
   </main>
   <button class="focus-exit" data-focus-toggle type="button" aria-label="Exit Focus Mode">Exit Focus Mode</button>
   <script src="/static/js/app.js"></script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a04d1e10d9121e33',t:'MTc4MDMwNTM2NA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</body>
 </html>
