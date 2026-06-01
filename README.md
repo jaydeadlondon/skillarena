@@ -15,6 +15,7 @@ The current MVP includes:
 - Skill Points currency.
 - Cosmetic shop with purchasable/equippable profile frames, backgrounds, and auras.
 - Daily quests page with automatic progress tracking and claimable Skill Point rewards.
+- Pomodoro-style focus sessions with selectable timers, Skill Point rewards, and streak support.
 - Learning streak system with LeetCode-style navbar streak indicator, 14-day timeline, and streak achievements.
 - Active-time tracking that only counts visible, recently active browser time and updates lesson progress automatically.
 - Server-rendered English UI using FastAPI and Jinja templates.
@@ -200,6 +201,7 @@ Admin panel:
 /courses/{slug}           Course detail
 /learn/lessons/{id}       Lesson player
 /activity/heartbeat       Activity tracking endpoint
+/focus                    Pomodoro-style focus sessions
 /quests                   Daily quests
 /streaks                  Learning streaks
 /profile                  User profile
@@ -222,7 +224,7 @@ Admin panel:
 4. User completes small lessons.
 5. Lesson progress increases study time, course progress, and rewards Skill Points.
 6. Completed courses grant course rewards and guide the user to the next learning step.
-7. User builds a daily streak through lessons, study time, or PvP wins.
+7. User builds a daily streak through lessons, focus sessions, study time, or PvP wins.
 8. User completes daily quests and claims extra Skill Points.
 9. User joins PvP quiz battles and pays an entry fee.
 10. Server validates PvP answers and pays the winner.
