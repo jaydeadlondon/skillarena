@@ -213,6 +213,15 @@ async def main() -> None:
                 badge_icon="⏳",
             ),
             dict(
+                code="three_day_streak",
+                title="Kindled Focus",
+                description="Keep a 3-day learning streak.",
+                achievement_type=AchievementType.STREAK,
+                threshold=3,
+                reward_points=30,
+                badge_icon="🔥",
+            ),
+            dict(
                 code="seven_day_streak",
                 title="Flame Keeper",
                 description="Keep a 7-day learning streak.",
