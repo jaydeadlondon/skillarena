@@ -1,6 +1,9 @@
 {% extends "base.html" %}
 {% block title %}Dashboard · SkillArena{% endblock %}
 {% block content %}
+{% if request.query_params.get('onboarding') == 'completed' %}
+<div data-reward-pop>Journey configured. Welcome to SkillArena ✨</div>
+{% endif %}
 <div class="grid cols-3">
   <div class="card"><span class="badge">💰 Skill Points</span><h2>{{ user.skill_points }}</h2><p class="muted">Spend on cosmetics or PvP entry fees.</p></div>
   <div class="card"><span class="badge">🔥 Streak</span><h2>{{ user.current_streak_days }} days</h2><p class="muted">Best: {{ user.best_streak_days }} days.</p><a class="btn" href="/streaks">View streaks</a></div>

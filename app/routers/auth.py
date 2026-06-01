@@ -8,6 +8,7 @@ from fastapi.responses import JSONResponse, RedirectResponse
 from app.core.config import get_settings
 from app.models.user import User, UserRole
 from app.routers.deps import DbSession, user_by_steam_id
+from app.services.onboarding import has_completed_onboarding
 from app.services.steam import SteamService, SteamServiceError
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -25,9 +26,7 @@ def _steam_urls_from_request(request: Request) -> tuple[str, str]:
 @router.get("/steam")
 async def steam_login(request: Request) -> RedirectResponse:
     realm, return_to = _steam_urls_from_request(request)
-    return RedirectResponse(
-        steam.build_login_url(realm=realm, return_to=return_to), status_code=303
-    )
+    return RedirectResponse(steam.build_login_url(realm=realm, return_to=return_to), status_code=303)
 
 
 @router.get("/steam/login-url")
@@ -64,7 +63,8 @@ async def mock_steam_login(request: Request, db: DbSession) -> RedirectResponse:
         await db.refresh(user)
 
     request.session["user_id"] = user.id
-    return RedirectResponse("/dashboard", status_code=303)
+    next_url = "/dashboard" if await has_completed_onboarding(db, user) else "/onboarding"
+    return RedirectResponse(next_url, status_code=303)
 
 
 @router.get("/steam/callback")
@@ -98,7 +98,8 @@ async def steam_callback(request: Request, db: DbSession) -> RedirectResponse:
     await db.commit()
     await db.refresh(user)
     request.session["user_id"] = user.id
-    return RedirectResponse("/dashboard", status_code=303)
+    next_url = "/dashboard" if await has_completed_onboarding(db, user) else "/onboarding"
+    return RedirectResponse(next_url, status_code=303)
 
 
 @router.post("/logout")
