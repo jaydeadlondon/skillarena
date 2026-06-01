@@ -38,6 +38,12 @@
 
 <section class="grid cols-2" style="margin-top:18px">
   <div class="card">
+    <h2>Focus session</h2>
+    <p class="muted">{{ focus_minutes_today }} focus minutes completed today.</p>
+    <p>Earn Skill Points and keep your streak alive with a short focused sprint.</p>
+    <a class="btn primary" href="/focus">Start focus session</a>
+  </div>
+  <div class="card">
     <h2>Daily quests</h2>
     <p class="muted">{{ daily_quests_completed }}/{{ daily_quests_total }} completed today</p>
     {% for card in daily_quest_cards %}

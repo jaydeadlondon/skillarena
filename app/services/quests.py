@@ -38,6 +38,16 @@ async def calculate_metric_value(db: AsyncSession, user: User, metric: str) -> i
         )
         return max(int(tracked_seconds or 0), int(progress_seconds or 0)) // 60
 
+    if metric == "focus_minutes":
+        focus_seconds = await db.scalar(
+            select(func.coalesce(func.sum(UserActivityDay.seconds), 0)).where(
+                UserActivityDay.user_id == user.id,
+                UserActivityDay.activity_date == datetime.now(UTC).date(),
+                UserActivityDay.activity_type == "focus",
+            )
+        )
+        return int(focus_seconds or 0) // 60
+
     if metric == "lessons_completed":
         count = await db.scalar(
             select(func.count(LessonProgress.id)).where(

@@ -8,6 +8,7 @@ from app.routers import (
     activity,
     admin,
     auth,
+    focus,
     learning,
     pages,
     pvp,
@@ -30,6 +31,7 @@ app.include_router(auth.router)
 app.include_router(activity.router)
 app.include_router(pages.router)
 app.include_router(learning.router)
+app.include_router(focus.router)
 app.include_router(pvp.router)
 app.include_router(quests.router)
 app.include_router(shop.router)

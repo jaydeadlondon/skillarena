@@ -5,7 +5,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import selectinload
 
 from app.models.course import Course, LessonProgress
-from app.models.gamification import Achievement, UserCosmetic
+from app.models.gamification import Achievement, FocusSession, UserCosmetic
 from app.models.pvp import PvpBattle
 from app.models.user import User
 from app.routers.deps import DbSession, get_current_user, require_user
@@ -49,6 +49,13 @@ async def dashboard(
         db, user
     )
     daily_quest_cards = await get_daily_quest_cards(db, user)
+    focus_minutes_today = await db.scalar(
+        select(func.coalesce(func.sum(FocusSession.duration_minutes), 0)).where(
+            FocusSession.user_id == user.id,
+            FocusSession.completed.is_(True),
+            func.date(FocusSession.created_at) == func.current_date(),
+        )
+    )
     await db.flush()
     battles = (
         (
@@ -88,6 +95,7 @@ async def dashboard(
             "continue_course": continue_course,
             "continue_lesson": continue_lesson,
             "continue_progress": continue_progress,
+            "focus_minutes_today": focus_minutes_today or 0,
             "daily_quest_cards": daily_quest_cards[:4],
             "daily_quests_completed": sum(
                 1 for card in daily_quest_cards if card["user_quest"].completed

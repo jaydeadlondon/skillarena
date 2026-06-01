@@ -116,6 +116,21 @@ class UserAchievement(Base):
     achievement = relationship("Achievement", back_populates="users")
 
 
+class FocusSession(Base):
+    __tablename__ = "focus_sessions"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    duration_minutes: Mapped[int] = mapped_column(Integer, nullable=False)
+    reward_points: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    completed: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    created_at: Mapped[created_at]
+
+    user = relationship("User", back_populates="focus_sessions")
+
+
 class UserActivityDay(Base):
     __tablename__ = "user_activity_days"
     __table_args__ = (
@@ -167,9 +182,7 @@ class CosmeticItem(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     code: Mapped[str] = mapped_column(String(80), unique=True, nullable=False)
     name: Mapped[str] = mapped_column(String(120), nullable=False)
-    item_type: Mapped[str] = mapped_column(
-        String(40), nullable=False
-    )  # profile_frame, profile_background, aura
+    item_type: Mapped[str] = mapped_column(String(40), nullable=False)
     price_points: Mapped[int] = mapped_column(Integer, nullable=False)
     preview_value: Mapped[str] = mapped_column(String(120), nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)

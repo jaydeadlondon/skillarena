@@ -22,6 +22,8 @@ function detectActivityContext() {
     type = "quests";
   } else if (path.startsWith("/shop")) {
     type = "shop";
+  } else if (path.startsWith("/focus")) {
+    type = "focus";
   } else if (path.startsWith("/profile")) {
     type = "profile";
   } else if (path.startsWith("/admin")) {

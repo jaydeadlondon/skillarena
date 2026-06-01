@@ -56,6 +56,9 @@ class User(Base):
     activity_days = relationship(
         "UserActivityDay", back_populates="user", cascade="all, delete-orphan"
     )
+    focus_sessions = relationship(
+        "FocusSession", back_populates="user", cascade="all, delete-orphan"
+    )
 
 
 class CurrencyTransaction(Base):

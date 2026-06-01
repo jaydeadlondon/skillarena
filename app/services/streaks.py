@@ -45,9 +45,16 @@ async def calculate_day_activity(
             LessonProgress.updated_at < end,
         )
     )
+    tracked_focus_seconds = await db.scalar(
+        select(func.coalesce(func.sum(UserActivityDay.seconds), 0)).where(
+            UserActivityDay.user_id == user.id,
+            UserActivityDay.activity_date == day,
+            UserActivityDay.activity_type == "focus",
+        )
+    )
     study_seconds = max(
         int(tracked_lesson_seconds or 0), int(progress_lesson_seconds or 0)
-    )
+    ) + int(tracked_focus_seconds or 0)
     lessons_completed = await db.scalar(
         select(func.count(LessonProgress.id)).where(
             LessonProgress.user_id == user.id,

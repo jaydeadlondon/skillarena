@@ -18,6 +18,7 @@ TRACKED_ACTIVITY_TYPES = {
     "shop",
     "profile",
     "admin",
+    "focus",
     "general",
 }
 MAX_HEARTBEAT_SECONDS = 60
