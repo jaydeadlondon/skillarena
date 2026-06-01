@@ -7,6 +7,16 @@
   <div class="card"><span class="badge">📚 Lessons</span><h2>{{ completed_lessons }}</h2><p class="muted">Completed across {{ courses_count }} available courses.</p></div>
 </div>
 
+{% if continue_lesson %}
+<section class="card" style="margin-top:18px">
+  <span class="badge">Continue where you left off</span>
+  <h2>{{ continue_course.title }}</h2>
+  <p class="muted">Next lesson: {{ continue_lesson.title }} · {{ continue_progress.completed }}/{{ continue_progress.total }} lessons completed</p>
+  <div class="progress"><span style="width: {{ continue_progress.percent }}%"></span></div>
+  <p style="margin-top:14px"><a class="btn primary" href="/learn/lessons/{{ continue_lesson.id }}">Continue learning</a> <a class="btn" href="/courses/{{ continue_course.slug }}">Open course</a></p>
+</section>
+{% endif %}
+
 <section class="grid cols-2" style="margin-top:18px">
   <div class="card">
     <h2>Today on SkillArena</h2>
