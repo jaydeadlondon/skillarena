@@ -17,12 +17,17 @@
     <p class="muted">The glowing part is your study share. Keep pushing the balance toward learning.</p>
   </div>
   <div class="card">
-    <h2>Daily mini quests</h2>
-    {% for quest in active_quests %}
+    <h2>Daily quests</h2>
+    <p class="muted">{{ daily_quests_completed }}/{{ daily_quests_total }} completed today</p>
+    {% for card in daily_quest_cards %}
+      {% set quest = card.quest %}
+      {% set user_quest = card.user_quest %}
       <p><span class="badge">+{{ quest.reward_points }} SP</span> {{ quest.title }}</p>
+      <div class="progress"><span style="width: {{ card.percent }}%"></span></div>
     {% else %}
       <p class="muted">No quests yet. Ask an admin to create one.</p>
     {% endfor %}
+    <p style="margin-top:14px"><a class="btn" href="/quests">Open Quests</a></p>
   </div>
 </section>
 

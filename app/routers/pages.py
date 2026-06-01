@@ -5,11 +5,12 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import selectinload
 
 from app.models.course import Course, Lesson, LessonProgress
-from app.models.gamification import Achievement, Quest, UserCosmetic
+from app.models.gamification import Achievement, UserCosmetic
 from app.models.pvp import PvpBattle
 from app.models.user import User
 from app.routers.deps import DbSession, get_current_user, require_user
 from app.services.achievements import evaluate_all_achievements
+from app.services.quests import get_daily_quest_cards
 
 router = APIRouter(tags=["pages"])
 
@@ -38,11 +39,8 @@ async def dashboard(
             LessonProgress.completed.is_(True),
         )
     )
-    active_quests = (
-        (await db.execute(select(Quest).where(Quest.is_active.is_(True)).limit(4)))
-        .scalars()
-        .all()
-    )
+    daily_quest_cards = await get_daily_quest_cards(db, user)
+    await db.flush()
     battles = (
         (
             await db.execute(
@@ -66,6 +64,7 @@ async def dashboard(
         )
     )
     study_minutes_2w = int(study_minutes_2w or 0) // 60
+    await db.commit()
 
     return templates(request).TemplateResponse(
         request,
@@ -75,7 +74,11 @@ async def dashboard(
             "user": user,
             "courses_count": courses_count or 0,
             "completed_lessons": completed_lessons or 0,
-            "active_quests": active_quests,
+            "daily_quest_cards": daily_quest_cards[:4],
+            "daily_quests_completed": sum(
+                1 for card in daily_quest_cards if card["user_quest"].completed
+            ),
+            "daily_quests_total": len(daily_quest_cards),
             "battles": battles,
             "study_minutes_2w": study_minutes_2w,
             "steam_minutes_2w": user.steam_playtime_2w_minutes,

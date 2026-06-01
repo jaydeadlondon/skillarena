@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Daily Quests · SkillArena{% endblock %}
+{% block content %}
+{% if request.query_params.get('success') == 'claimed' %}
+  <div data-reward-pop>Quest reward claimed ✨</div>
+{% endif %}
+{% if request.query_params.get('error') %}
+<div class="card" style="border-color:#fb7185;margin-bottom:18px">
+  <strong>Quest action failed.</strong>
+  {% if request.query_params.get('error') == 'not-completed' %}
+    <p class="muted">Complete the quest objective before claiming the reward.</p>
+  {% elif request.query_params.get('error') == 'already-claimed' %}
+    <p class="muted">This daily reward has already been claimed.</p>
+  {% else %}
+    <p class="muted">{{ request.query_params.get('error') }}</p>
+  {% endif %}
+</div>
+{% endif %}
+
+<section class="card">
+  <span class="badge">📜 Daily reset</span>
+  <h1>Daily Quests</h1>
+  <p class="muted">Small daily objectives for steady progress. Complete quests, claim Skill Points, and spend them in the cosmetic shop or PvP battles.</p>
+  <div class="grid cols-3">
+    <div class="stat"><strong>{{ quest_cards|length }}</strong><p>Total quests</p></div>
+    <div class="stat"><strong>{{ completed_count }}</strong><p>Completed today</p></div>
+    <div class="stat"><strong>{{ claimed_count }}</strong><p>Rewards claimed</p></div>
+  </div>
+</section>
+
+<section class="grid cols-2" style="margin-top:18px">
+  {% for card in quest_cards %}
+    {% set quest = card.quest %}
+    {% set user_quest = card.user_quest %}
+    <div class="card">
+      <span class="badge">+{{ quest.reward_points }} SP</span>
+      <h2>{{ quest.title }}</h2>
+      <p class="muted">{{ quest.description }}</p>
+      <p>{{ user_quest.progress_value }} / {{ quest.target_value }} {{ quest.target_metric.replace('_', ' ') }}</p>
+      <div class="progress"><span style="width: {{ card.percent }}%"></span></div>
+      <div style="margin-top:14px">
+        {% if user_quest.claimed %}
+          <span class="badge">✅ Claimed</span>
+        {% elif card.can_claim %}
+          <form method="post" action="/quests/{{ quest.id }}/claim">
+            <button class="btn primary" type="submit">Claim reward</button>
+          </form>
+        {% elif user_quest.completed %}
+          <span class="badge">Completed</span>
+        {% else %}
+          <span class="badge">In progress</span>
+        {% endif %}
+      </div>
+    </div>
+  {% else %}
+    <div class="card"><p class="muted">No daily quests yet. Add quests in the admin panel or run seed data.</p></div>
+  {% endfor %}
+</section>
+{% endblock %}
