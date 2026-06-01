@@ -21,7 +21,7 @@ The current MVP includes:
 - Dark RPG / gaming dashboard styling.
 - Focus Mode toggle for a cleaner learning interface. Press `Exit Focus Mode` or `Esc` to leave it.
 - PvP quiz battles with server-side answer validation.
-- Basic admin panel for courses, lessons, quests, users, and PvP questions.
+- Admin panel for courses, lessons, quests, PvP questions, users, role changes, Skill Point adjustments, and cosmetics.
 - Demo seed data for local development.
 
 ## Tech stack
@@ -207,6 +207,8 @@ Admin panel:
 /pvp                      PvP lobby
 /pvp/{id}/play            PvP battle page
 /admin                    Admin panel
+/admin/users              Admin user management
+/admin/cosmetics          Admin cosmetic management
 /auth/steam               Steam login
 /auth/steam/mock          Development mock login
 ```
