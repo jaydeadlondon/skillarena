@@ -2,7 +2,15 @@ from enum import StrEnum
 
 from datetime import date
 
-from sqlalchemy import Boolean, Date, ForeignKey, Integer, String, Text, UniqueConstraint
+from sqlalchemy import (
+    Boolean,
+    Date,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base, created_at, updated_at
@@ -30,7 +38,9 @@ class Quest(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     title: Mapped[str] = mapped_column(String(160), nullable=False)
     description: Mapped[str] = mapped_column(Text, nullable=False)
-    frequency: Mapped[QuestFrequency] = mapped_column(default=QuestFrequency.DAILY, nullable=False)
+    frequency: Mapped[QuestFrequency] = mapped_column(
+        default=QuestFrequency.DAILY, nullable=False
+    )
     target_metric: Mapped[str] = mapped_column(String(80), nullable=False)
     target_value: Mapped[int] = mapped_column(Integer, nullable=False)
     reward_points: Mapped[int] = mapped_column(Integer, default=25, nullable=False)
@@ -38,16 +48,26 @@ class Quest(Base):
     created_at: Mapped[created_at]
     updated_at: Mapped[updated_at]
 
-    user_progresses = relationship("UserQuest", back_populates="quest", cascade="all, delete-orphan")
+    user_progresses = relationship(
+        "UserQuest", back_populates="quest", cascade="all, delete-orphan"
+    )
 
 
 class UserQuest(Base):
     __tablename__ = "user_quests"
-    __table_args__ = (UniqueConstraint("user_id", "quest_id", "period_key", name="uq_user_quest_period"),)
+    __table_args__ = (
+        UniqueConstraint(
+            "user_id", "quest_id", "period_key", name="uq_user_quest_period"
+        ),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
-    quest_id: Mapped[int] = mapped_column(ForeignKey("quests.id", ondelete="CASCADE"), nullable=False)
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    quest_id: Mapped[int] = mapped_column(
+        ForeignKey("quests.id", ondelete="CASCADE"), nullable=False
+    )
     period_key: Mapped[str] = mapped_column(String(32), nullable=False)
     progress_value: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     completed: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
@@ -72,16 +92,24 @@ class Achievement(Base):
     badge_icon: Mapped[str] = mapped_column(String(20), default="🏆", nullable=False)
     created_at: Mapped[created_at]
 
-    users = relationship("UserAchievement", back_populates="achievement", cascade="all, delete-orphan")
+    users = relationship(
+        "UserAchievement", back_populates="achievement", cascade="all, delete-orphan"
+    )
 
 
 class UserAchievement(Base):
     __tablename__ = "user_achievements"
-    __table_args__ = (UniqueConstraint("user_id", "achievement_id", name="uq_user_achievement"),)
+    __table_args__ = (
+        UniqueConstraint("user_id", "achievement_id", name="uq_user_achievement"),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
-    achievement_id: Mapped[int] = mapped_column(ForeignKey("achievements.id", ondelete="CASCADE"), nullable=False)
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    achievement_id: Mapped[int] = mapped_column(
+        ForeignKey("achievements.id", ondelete="CASCADE"), nullable=False
+    )
     created_at: Mapped[created_at]
 
     user = relationship("User", back_populates="achievements")
@@ -93,11 +121,19 @@ class UserOnboarding(Base):
     __table_args__ = (UniqueConstraint("user_id", name="uq_user_onboarding_user"),)
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
     learning_goal: Mapped[str] = mapped_column(String(120), nullable=False)
-    experience_level: Mapped[str] = mapped_column(String(40), default="beginner", nullable=False)
-    weekly_goal_minutes: Mapped[int] = mapped_column(Integer, default=120, nullable=False)
-    preferred_session_minutes: Mapped[int] = mapped_column(Integer, default=25, nullable=False)
+    experience_level: Mapped[str] = mapped_column(
+        String(40), default="beginner", nullable=False
+    )
+    weekly_goal_minutes: Mapped[int] = mapped_column(
+        Integer, default=120, nullable=False
+    )
+    preferred_session_minutes: Mapped[int] = mapped_column(
+        Integer, default=25, nullable=False
+    )
     completed: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     created_at: Mapped[created_at]
     updated_at: Mapped[updated_at]
@@ -109,7 +145,9 @@ class FocusSession(Base):
     __tablename__ = "focus_sessions"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
     duration_minutes: Mapped[int] = mapped_column(Integer, nullable=False)
     reward_points: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     completed: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
@@ -120,10 +158,19 @@ class FocusSession(Base):
 
 class UserActivityDay(Base):
     __tablename__ = "user_activity_days"
-    __table_args__ = (UniqueConstraint("user_id", "activity_date", "activity_type", name="uq_user_activity_day_type"),)
+    __table_args__ = (
+        UniqueConstraint(
+            "user_id",
+            "activity_date",
+            "activity_type",
+            name="uq_user_activity_day_type",
+        ),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
     activity_date: Mapped[date] = mapped_column(Date, nullable=False)
     activity_type: Mapped[str] = mapped_column(String(40), nullable=False)
     seconds: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
@@ -135,10 +182,14 @@ class UserActivityDay(Base):
 
 class UserStreakDay(Base):
     __tablename__ = "user_streak_days"
-    __table_args__ = (UniqueConstraint("user_id", "activity_date", name="uq_user_streak_day"),)
+    __table_args__ = (
+        UniqueConstraint("user_id", "activity_date", name="uq_user_streak_day"),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
     activity_date: Mapped[date] = mapped_column(Date, nullable=False)
     study_seconds: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     lessons_completed: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
@@ -162,15 +213,21 @@ class CosmeticItem(Base):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     created_at: Mapped[created_at]
 
-    owners = relationship("UserCosmetic", back_populates="item", cascade="all, delete-orphan")
+    owners = relationship(
+        "UserCosmetic", back_populates="item", cascade="all, delete-orphan"
+    )
 
 
 class UserCosmetic(Base):
     __tablename__ = "user_cosmetics"
-    __table_args__ = (UniqueConstraint("user_id", "cosmetic_item_id", name="uq_user_cosmetic_item"),)
+    __table_args__ = (
+        UniqueConstraint("user_id", "cosmetic_item_id", name="uq_user_cosmetic_item"),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
     cosmetic_item_id: Mapped[int] = mapped_column(
         ForeignKey("cosmetic_items.id", ondelete="CASCADE"), nullable=False
     )

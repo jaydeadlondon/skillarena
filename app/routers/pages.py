@@ -26,15 +26,21 @@ def templates(request: Request):
 
 @router.get("/")
 async def home(request: Request, current_user: User | None = Depends(get_current_user)):
-    return templates(request).TemplateResponse(request, "home.html", {"request": request, "user": current_user})
+    return templates(request).TemplateResponse(
+        request, "home.html", {"request": request, "user": current_user}
+    )
 
 
 @router.get("/dashboard")
-async def dashboard(request: Request, db: DbSession, user: User = Depends(require_user)):
+async def dashboard(
+    request: Request, db: DbSession, user: User = Depends(require_user)
+):
     if not await has_completed_onboarding(db, user):
         return RedirectResponse("/onboarding", status_code=303)
 
-    courses_count = await db.scalar(select(func.count(Course.id)).where(Course.is_published.is_(True)))
+    courses_count = await db.scalar(
+        select(func.count(Course.id)).where(Course.is_published.is_(True))
+    )
     completed_lessons = await db.scalar(
         select(func.count(LessonProgress.id)).where(
             LessonProgress.user_id == user.id,
@@ -44,7 +50,9 @@ async def dashboard(request: Request, db: DbSession, user: User = Depends(requir
     await sync_user_streak(db, user)
     streak_timeline = await get_streak_timeline(db, user, days=7)
     activity_summary = await get_activity_summary(db, user)
-    continue_course, continue_lesson, continue_progress = await find_continue_lesson(db, user)
+    continue_course, continue_lesson, continue_progress = await find_continue_lesson(
+        db, user
+    )
     daily_quest_cards = await get_daily_quest_cards(db, user)
     focus_minutes_today = await db.scalar(
         select(func.coalesce(func.sum(FocusSession.duration_minutes), 0)).where(
@@ -55,13 +63,20 @@ async def dashboard(request: Request, db: DbSession, user: User = Depends(requir
     )
     await db.flush()
     battles = (
-        await db.execute(
-            select(PvpBattle)
-            .where((PvpBattle.challenger_id == user.id) | (PvpBattle.opponent_id == user.id))
-            .order_by(PvpBattle.created_at.desc())
-            .limit(5)
+        (
+            await db.execute(
+                select(PvpBattle)
+                .where(
+                    (PvpBattle.challenger_id == user.id)
+                    | (PvpBattle.opponent_id == user.id)
+                )
+                .order_by(PvpBattle.created_at.desc())
+                .limit(5)
+            )
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
 
     study_minutes_2w = await db.scalar(
         select(func.coalesce(func.sum(LessonProgress.watched_seconds), 0)).where(
@@ -72,7 +87,10 @@ async def dashboard(request: Request, db: DbSession, user: User = Depends(requir
     study_minutes_2w = int(study_minutes_2w or 0) // 60
     await db.commit()
 
-    return templates(request).TemplateResponse(request, "dashboard.html", {
+    return templates(request).TemplateResponse(
+        request,
+        "dashboard.html",
+        {
             "request": request,
             "user": user,
             "courses_count": courses_count or 0,
@@ -84,7 +102,9 @@ async def dashboard(request: Request, db: DbSession, user: User = Depends(requir
             "continue_progress": continue_progress,
             "focus_minutes_today": focus_minutes_today or 0,
             "daily_quest_cards": daily_quest_cards[:4],
-            "daily_quests_completed": sum(1 for card in daily_quest_cards if card["user_quest"].completed),
+            "daily_quests_completed": sum(
+                1 for card in daily_quest_cards if card["user_quest"].completed
+            ),
             "daily_quests_total": len(daily_quest_cards),
             "battles": battles,
             "study_minutes_2w": study_minutes_2w,
@@ -96,12 +116,17 @@ async def dashboard(request: Request, db: DbSession, user: User = Depends(requir
 @router.get("/courses")
 async def courses(request: Request, db: DbSession, user: User = Depends(require_user)):
     result = await db.execute(
-        select(Course).where(Course.is_published.is_(True)).options(selectinload(Course.lessons)).order_by(Course.title)
+        select(Course)
+        .where(Course.is_published.is_(True))
+        .options(selectinload(Course.lessons))
+        .order_by(Course.title)
     )
     courses_list = result.scalars().all()
     course_cards = []
     for course in courses_list:
-        course_cards.append({"course": course, "progress": await get_course_progress(db, user, course)})
+        course_cards.append(
+            {"course": course, "progress": await get_course_progress(db, user, course)}
+        )
     return templates(request).TemplateResponse(
         request,
         "courses.html",
@@ -110,9 +135,15 @@ async def courses(request: Request, db: DbSession, user: User = Depends(require_
 
 
 @router.get("/courses/{slug}")
-async def course_detail(slug: str, request: Request, db: DbSession, user: User = Depends(require_user)):
+async def course_detail(
+    slug: str, request: Request, db: DbSession, user: User = Depends(require_user)
+):
     course = (
-        await db.execute(select(Course).where(Course.slug == slug).options(selectinload(Course.lessons)))
+        await db.execute(
+            select(Course)
+            .where(Course.slug == slug)
+            .options(selectinload(Course.lessons))
+        )
     ).scalar_one()
     progress = await get_course_progress(db, user, course)
     return templates(request).TemplateResponse(
@@ -133,25 +164,42 @@ async def profile(request: Request, db: DbSession, user: User = Depends(require_
     await evaluate_all_achievements(db, user)
     await db.commit()
     achievements = (
-        await db.execute(
-            select(Achievement)
-            .where(Achievement.users.any(user_id=user.id))
-            .order_by(Achievement.created_at.desc())
-            .limit(20)
+        (
+            await db.execute(
+                select(Achievement)
+                .where(Achievement.users.any(user_id=user.id))
+                .order_by(Achievement.created_at.desc())
+                .limit(20)
+            )
         )
-    ).scalars().all()
-    equipped_cosmetics = (
-        await db.execute(
-            select(UserCosmetic)
-            .where(UserCosmetic.user_id == user.id, UserCosmetic.is_equipped.is_(True))
-            .options(selectinload(UserCosmetic.item))
-        )
-    ).scalars().all()
-    equipped_by_type = {cosmetic.item.item_type: cosmetic.item for cosmetic in equipped_cosmetics}
-    study_seconds = await db.scalar(
-        select(func.coalesce(func.sum(LessonProgress.watched_seconds), 0)).where(LessonProgress.user_id == user.id)
+        .scalars()
+        .all()
     )
-    return templates(request).TemplateResponse(request, "profile.html", {
+    equipped_cosmetics = (
+        (
+            await db.execute(
+                select(UserCosmetic)
+                .where(
+                    UserCosmetic.user_id == user.id, UserCosmetic.is_equipped.is_(True)
+                )
+                .options(selectinload(UserCosmetic.item))
+            )
+        )
+        .scalars()
+        .all()
+    )
+    equipped_by_type = {
+        cosmetic.item.item_type: cosmetic.item for cosmetic in equipped_cosmetics
+    }
+    study_seconds = await db.scalar(
+        select(func.coalesce(func.sum(LessonProgress.watched_seconds), 0)).where(
+            LessonProgress.user_id == user.id
+        )
+    )
+    return templates(request).TemplateResponse(
+        request,
+        "profile.html",
+        {
             "request": request,
             "user": user,
             "achievements": achievements,

@@ -13,7 +13,9 @@ def templates(request: Request):
 
 
 @router.get("")
-async def onboarding_page(request: Request, db: DbSession, user: User = Depends(require_user)):
+async def onboarding_page(
+    request: Request, db: DbSession, user: User = Depends(require_user)
+):
     onboarding = await get_user_onboarding(db, user)
     return templates(request).TemplateResponse(
         request,

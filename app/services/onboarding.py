@@ -6,7 +6,9 @@ from app.models.user import User
 
 
 async def get_user_onboarding(db: AsyncSession, user: User) -> UserOnboarding | None:
-    return await db.scalar(select(UserOnboarding).where(UserOnboarding.user_id == user.id))
+    return await db.scalar(
+        select(UserOnboarding).where(UserOnboarding.user_id == user.id)
+    )
 
 
 async def has_completed_onboarding(db: AsyncSession, user: User) -> bool:
@@ -31,6 +33,8 @@ async def save_onboarding(
     onboarding.learning_goal = learning_goal[:120]
     onboarding.experience_level = experience_level[:40]
     onboarding.weekly_goal_minutes = max(30, min(int(weekly_goal_minutes), 2000))
-    onboarding.preferred_session_minutes = max(5, min(int(preferred_session_minutes), 120))
+    onboarding.preferred_session_minutes = max(
+        5, min(int(preferred_session_minutes), 120)
+    )
     onboarding.completed = True
     return onboarding
