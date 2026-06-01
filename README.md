@@ -9,7 +9,7 @@ The current MVP includes:
 - Steam-only authentication via Steam OpenID.
 - Steam Web API integration for profile data and recent playtime.
 - PostgreSQL database with SQLAlchemy async models.
-- Course catalog with legal external video embeds, including YouTube/Vimeo links.
+- Course catalog with legal external video embeds, progress bars, continue-learning actions, and course completion rewards.
 - Lesson pages with active heartbeat-based activity tracking for site, lesson, course, PvP, and other sections.
 - User profiles with Steam-vs-study time comparison.
 - Skill Points currency.
@@ -219,13 +219,14 @@ Admin panel:
 2. User opens the dashboard and sees Skill Points, quests, study stats, and Steam-vs-study balance.
 3. User selects a course.
 4. User completes small lessons.
-5. Lesson progress increases study time and rewards Skill Points.
-6. User builds a daily streak through lessons, study time, or PvP wins.
-7. User completes daily quests and claims extra Skill Points.
-8. User joins PvP quiz battles and pays an entry fee.
-9. Server validates PvP answers and pays the winner.
-10. User spends Skill Points in the cosmetic shop.
-11. User profile displays progress, achievements, and earned identity markers.
+5. Lesson progress increases study time, course progress, and rewards Skill Points.
+6. Completed courses grant course rewards and guide the user to the next learning step.
+7. User builds a daily streak through lessons, study time, or PvP wins.
+8. User completes daily quests and claims extra Skill Points.
+9. User joins PvP quiz battles and pays an entry fee.
+10. Server validates PvP answers and pays the winner.
+11. User spends Skill Points in the cosmetic shop.
+12. User profile displays progress, achievements, and earned identity markers.
 
 ## Legal content policy
 
