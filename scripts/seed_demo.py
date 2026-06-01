@@ -39,6 +39,37 @@ async def ensure_tables_exist() -> None:
             print("Missing tables created.")
 
 
+async def upsert_quest(
+    db,
+    *,
+    title: str,
+    description: str,
+    frequency: QuestFrequency,
+    target_metric: str,
+    target_value: int,
+    reward_points: int,
+) -> None:
+    quest = await db.scalar(select(Quest).where(Quest.title == title))
+    if quest is None:
+        db.add(
+            Quest(
+                title=title,
+                description=description,
+                frequency=frequency,
+                target_metric=target_metric,
+                target_value=target_value,
+                reward_points=reward_points,
+            )
+        )
+    else:
+        quest.description = description
+        quest.frequency = frequency
+        quest.target_metric = target_metric
+        quest.target_value = target_value
+        quest.reward_points = reward_points
+        quest.is_active = True
+
+
 async def upsert_achievement(
     db,
     *,
@@ -115,30 +146,34 @@ async def main() -> None:
                 ]
             )
 
-        if (
-            await db.scalar(select(Quest).where(Quest.title == "Study for 20 minutes"))
-            is None
-        ):
-            db.add_all(
-                [
-                    Quest(
-                        title="Study for 20 minutes",
-                        description="Open lessons and collect at least 20 minutes of study time today.",
-                        frequency=QuestFrequency.DAILY,
-                        target_metric="study_minutes",
-                        target_value=20,
-                        reward_points=25,
-                    ),
-                    Quest(
-                        title="Win one quiz duel",
-                        description="Challenge another learner and win a PvP quiz battle.",
-                        frequency=QuestFrequency.DAILY,
-                        target_metric="pvp_wins",
-                        target_value=1,
-                        reward_points=40,
-                    ),
-                ]
-            )
+        quests = [
+            dict(
+                title="Study for 20 minutes",
+                description="Open lessons and collect at least 20 minutes of study time today.",
+                frequency=QuestFrequency.DAILY,
+                target_metric="study_minutes",
+                target_value=20,
+                reward_points=25,
+            ),
+            dict(
+                title="Complete one lesson",
+                description="Finish one lesson today and keep your momentum alive.",
+                frequency=QuestFrequency.DAILY,
+                target_metric="lessons_completed",
+                target_value=1,
+                reward_points=20,
+            ),
+            dict(
+                title="Win one quiz duel",
+                description="Challenge another learner and win a PvP quiz battle.",
+                frequency=QuestFrequency.DAILY,
+                target_metric="pvp_wins",
+                target_value=1,
+                reward_points=40,
+            ),
+        ]
+        for quest_data in quests:
+            await upsert_quest(db, **quest_data)
 
         achievements = [
             dict(
