@@ -116,6 +116,24 @@ class UserAchievement(Base):
     achievement = relationship("Achievement", back_populates="users")
 
 
+class UserNotification(Base):
+    __tablename__ = "user_notifications"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    notification_type: Mapped[str] = mapped_column(
+        String(40), default="system", nullable=False
+    )
+    title: Mapped[str] = mapped_column(String(160), nullable=False)
+    message: Mapped[str] = mapped_column(Text, nullable=False)
+    is_read: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    created_at: Mapped[created_at]
+
+    user = relationship("User", back_populates="notifications")
+
+
 class UserOnboarding(Base):
     __tablename__ = "user_onboarding"
     __table_args__ = (UniqueConstraint("user_id", name="uq_user_onboarding_user"),)

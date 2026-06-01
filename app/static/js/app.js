@@ -20,6 +20,8 @@ function detectActivityContext() {
     type = "shop";
   } else if (path.startsWith("/focus")) {
     type = "focus";
+  } else if (path.startsWith("/notifications")) {
+    type = "general";
   } else if (path.startsWith("/profile")) {
     type = "profile";
   } else if (path.startsWith("/admin")) {
@@ -80,11 +82,26 @@ function startActivityTracker() {
     }
   });
 }
+function spawnRewardConfetti() {
+  const colors = ["#f7c948", "#8b5cf6", "#36d399", "#fb923c", "#f5f0df"];
+  for (let i = 0; i < 26; i++) {
+    const piece = document.createElement("span");
+    piece.className = "confetti-piece";
+    piece.style.left = `${Math.random() * 100}vw`;
+    piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+    piece.style.animationDelay = `${Math.random() * 0.35}s`;
+    piece.style.transform = `rotate(${Math.random() * 360}deg)`;
+    document.body.appendChild(piece);
+    setTimeout(() => piece.remove(), 2200);
+  }
+}
 document.addEventListener("DOMContentLoaded", () => {
   localStorage.removeItem("focusMode");
   const pop = document.querySelector("[data-reward-pop]");
   if (pop) {
-    setTimeout(() => pop.remove(), 3000);
+    pop.classList.add("reward-pop");
+    spawnRewardConfetti();
+    setTimeout(() => pop.remove(), 3600);
   }
   startActivityTracker();
 });

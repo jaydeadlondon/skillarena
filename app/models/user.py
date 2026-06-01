@@ -65,6 +65,9 @@ class User(Base):
         cascade="all, delete-orphan",
         uselist=False,
     )
+    notifications = relationship(
+        "UserNotification", back_populates="user", cascade="all, delete-orphan"
+    )
 
 
 class CurrencyTransaction(Base):

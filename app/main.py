@@ -10,6 +10,7 @@ from app.routers import (
     auth,
     focus,
     learning,
+    notifications,
     onboarding,
     pages,
     pvp,
@@ -33,6 +34,7 @@ app.include_router(activity.router)
 app.include_router(pages.router)
 app.include_router(learning.router)
 app.include_router(onboarding.router)
+app.include_router(notifications.router)
 app.include_router(focus.router)
 app.include_router(pvp.router)
 app.include_router(quests.router)
