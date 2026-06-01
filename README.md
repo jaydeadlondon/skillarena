@@ -15,6 +15,7 @@ The current MVP includes:
 - Skill Points currency.
 - Cosmetic shop with purchasable/equippable profile frames, backgrounds, and auras.
 - Daily quests page with automatic progress tracking and claimable Skill Point rewards.
+- Learning streak system with 14-day timeline and streak achievements.
 - Server-rendered English UI using FastAPI and Jinja templates.
 - Dark RPG / gaming dashboard styling.
 - Focus Mode toggle for a cleaner learning interface. Press `Exit Focus Mode` or `Esc` to leave it.
@@ -198,6 +199,7 @@ Admin panel:
 /courses/{slug}           Course detail
 /learn/lessons/{id}       Lesson player
 /quests                   Daily quests
+/streaks                  Learning streaks
 /profile                  User profile
 /shop                     Cosmetic shop
 /pvp                      PvP lobby
@@ -214,11 +216,12 @@ Admin panel:
 3. User selects a course.
 4. User completes small lessons.
 5. Lesson progress increases study time and rewards Skill Points.
-6. User completes daily quests and claims extra Skill Points.
-7. User joins PvP quiz battles and pays an entry fee.
-8. Server validates PvP answers and pays the winner.
-9. User spends Skill Points in the cosmetic shop.
-10. User profile displays progress, achievements, and earned identity markers.
+6. User builds a daily streak through lessons, study time, or PvP wins.
+7. User completes daily quests and claims extra Skill Points.
+8. User joins PvP quiz battles and pays an entry fee.
+9. Server validates PvP answers and pays the winner.
+10. User spends Skill Points in the cosmetic shop.
+11. User profile displays progress, achievements, and earned identity markers.
 
 ## Legal content policy
 
@@ -268,7 +271,6 @@ docker compose exec web python scripts/seed_demo.py
 Planned next improvements:
 
 - Automatic achievement evaluation.
-- Cosmetic shop and profile customization.
 - Stronger quest progress and claim flow.
 - Better study-time tracking based on video playback and page activity.
 - Real-time PvP through WebSockets.
