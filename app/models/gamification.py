@@ -1,6 +1,16 @@
 from enum import StrEnum
 
-from sqlalchemy import Boolean, ForeignKey, Integer, String, Text, UniqueConstraint
+from datetime import date
+
+from sqlalchemy import (
+    Boolean,
+    Date,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base, created_at, updated_at
@@ -104,6 +114,27 @@ class UserAchievement(Base):
 
     user = relationship("User", back_populates="achievements")
     achievement = relationship("Achievement", back_populates="users")
+
+
+class UserStreakDay(Base):
+    __tablename__ = "user_streak_days"
+    __table_args__ = (
+        UniqueConstraint("user_id", "activity_date", name="uq_user_streak_day"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    activity_date: Mapped[date] = mapped_column(Date, nullable=False)
+    study_seconds: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    lessons_completed: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    pvp_wins: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    qualified: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    created_at: Mapped[created_at]
+    updated_at: Mapped[updated_at]
+
+    user = relationship("User", back_populates="streak_days")
 
 
 class CosmeticItem(Base):

@@ -8,6 +8,7 @@ from app.models.gamification import (
     QuestFrequency,
     UserAchievement,
     UserQuest,
+    UserStreakDay,
 )
 from app.models.pvp import (
     BattleStatus,
@@ -39,6 +40,7 @@ __all__ = [
     "UserAchievement",
     "UserCosmetic",
     "UserQuest",
+    "UserStreakDay",
     "UserRole",
     "VideoProvider",
 ]

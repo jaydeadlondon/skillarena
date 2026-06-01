@@ -8,6 +8,7 @@ from app.models.user import User
 from app.routers.deps import DbSession, require_user
 from app.services.achievements import evaluate_learning_achievements
 from app.services.rewards import add_skill_points
+from app.services.streaks import sync_user_streak
 from app.services.video import to_embed_url
 
 router = APIRouter(prefix="/learn", tags=["learning"])
@@ -93,6 +94,7 @@ async def save_progress(
             lesson_id,
         )
         await evaluate_learning_achievements(db, user)
+        await sync_user_streak(db, user)
 
     await db.commit()
 

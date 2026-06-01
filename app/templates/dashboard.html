@@ -3,7 +3,7 @@
 {% block content %}
 <div class="grid cols-3">
   <div class="card"><span class="badge">💰 Skill Points</span><h2>{{ user.skill_points }}</h2><p class="muted">Spend on cosmetics or PvP entry fees.</p></div>
-  <div class="card"><span class="badge">🔥 Streak</span><h2>{{ user.current_streak_days }} days</h2><p class="muted">Best: {{ user.best_streak_days }} days.</p></div>
+  <div class="card"><span class="badge">🔥 Streak</span><h2>{{ user.current_streak_days }} days</h2><p class="muted">Best: {{ user.best_streak_days }} days.</p><a class="btn" href="/streaks">View streaks</a></div>
   <div class="card"><span class="badge">📚 Lessons</span><h2>{{ completed_lessons }}</h2><p class="muted">Completed across {{ courses_count }} available courses.</p></div>
 </div>
 
@@ -28,6 +28,19 @@
       <p class="muted">No quests yet. Ask an admin to create one.</p>
     {% endfor %}
     <p style="margin-top:14px"><a class="btn" href="/quests">Open Quests</a></p>
+  </div>
+</section>
+
+<section class="card" style="margin-top:18px">
+  <h2>7-day streak timeline</h2>
+  <div class="streak-timeline" style="grid-template-columns:repeat(7,1fr)">
+    {% for day in streak_timeline %}
+      <div class="streak-day {% if day.qualified %}qualified{% endif %} {% if day.is_today %}today{% endif %}">
+        <strong>{{ day.day_label }}</strong>
+        <span>{{ day.date.strftime('%m-%d') }}</span>
+        <em>{% if day.qualified %}🔥{% else %}·{% endif %}</em>
+      </div>
+    {% endfor %}
   </div>
 </section>
 
