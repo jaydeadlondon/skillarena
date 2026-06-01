@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Edit {{ course.title }} · SkillArena{% endblock %}
+{% block content %}
+<header class="page-head">
+  <div><a class="badge" href="/admin/courses">← Courses</a><h1>Edit course</h1><p class="muted">Manage course metadata, publishing, and lesson order.</p></div>
+  <div class="page-actions"><a class="btn" href="/courses/{{ course.slug }}">Preview course</a></div>
+</header>
+{% if request.query_params.get('success') %}<div data-reward-pop>Course saved ✨</div>{% endif %}
+{% if request.query_params.get('error') %}<div class="card" style="border-color:#fb7185;margin-bottom:18px"><strong>Action failed.</strong><p class="muted">{{ request.query_params.get('error') }}</p></div>{% endif %}
+
+<section class="grid cols-2">
+  <div class="card">
+    <h2>Course details</h2>
+    <form class="form" method="post" action="/admin/courses/{{ course.id }}/update">
+      <label>Title<input class="input" name="title" value="{{ course.title }}" required></label>
+      <label>Slug<input class="input" name="slug" value="{{ course.slug }}" required></label>
+      <label>Category<input class="input" name="category" value="{{ course.category }}"></label>
+      <label>Reward points<input class="input" type="number" name="reward_points" value="{{ course.reward_points }}"></label>
+      <label>Cover image URL<input class="input" name="cover_image_url" value="{{ course.cover_image_url or '' }}"></label>
+      <label>Description<textarea name="description" required>{{ course.description }}</textarea></label>
+      <button class="btn primary" type="submit">Save course</button>
+    </form>
+    <div class="action-row" style="margin-top:12px">
+      <form method="post" action="/admin/courses/{{ course.id }}/toggle"><button class="btn" type="submit">{% if course.is_published %}Unpublish{% else %}Publish{% endif %}</button></form>
+      <form method="post" action="/admin/courses/{{ course.id }}/delete" onsubmit="return confirm('Delete this course and all lessons?')"><button class="btn danger" type="submit">Delete course</button></form>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Add lesson</h2>
+    <form class="form" method="post" action="/admin/courses/{{ course.id }}/lessons">
+      <input class="input" name="title" placeholder="Lesson title" required>
+      <input class="input" type="number" name="position" value="{{ course.lessons|length + 1 }}" placeholder="Position">
+      <input class="input" name="video_url" placeholder="YouTube/Vimeo/embed URL" required>
+      <input class="input" type="number" name="duration_minutes" value="10" placeholder="Duration minutes">
+      <input class="input" type="number" name="reward_points" value="10" placeholder="Reward points">
+      <textarea name="content" placeholder="Lesson content / tiny objective">Stay focused: complete this small step and claim your reward.</textarea>
+      <button class="btn primary" type="submit">Add lesson</button>
+    </form>
+  </div>
+</section>
+
+<section class="card" style="margin-top:18px">
+  <div class="section-title"><h2>Lessons</h2><span class="badge">{{ course.lessons|length }} total</span></div>
+  {% for lesson in course.lessons %}
+    <div class="card" style="margin-top:12px">
+      <form class="form" method="post" action="/admin/lessons/{{ lesson.id }}/update">
+        <div class="grid cols-2">
+          <label>Title<input class="input" name="title" value="{{ lesson.title }}" required></label>
+          <label>Position<input class="input" type="number" name="position" value="{{ lesson.position }}"></label>
+          <label>Duration<input class="input" type="number" name="duration_minutes" value="{{ lesson.duration_minutes }}"></label>
+          <label>Reward<input class="input" type="number" name="reward_points" value="{{ lesson.reward_points }}"></label>
+        </div>
+        <label>Video URL<input class="input" name="video_url" value="{{ lesson.video_url }}" required></label>
+        <label>Content<textarea name="content">{{ lesson.content }}</textarea></label>
+        <div class="action-row">
+          <button class="btn primary" type="submit">Save lesson</button>
+          <a class="btn" href="/learn/lessons/{{ lesson.id }}">Preview</a>
+        </div>
+      </form>
+      <form method="post" action="/admin/lessons/{{ lesson.id }}/delete" onsubmit="return confirm('Delete this lesson?')"><button class="btn danger" type="submit">Delete lesson</button></form>
+    </div>
+  {% else %}
+    <div class="empty-state">No lessons yet. Add the first lesson above.</div>
+  {% endfor %}
+</section>
+{% endblock %}

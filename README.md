@@ -23,7 +23,7 @@ The current MVP includes:
 - Server-rendered English UI using FastAPI and Jinja templates.
 - Polished dark RPG UI with compact navigation, responsive cards, improved empty states, hover states, and page headers.
 - PvP quiz battles with server-side answer validation, battle history, result display, and tie refunds.
-- Admin panel for courses, lessons, quests, PvP questions, users, role changes, Skill Point adjustments, and cosmetics.
+- Admin panel for full course/lesson editing, quests, PvP questions, users, role changes, Skill Point adjustments, and cosmetics.
 - Demo seed data for local development.
 
 ## Tech stack
@@ -213,6 +213,8 @@ Admin panel:
 /pvp/history              PvP battle history
 /pvp/{id}/play            PvP battle page
 /admin                    Admin panel
+/admin/courses            Admin course management
+/admin/courses/{id}       Admin course and lesson editor
 /admin/users              Admin user management
 /admin/cosmetics          Admin cosmetic management
 /auth/steam               Steam login
