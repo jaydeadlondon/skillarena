@@ -20,7 +20,6 @@
           <a href="/pvp">PvP Battles</a>
           <a href="/shop">Shop</a>
           <a href="/profile">Profile</a>
-          <a href="/onboarding">Setup</a>
           {% if user.role.value == 'admin' %}<a href="/admin">Admin</a>{% endif %}
           <form method="post" action="/auth/logout"><button class="btn danger" type="submit">Log out</button></form>
         {% else %}
