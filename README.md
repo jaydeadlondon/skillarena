@@ -10,7 +10,7 @@ The current MVP includes:
 - Steam Web API integration for profile data and recent playtime.
 - PostgreSQL database with SQLAlchemy async models.
 - Course catalog with legal external video embeds, progress bars, continue-learning actions, and course completion rewards.
-- Lesson pages with active heartbeat-based activity tracking for site, lesson, course, PvP, and other sections.
+- Lesson pages with real YouTube playback tracking, active heartbeat fallback tracking, and progress updates.
 - User profiles with Steam-vs-study time comparison.
 - Skill Points currency.
 - Cosmetic shop with purchasable/equippable profile frames, backgrounds, and auras.
@@ -307,7 +307,6 @@ Planned next improvements:
 - Automatic achievement evaluation.
 - Cosmetic shop and profile customization.
 - Stronger quest progress and claim flow.
-- Better study-time tracking based on video playback and page activity.
 - Real-time PvP through WebSockets.
 - Alembic migrations.
 - Redis-backed background jobs and scheduled Steam stat refresh.

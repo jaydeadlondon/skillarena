@@ -3,11 +3,7 @@ function detectActivityContext() {
   let type = "general";
   let referenceId = null;
   if (path.startsWith("/learn/lessons/")) {
-    type = "lesson";
-    const match = path.match(/\/learn\/lessons\/(\d+)/);
-    if (match) {
-      referenceId = Number(match[1]);
-    }
+    type = "course";
   } else if (path === "/dashboard") {
     type = "dashboard";
   } else if (path.startsWith("/courses")) {

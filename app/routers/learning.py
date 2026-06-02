@@ -10,7 +10,7 @@ from app.services.achievements import evaluate_learning_achievements
 from app.services.course_progress import maybe_award_course_completion
 from app.services.rewards import add_skill_points
 from app.services.streaks import sync_user_streak
-from app.services.video import to_embed_url
+from app.services.video import to_embed_url, video_tracking_provider
 
 router = APIRouter(prefix="/learn", tags=["learning"])
 
@@ -38,6 +38,9 @@ async def lesson_page(
             )
         )
     ).scalar_one_or_none()
+    watched_seconds = int(progress.watched_seconds or 0) if progress else 0
+    duration_seconds = max(lesson.duration_minutes * 60, 1)
+    watched_percent = min(100, int(watched_seconds * 100 / duration_seconds))
     return templates(request).TemplateResponse(
         request,
         "lesson.html",
@@ -48,6 +51,10 @@ async def lesson_page(
             "course": lesson.course,
             "progress": progress,
             "embed_url": to_embed_url(lesson.video_url),
+            "tracking_provider": video_tracking_provider(lesson.video_url),
+            "watched_seconds": watched_seconds,
+            "duration_seconds": duration_seconds,
+            "watched_percent": watched_percent,
         },
     )
 
