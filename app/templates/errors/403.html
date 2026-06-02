@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Forbidden · SkillArena{% endblock %}
+{% block content %}
+<section class="card">
+  <span class="badge">403</span>
+  <h1>Access denied</h1>
+  <p class="muted">This area is locked. You need a higher role to enter.</p>
+  <div class="action-row">
+    <a class="btn primary" href="/dashboard">Go to Dashboard</a>
+    <a class="btn" href="/profile">Open Profile</a>
+  </div>
+</section>
+{% endblock %}

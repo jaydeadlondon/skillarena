@@ -18,6 +18,10 @@ class Settings(BaseSettings):
     steam_mock_login: bool = True
     admin_steam_ids: str = ""
 
+    session_cookie_secure: bool = False
+    session_cookie_samesite: str = "lax"
+    session_max_age_seconds: int = 60 * 60 * 24 * 14
+
     model_config = SettingsConfigDict(
         env_file=".env", env_file_encoding="utf-8", extra="ignore"
     )

@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Server Error · SkillArena{% endblock %}
+{% block content %}
+<section class="card">
+  <span class="badge">500</span>
+  <h1>Something broke in the dungeon</h1>
+  <p class="muted">The server hit an unexpected error. Try again, or return to a safe area.</p>
+  <div class="action-row">
+    <a class="btn primary" href="/dashboard">Go to Dashboard</a>
+    <a class="btn" href="/">Home</a>
+  </div>
+</section>
+{% endblock %}

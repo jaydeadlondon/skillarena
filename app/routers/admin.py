@@ -18,13 +18,51 @@ def templates(request: Request):
 
 
 @router.get("")
-async def admin_dashboard(request: Request, db: DbSession, user: User = Depends(require_admin)):
-    courses = (await db.execute(select(Course).order_by(Course.created_at.desc()).limit(8))).scalars().all()
-    quests = (await db.execute(select(Quest).order_by(Quest.created_at.desc()).limit(8))).scalars().all()
-    achievements = (await db.execute(select(Achievement).order_by(Achievement.created_at.desc()).limit(8))).scalars().all()
-    questions = (await db.execute(select(PvpQuestion).order_by(PvpQuestion.created_at.desc()).limit(8))).scalars().all()
-    users = (await db.execute(select(User).order_by(User.created_at.desc()).limit(8))).scalars().all()
-    cosmetics = (await db.execute(select(CosmeticItem).order_by(CosmeticItem.created_at.desc()).limit(8))).scalars().all()
+async def admin_dashboard(
+    request: Request, db: DbSession, user: User = Depends(require_admin)
+):
+    courses = (
+        (await db.execute(select(Course).order_by(Course.created_at.desc()).limit(8)))
+        .scalars()
+        .all()
+    )
+    quests = (
+        (await db.execute(select(Quest).order_by(Quest.created_at.desc()).limit(8)))
+        .scalars()
+        .all()
+    )
+    achievements = (
+        (
+            await db.execute(
+                select(Achievement).order_by(Achievement.created_at.desc()).limit(8)
+            )
+        )
+        .scalars()
+        .all()
+    )
+    questions = (
+        (
+            await db.execute(
+                select(PvpQuestion).order_by(PvpQuestion.created_at.desc()).limit(8)
+            )
+        )
+        .scalars()
+        .all()
+    )
+    users = (
+        (await db.execute(select(User).order_by(User.created_at.desc()).limit(8)))
+        .scalars()
+        .all()
+    )
+    cosmetics = (
+        (
+            await db.execute(
+                select(CosmeticItem).order_by(CosmeticItem.created_at.desc()).limit(8)
+            )
+        )
+        .scalars()
+        .all()
+    )
 
     stats = {
         "users": await db.scalar(select(func.count(User.id))) or 0,
@@ -51,8 +89,14 @@ async def admin_dashboard(request: Request, db: DbSession, user: User = Depends(
 
 
 @router.get("/users")
-async def admin_users(request: Request, db: DbSession, user: User = Depends(require_admin)):
-    users = (await db.execute(select(User).order_by(User.created_at.desc()))).scalars().all()
+async def admin_users(
+    request: Request, db: DbSession, user: User = Depends(require_admin)
+):
+    users = (
+        (await db.execute(select(User).order_by(User.created_at.desc())))
+        .scalars()
+        .all()
+    )
     return templates(request).TemplateResponse(
         request,
         "admin_users.html",
@@ -71,7 +115,9 @@ async def update_user_role(
     if target is None:
         return RedirectResponse("/admin/users?error=user-not-found", status_code=303)
     if target.id == user.id and role != UserRole.ADMIN.value:
-        return RedirectResponse("/admin/users?error=cannot-demote-yourself", status_code=303)
+        return RedirectResponse(
+            "/admin/users?error=cannot-demote-yourself", status_code=303
+        )
     target.role = UserRole.ADMIN if role == UserRole.ADMIN.value else UserRole.USER
     await db.commit()
     return RedirectResponse("/admin/users?success=role-updated", status_code=303)
@@ -90,16 +136,28 @@ async def adjust_user_points(
         return RedirectResponse("/admin/users?error=user-not-found", status_code=303)
     if target.skill_points + amount < 0:
         return RedirectResponse("/admin/users?error=negative-balance", status_code=303)
-    await add_skill_points(db, target, amount, reason or "Admin adjustment", "admin_user", target.id)
+    await add_skill_points(
+        db, target, amount, reason or "Admin adjustment", "admin_user", target.id
+    )
     await db.commit()
     return RedirectResponse("/admin/users?success=points-updated", status_code=303)
 
 
 @router.get("/cosmetics")
-async def admin_cosmetics(request: Request, db: DbSession, user: User = Depends(require_admin)):
+async def admin_cosmetics(
+    request: Request, db: DbSession, user: User = Depends(require_admin)
+):
     cosmetics = (
-        await db.execute(select(CosmeticItem).order_by(CosmeticItem.item_type, CosmeticItem.price_points, CosmeticItem.name))
-    ).scalars().all()
+        (
+            await db.execute(
+                select(CosmeticItem).order_by(
+                    CosmeticItem.item_type, CosmeticItem.price_points, CosmeticItem.name
+                )
+            )
+        )
+        .scalars()
+        .all()
+    )
     return templates(request).TemplateResponse(
         request,
         "admin_cosmetics.html",
@@ -146,7 +204,9 @@ async def update_cosmetic(
 ):
     cosmetic = await db.get(CosmeticItem, item_id)
     if cosmetic is None:
-        return RedirectResponse("/admin/cosmetics?error=item-not-found", status_code=303)
+        return RedirectResponse(
+            "/admin/cosmetics?error=item-not-found", status_code=303
+        )
     if item_type not in {"profile_frame", "profile_background", "aura"}:
         return RedirectResponse("/admin/cosmetics?error=invalid-type", status_code=303)
     cosmetic.name = name.strip()
@@ -158,7 +218,9 @@ async def update_cosmetic(
 
 
 @router.post("/cosmetics/{item_id}/toggle")
-async def toggle_cosmetic(item_id: int, db: DbSession, user: User = Depends(require_admin)):
+async def toggle_cosmetic(
+    item_id: int, db: DbSession, user: User = Depends(require_admin)
+):
     cosmetic = await db.get(CosmeticItem, item_id)
     if cosmetic:
         cosmetic.is_active = not cosmetic.is_active
@@ -167,14 +229,20 @@ async def toggle_cosmetic(item_id: int, db: DbSession, user: User = Depends(requ
 
 
 @router.get("/courses")
-async def admin_courses(request: Request, db: DbSession, user: User = Depends(require_admin)):
+async def admin_courses(
+    request: Request, db: DbSession, user: User = Depends(require_admin)
+):
     courses = (
-        await db.execute(
-            select(Course)
-            .options(selectinload(Course.lessons))
-            .order_by(Course.created_at.desc())
+        (
+            await db.execute(
+                select(Course)
+                .options(selectinload(Course.lessons))
+                .order_by(Course.created_at.desc())
+            )
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
     return templates(request).TemplateResponse(
         request,
         "admin_courses.html",
@@ -183,7 +251,9 @@ async def admin_courses(request: Request, db: DbSession, user: User = Depends(re
 
 
 @router.get("/courses/{course_id}")
-async def admin_course_detail(course_id: int, request: Request, db: DbSession, user: User = Depends(require_admin)):
+async def admin_course_detail(
+    course_id: int, request: Request, db: DbSession, user: User = Depends(require_admin)
+):
     course = (
         await db.execute(
             select(Course)
@@ -192,7 +262,9 @@ async def admin_course_detail(course_id: int, request: Request, db: DbSession, u
         )
     ).scalar_one_or_none()
     if course is None:
-        return RedirectResponse("/admin/courses?error=course-not-found", status_code=303)
+        return RedirectResponse(
+            "/admin/courses?error=course-not-found", status_code=303
+        )
     return templates(request).TemplateResponse(
         request,
         "admin_course_detail.html",
@@ -209,7 +281,15 @@ async def create_course(
     description: str = Form(...),
     category: str = Form("General"),
 ):
-    db.add(Course(title=title, slug=slug, description=description, category=category, is_published=True))
+    db.add(
+        Course(
+            title=title,
+            slug=slug,
+            description=description,
+            category=category,
+            is_published=True,
+        )
+    )
     await db.commit()
     return RedirectResponse("/admin/courses?success=created", status_code=303)
 
@@ -228,7 +308,9 @@ async def update_course(
 ):
     course = await db.get(Course, course_id)
     if course is None:
-        return RedirectResponse("/admin/courses?error=course-not-found", status_code=303)
+        return RedirectResponse(
+            "/admin/courses?error=course-not-found", status_code=303
+        )
     course.title = title.strip()
     course.slug = slug.strip()
     course.description = description.strip()
@@ -236,24 +318,34 @@ async def update_course(
     course.reward_points = max(0, reward_points)
     course.cover_image_url = cover_image_url.strip() or None
     await db.commit()
-    return RedirectResponse(f"/admin/courses/{course.id}?success=updated", status_code=303)
+    return RedirectResponse(
+        f"/admin/courses/{course.id}?success=updated", status_code=303
+    )
 
 
 @router.post("/courses/{course_id}/toggle")
-async def toggle_course(course_id: int, db: DbSession, user: User = Depends(require_admin)):
+async def toggle_course(
+    course_id: int, db: DbSession, user: User = Depends(require_admin)
+):
     course = await db.get(Course, course_id)
     if course:
         course.is_published = not course.is_published
         await db.commit()
-        return RedirectResponse(f"/admin/courses/{course.id}?success=course-toggled", status_code=303)
+        return RedirectResponse(
+            f"/admin/courses/{course.id}?success=course-toggled", status_code=303
+        )
     return RedirectResponse("/admin/courses?error=course-not-found", status_code=303)
 
 
 @router.post("/courses/{course_id}/delete")
-async def delete_course(course_id: int, db: DbSession, user: User = Depends(require_admin)):
+async def delete_course(
+    course_id: int, db: DbSession, user: User = Depends(require_admin)
+):
     course = await db.get(Course, course_id)
     if course is None:
-        return RedirectResponse("/admin/courses?error=course-not-found", status_code=303)
+        return RedirectResponse(
+            "/admin/courses?error=course-not-found", status_code=303
+        )
     await db.delete(course)
     await db.commit()
     return RedirectResponse("/admin/courses?success=deleted", status_code=303)
@@ -273,7 +365,9 @@ async def create_course_lesson(
 ):
     course = await db.get(Course, course_id)
     if course is None:
-        return RedirectResponse("/admin/courses?error=course-not-found", status_code=303)
+        return RedirectResponse(
+            "/admin/courses?error=course-not-found", status_code=303
+        )
     db.add(
         Lesson(
             course_id=course.id,
@@ -283,11 +377,14 @@ async def create_course_lesson(
             video_url=video_url.strip(),
             duration_minutes=max(1, duration_minutes),
             reward_points=max(0, reward_points),
-            content=content.strip() or "Stay focused: complete this small step and claim your reward.",
+            content=content.strip()
+            or "Stay focused: complete this small step and claim your reward.",
         )
     )
     await db.commit()
-    return RedirectResponse(f"/admin/courses/{course.id}?success=lesson-created", status_code=303)
+    return RedirectResponse(
+        f"/admin/courses/{course.id}?success=lesson-created", status_code=303
+    )
 
 
 @router.post("/lessons/{lesson_id}/update")
@@ -304,7 +401,9 @@ async def update_lesson(
 ):
     lesson = await db.get(Lesson, lesson_id)
     if lesson is None:
-        return RedirectResponse("/admin/courses?error=lesson-not-found", status_code=303)
+        return RedirectResponse(
+            "/admin/courses?error=lesson-not-found", status_code=303
+        )
     lesson.title = title.strip()
     lesson.position = position
     lesson.video_url = video_url.strip()
@@ -312,18 +411,26 @@ async def update_lesson(
     lesson.reward_points = max(0, reward_points)
     lesson.content = content.strip()
     await db.commit()
-    return RedirectResponse(f"/admin/courses/{lesson.course_id}?success=lesson-updated", status_code=303)
+    return RedirectResponse(
+        f"/admin/courses/{lesson.course_id}?success=lesson-updated", status_code=303
+    )
 
 
 @router.post("/lessons/{lesson_id}/delete")
-async def delete_lesson(lesson_id: int, db: DbSession, user: User = Depends(require_admin)):
+async def delete_lesson(
+    lesson_id: int, db: DbSession, user: User = Depends(require_admin)
+):
     lesson = await db.get(Lesson, lesson_id)
     if lesson is None:
-        return RedirectResponse("/admin/courses?error=lesson-not-found", status_code=303)
+        return RedirectResponse(
+            "/admin/courses?error=lesson-not-found", status_code=303
+        )
     course_id = lesson.course_id
     await db.delete(lesson)
     await db.commit()
-    return RedirectResponse(f"/admin/courses/{course_id}?success=lesson-deleted", status_code=303)
+    return RedirectResponse(
+        f"/admin/courses/{course_id}?success=lesson-deleted", status_code=303
+    )
 
 
 @router.post("/lessons")
@@ -376,7 +483,9 @@ async def create_quest(
 
 
 @router.post("/quests/{quest_id}/toggle")
-async def toggle_quest(quest_id: int, db: DbSession, user: User = Depends(require_admin)):
+async def toggle_quest(
+    quest_id: int, db: DbSession, user: User = Depends(require_admin)
+):
     quest = await db.get(Quest, quest_id)
     if quest:
         quest.is_active = not quest.is_active
@@ -410,7 +519,9 @@ async def create_pvp_question(
 
 
 @router.post("/pvp-questions/{question_id}/toggle")
-async def toggle_pvp_question(question_id: int, db: DbSession, user: User = Depends(require_admin)):
+async def toggle_pvp_question(
+    question_id: int, db: DbSession, user: User = Depends(require_admin)
+):
     question = await db.get(PvpQuestion, question_id)
     if question:
         question.is_active = not question.is_active

@@ -24,6 +24,7 @@ The current MVP includes:
 - Polished dark RPG UI with compact navigation, responsive cards, improved empty states, hover states, and page headers.
 - PvP quiz battles with server-side answer validation, battle history, result display, and tie refunds.
 - Admin panel for full course/lesson editing, quests, PvP questions, users, role changes, Skill Point adjustments, and cosmetics.
+- Production-readiness basics: Alembic migrations, database health check, environment examples, secure session settings, and custom error pages.
 - Demo seed data for local development.
 
 ## Tech stack
@@ -68,6 +69,12 @@ Create a local `.env` file:
 cp .env.example .env
 ```
 
+A production-oriented example is also available:
+
+```text
+.env.production.example
+```
+
 Main variables:
 
 ```env
@@ -99,15 +106,28 @@ Open:
 http://localhost:8000
 ```
 
-Health check:
+Health checks:
 
 ```text
 http://localhost:8000/health
+http://localhost:8000/health/db
 ```
 
 ## Database setup
 
-Create tables:
+Recommended migration flow:
+
+```bash
+docker compose exec web python -m alembic upgrade head
+```
+
+Alternative helper:
+
+```bash
+docker compose exec web python scripts/migrate_db.py
+```
+
+Legacy local table creation is still available for development:
 
 ```bash
 docker compose exec web python scripts/create_db.py
@@ -132,7 +152,7 @@ Debug registered and existing database tables:
 docker compose exec web python scripts/debug_tables.py
 ```
 
-The MVP currently uses `Base.metadata.create_all()` for local development. It creates missing tables, but it does not perform production-grade schema migrations. Alembic migrations should be added before production deployment.
+Alembic is configured for schema migrations. The legacy `create_db.py` script remains available for local development and creates missing tables with SQLAlchemy metadata.
 
 ## Steam authentication
 
@@ -197,6 +217,8 @@ Admin panel:
 
 ```text
 /                         Home page
+/health                   Application health check
+/health/db                Database health check
 /dashboard                User dashboard
 /courses                  Course catalog
 /courses/{slug}           Course detail
