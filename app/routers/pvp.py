@@ -238,10 +238,7 @@ async def pvp_battle_websocket(websocket: WebSocket, battle_id: int):
         while True:
             data = await websocket.receive_json()
             if data.get("type") == "ready":
-                await pvp_battle_manager.broadcast(
-                    battle_id,
-                    {"type": "ready", "user_id": user_id, "battle_id": battle_id},
-                )
+                await pvp_battle_manager.mark_ready(battle_id, int(user_id))
             elif data.get("type") == "ping":
                 await websocket.send_json({"type": "pong"})
     except WebSocketDisconnect:

@@ -21,6 +21,11 @@
     <div class="stat"><strong id="liveOpponentScore">{{ battle.opponent_score }}</strong><p>Opponent</p></div>
     <div class="stat"><strong id="livePresence">1</strong><p>Connected</p></div>
   </div>
+  <div class="action-row" style="margin-top:14px">
+    <button class="btn primary" id="liveReadyButton" type="button">Ready</button>
+    <span class="badge">Ready: <strong id="liveReadyCount">0</strong>/2</span>
+    <span class="badge">Timer: <strong id="liveTimer">--</strong></span>
+  </div>
 </section>
 
 {% if battle.status.value == 'waiting' %}
@@ -67,7 +72,7 @@
     {% if not questions %}
       <p class="muted">No active PvP questions yet. Ask an admin to create questions.</p>
     {% else %}
-      <form class="form" method="post" action="/pvp/{{ battle.id }}/submit">
+      <form class="form" method="post" action="/pvp/{{ battle.id }}/submit" id="pvpAnswerForm">
         {% for q in questions %}
           <div class="card">
             <strong>{{ loop.index }}. {{ q.question }}</strong>
