@@ -11,10 +11,10 @@ The current MVP includes:
 - PostgreSQL database with SQLAlchemy async models.
 - Course catalog with legal external video embeds, progress bars, continue-learning actions, and course completion rewards.
 - Lesson pages with real YouTube playback tracking, active heartbeat fallback tracking, and progress updates.
-- User profiles with Steam-vs-study time comparison.
+- RPG-style user profiles with level progress, cosmetics, onboarding preferences, learning stats, PvP record, achievements, and Steam-vs-study comparison.
 - Skill Points currency.
 - Cosmetic shop with purchasable/equippable profile frames, backgrounds, and auras.
-- Daily quests page with automatic progress tracking and claimable Skill Point rewards.
+- Daily and weekly quests with automatic progress tracking, period-based claiming, and Skill Point rewards.
 - Pomodoro-style focus sessions with selectable timers, Skill Point rewards, and streak support.
 - Expanded onboarding flow for learning goals, experience level, daily/weekly targets, preferred learning style, focus challenges, PvP preferences, Steam-balance nudges, and preferred focus session length.
 - Notifications page and reward animations for Skill Point rewards, refunds, and system updates.
