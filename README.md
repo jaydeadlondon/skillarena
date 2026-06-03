@@ -1,31 +1,150 @@
-# SkillArena
+<div align="center">
 
-SkillArena is a gamified learning platform built for focused, ADHD-friendly education. The MVP combines Steam sign-in, legal embedded learning content, quests, Skill Points, PvP quiz battles, achievements, profile progression, and a dark RPG-style interface.
+# ⚔️ SkillArena
 
-## Current MVP status
+**A dark RPG-style gamified learning platform for focused, consistent education.**
 
-The current MVP includes:
+SkillArena combines Steam authentication, structured courses, real video tracking, quests, streaks, achievements, focus sessions, PvP quiz battles, profile customization, and administrative tools into one Python-based web application.
 
-- Steam-only authentication via Steam OpenID.
-- Steam Web API integration for profile data and recent playtime.
-- PostgreSQL database with SQLAlchemy async models.
-- Course catalog with legal external video embeds, progress bars, continue-learning actions, and course completion rewards.
-- Lesson pages with real YouTube playback tracking, active heartbeat fallback tracking, and progress updates.
-- RPG-style user profiles with level progress, cosmetics, onboarding preferences, learning stats, PvP record, achievement gallery, and Steam-vs-study comparison.
+<br>
+
+![Python](https://img.shields.io/badge/Python-3.12+-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-Web%20App-009688?style=for-the-badge&logo=fastapi&logoColor=white)
+![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-Async%20ORM-D71F00?style=for-the-badge&logo=sqlalchemy&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Database-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
+
+<br>
+
+[Core Features](#core-features) • [Tech Stack](#tech-stack) • [Running Locally](#running-locally) • [Routes](#main-user-routes) • [Database](#database-management)
+
+</div>
+
+---
+
+## Overview
+
+SkillArena is designed around a simple loop: learn in small steps, earn rewards, maintain momentum, and make progress visible. The application is especially focused on reducing friction for learners who benefit from short goals, clear feedback, visual progress, and game-like motivation.
+
+The interface is built in English with a dark RPG/gaming style.
+
+## Core features
+
+### Authentication
+
+- Steam-only login through Steam OpenID.
+- Steam profile synchronization.
+- Steam Web API support for recent playtime statistics.
+- Optional development mock login.
+- Configurable admin Steam IDs.
+
+### Learning
+
+- Course catalog.
+- Course detail pages.
+- Lesson pages with embedded legal video content.
+- YouTube iframe API support for real playback tracking.
+- Fallback manual lesson timer for non-YouTube embeds.
+- Lesson progress tracking.
+- Course progress bars.
+- Continue-learning flow.
+- Course completion rewards.
+
+### Activity tracking
+
+- Active browser-time tracking through heartbeat requests.
+- Tracks site, lesson, course, PvP, quest, shop, profile, focus, and admin activity.
+- Counts only visible and recently active browser time.
+- Lesson time is tracked from real video playback where supported.
+
+### Gamification
+
 - Skill Points currency.
-- Cosmetic shop with purchasable/equippable profile frames, backgrounds, and auras.
-- Daily and weekly quests with automatic progress tracking, period-based claiming, and Skill Point rewards.
-- Pomodoro-style focus sessions with selectable timers, Skill Point rewards, and streak support.
-- Expanded onboarding flow for learning goals, experience level, daily/weekly targets, preferred learning style, focus challenges, PvP preferences, Steam-balance nudges, and preferred focus session length.
-- Notifications page and reward animations for Skill Point rewards, refunds, and system updates.
-- Learning streak system with LeetCode-style navbar streak indicator, 14-day timeline, and streak achievements.
-- Active-time tracking that only counts visible, recently active browser time and updates lesson progress automatically.
-- Server-rendered English UI using FastAPI and Jinja templates.
-- Polished dark RPG UI with compact navigation, responsive cards, improved empty states, hover states, and page headers.
-- PvP quiz battles with server-side answer validation, live WebSocket battle feed, ready check, server-authoritative deadline, battle history, result display, and tie refunds.
-- Admin panel for full course/lesson editing, quests, PvP questions, users, role changes, Skill Point adjustments, and cosmetics.
-- Production-readiness basics: Alembic migrations, database health check, environment examples, secure session settings, and custom error pages.
-- Demo seed data for local development.
+- Daily quests.
+- Weekly quests.
+- Period-based quest claiming.
+- Learning streaks.
+- LeetCode-style streak indicator in the navigation bar.
+- Achievements and achievement gallery.
+- Reward notifications.
+- Reward popups and confetti animations.
+
+### Focus sessions
+
+- Pomodoro-style focus timers.
+- Available focus durations: 5, 15, 25, and 50 minutes.
+- Skill Point rewards for completed focus sessions.
+- Focus sessions contribute to streaks and quests.
+- User onboarding preferences can mark a preferred focus session duration.
+
+### PvP quiz battles
+
+- PvP quiz lobby.
+- Entry fee paid with Skill Points.
+- Server-validated quiz answers.
+- WebSocket live battle feed.
+- Ready check.
+- Server-authoritative battle deadline.
+- Deadline-synchronized client countdown.
+- Late submission handling.
+- Tie handling with entry-fee refunds.
+- Battle history.
+
+### Profile and customization
+
+- RPG-style user profile.
+- Steam avatar display.
+- Equipped profile cosmetics.
+- Profile frames, backgrounds, and auras.
+- Level progress based on lifetime earned Skill Points.
+- Learning statistics.
+- PvP record.
+- Onboarding preferences.
+- Achievement summary.
+- Recent PvP battles.
+- Steam-vs-study comparison.
+
+### Cosmetic shop
+
+- Purchasable profile cosmetics.
+- Cosmetic inventory.
+- Equip and unequip actions.
+- Supported cosmetic types:
+  - profile frame;
+  - profile background;
+  - aura.
+
+### Notifications
+
+- User notifications page.
+- Skill Point reward notifications.
+- PvP refund notifications.
+- Admin adjustment notifications.
+- Mark one notification as read.
+- Mark all notifications as read.
+
+### Onboarding
+
+- Learning goal selection.
+- Experience level selection.
+- Daily and weekly learning targets.
+- Preferred learning style.
+- Focus challenge selection.
+- Preferred focus session length.
+- PvP recommendation preference.
+- Steam-vs-study balance preference.
+
+### Administration
+
+- Admin dashboard.
+- User management.
+- Role management.
+- Manual Skill Point adjustments.
+- Course management.
+- Lesson management.
+- Course publishing controls.
+- Quest creation and activation controls.
+- PvP question creation and activation controls.
+- Cosmetic creation, editing, pricing, previewing, activation, and deactivation.
 
 ## Tech stack
 
@@ -33,49 +152,50 @@ The current MVP includes:
 - FastAPI
 - Jinja2 templates
 - SQLAlchemy 2.x async ORM
-- PostgreSQL 16
+- PostgreSQL
 - asyncpg
+- Alembic
 - Docker Compose
-- Steam OpenID authentication
+- Steam OpenID
 - Steam Web API
-- Vanilla CSS and JavaScript
+- WebSockets
+- Vanilla JavaScript
+- CSS
 
 ## Project structure
 
 ```text
 SkillArena/
 ├── app/
-│   ├── core/          # Configuration
-│   ├── db/            # Database engine/session/base metadata
-│   ├── models/        # SQLAlchemy models
-│   ├── routers/       # FastAPI route modules
-│   ├── schemas/       # Reserved for Pydantic schemas
-│   ├── services/      # Steam, rewards, video helpers, domain services
-│   ├── static/        # CSS and JavaScript
-│   └── templates/     # Jinja HTML templates
-├── scripts/           # Local database/setup utilities
+│   ├── core/              # Application configuration
+│   ├── db/                # Database engine, session, and base metadata
+│   ├── models/            # SQLAlchemy models
+│   ├── routers/           # FastAPI route modules
+│   ├── schemas/           # Reserved for Pydantic schemas
+│   ├── services/          # Domain services
+│   ├── static/            # CSS and JavaScript assets
+│   └── templates/         # Jinja templates
+├── alembic/
+│   ├── versions/          # Database migrations
+│   └── env.py
+├── scripts/               # Local utility scripts
 ├── docker-compose.yml
 ├── Dockerfile
 ├── pyproject.toml
+├── alembic.ini
 ├── README.md
 └── .env.example
 ```
 
-## Environment variables
+## Environment configuration
 
-Create a local `.env` file:
+Create a local environment file:
 
 ```bash
 cp .env.example .env
 ```
 
-A production-oriented example is also available:
-
-```text
-.env.production.example
-```
-
-Main variables:
+Main environment variables:
 
 ```env
 APP_NAME=SkillArena
@@ -83,54 +203,56 @@ APP_ENV=development
 APP_SECRET_KEY=change-me-to-a-long-random-secret
 APP_BASE_URL=http://localhost:8000
 DATABASE_URL=postgresql+asyncpg://skillarena:skillarena@db:5432/skillarena
+
 STEAM_API_KEY=your-steam-web-api-key
 STEAM_REALM=http://localhost:8000
 STEAM_RETURN_URL=http://localhost:8000/auth/steam/callback
 STEAM_MOCK_LOGIN=true
 ADMIN_STEAM_IDS=7656119xxxxxxxxxx,7656119yyyyyyyyyy
+
+SESSION_COOKIE_SECURE=false
+SESSION_COOKIE_SAMESITE=lax
+SESSION_MAX_AGE_SECONDS=1209600
 ```
 
-`ADMIN_STEAM_IDS` is optional but recommended for local development. Add your real SteamID64 there to receive admin access after Steam login.
+A production-oriented environment template is available as:
 
-## Running locally with Docker Compose
+```text
+.env.production.example
+```
 
-From the project root:
+## Running locally
+
+Start the application and PostgreSQL:
 
 ```bash
 docker compose up --build
 ```
 
-Open:
+Open the application:
 
 ```text
 http://localhost:8000
 ```
 
-Health checks:
+If the image has already been built and dependencies have not changed, this is usually enough:
 
-```text
-http://localhost:8000/health
-http://localhost:8000/health/db
+```bash
+docker compose up
 ```
 
-## Database setup
+## Database management
 
-Recommended migration flow:
+Run database migrations:
 
 ```bash
 docker compose exec web python -m alembic upgrade head
 ```
 
-Alternative helper:
+Alternative migration helper:
 
 ```bash
 docker compose exec web python scripts/migrate_db.py
-```
-
-Legacy local table creation is still available for development:
-
-```bash
-docker compose exec web python scripts/create_db.py
 ```
 
 Seed demo data:
@@ -139,176 +261,183 @@ Seed demo data:
 docker compose exec web python scripts/seed_demo.py
 ```
 
-Alternative module-style commands:
-
-```bash
-docker compose exec web python -m scripts.create_db
-docker compose exec web python -m scripts.seed_demo
-```
-
-Debug registered and existing database tables:
+Inspect registered and existing database tables:
 
 ```bash
 docker compose exec web python scripts/debug_tables.py
 ```
 
-Alembic is configured for schema migrations. The legacy `create_db.py` script remains available for local development and creates missing tables with SQLAlchemy metadata.
+A local metadata-based table creation helper is also available:
+
+```bash
+docker compose exec web python scripts/create_db.py
+```
+
+## Health checks
+
+Application health:
+
+```text
+GET /health
+```
+
+Database health:
+
+```text
+GET /health/db
+```
 
 ## Steam authentication
 
-Steam login route:
+Steam login:
 
 ```text
-/auth/steam
+GET /auth/steam
+```
+
+Steam callback:
+
+```text
+GET /auth/steam/callback
 ```
 
 Debug generated Steam login URL:
 
 ```text
-/auth/steam/login-url
+GET /auth/steam/login-url
 ```
 
-Steam callback route:
+Development mock login:
 
 ```text
-/auth/steam/callback
+GET /auth/steam/mock
 ```
 
-For real Steam login:
-
-1. Put your Steam Web API key into `.env`.
-2. Set `STEAM_MOCK_LOGIN=false` if you want to hide development mock login behavior.
-3. Make sure the app is opened using the same host you expect for callback URLs, usually `http://localhost:8000` in local development.
-
-## Admin access
-
-Admin-only pages require the user role `admin`.
-
-Recommended local method:
-
-1. Find your SteamID64.
-2. Add it to `.env`:
+To give a real Steam user admin access, add their SteamID64 to:
 
 ```env
-ADMIN_STEAM_IDS=your_steam_id_64
+ADMIN_STEAM_IDS=7656119xxxxxxxxxx
 ```
 
-3. Restart the web container:
+A manual admin promotion helper is also available:
 
 ```bash
-docker compose restart web
+docker compose exec web python scripts/grant_admin.py <steam_id_64>
 ```
 
-4. Log out and log in through Steam again.
-
-You can also promote a user manually with the helper script:
-
-```bash
-docker compose exec web python scripts/grant_admin.py your_steam_id_64
-```
-
-Admin panel:
-
-```text
-/admin
-```
-
-## Main routes
+## Main user routes
 
 ```text
 /                         Home page
-/health                   Application health check
-/health/db                Database health check
 /dashboard                User dashboard
 /courses                  Course catalog
 /courses/{slug}           Course detail
 /learn/lessons/{id}       Lesson player
 /activity/heartbeat       Activity tracking endpoint
 /achievements             Achievement gallery
-/focus                    Pomodoro-style focus sessions
-/onboarding               User onboarding and learning setup
+/focus                    Focus sessions
+/onboarding               User onboarding
 /notifications            User notifications
-/quests                   Daily quests
+/quests                   Daily and weekly quests
 /streaks                  Learning streaks
 /profile                  User profile
 /shop                     Cosmetic shop
 /pvp                      PvP lobby
 /pvp/history              PvP battle history
 /pvp/{id}/play            PvP battle page
-/admin                    Admin panel
-/admin/courses            Admin course management
-/admin/courses/{id}       Admin course and lesson editor
-/admin/users              Admin user management
-/admin/cosmetics          Admin cosmetic management
-/auth/steam               Steam login
-/auth/steam/mock          Development mock login
+/pvp/{id}/state           PvP battle state endpoint
+/pvp/{id}/ws              PvP live WebSocket endpoint
 ```
 
-## MVP gameplay loop
+## Admin routes
 
-1. User signs in with Steam.
-2. User completes onboarding with learning goal and focus preferences.
-3. User opens the dashboard and sees Skill Points, quests, study stats, and Steam-vs-study balance.
-4. User selects a course.
-5. User completes small lessons.
-6. Lesson progress increases study time, course progress, and rewards Skill Points.
-7. Completed courses grant course rewards and guide the user to the next learning step.
-8. User builds a daily streak through lessons, focus sessions, study time, or PvP wins.
-9. User completes daily quests and claims extra Skill Points.
-10. User joins PvP quiz battles and pays an entry fee.
-11. Server validates PvP answers and pays the winner.
-12. User spends Skill Points in the cosmetic shop.
-13. User profile displays progress, achievements, and earned identity markers.
-
-## Legal content policy
-
-SkillArena should only embed or link to materials that are legal to use:
-
-- YouTube videos that allow embedding.
-- Vimeo videos that allow embedding.
-- Free public learning resources with allowed embedding/linking.
-- Own uploaded or owned content in future versions.
-
-Do not mirror or embed paid/protected Udemy content unless explicit permission or a valid integration permits it.
-
-## Development notes
-
-After pulling new model changes, run:
-
-```bash
-docker compose exec web python scripts/create_db.py
+```text
+/admin                    Admin dashboard
+/admin/courses            Course management
+/admin/courses/{id}       Course and lesson editor
+/admin/users              User management
+/admin/cosmetics          Cosmetic management
 ```
 
-If the web app behaves like it is using old Python code, restart the container:
+## Learning flow
+
+1. A user logs in with Steam.
+2. The user completes onboarding.
+3. The dashboard recommends a next action.
+4. The user opens a course and continues the next lesson.
+5. Lesson video playback is tracked.
+6. Lesson completion grants Skill Points.
+7. Course completion grants course rewards.
+8. Quests and streaks update from learning activity.
+9. Achievements unlock as goals are reached.
+10. Skill Points can be spent in the cosmetic shop or used for PvP entry fees.
+
+## PvP flow
+
+1. A user creates a PvP quiz battle.
+2. The entry fee is deducted.
+3. Another user joins the battle.
+4. Both users press Ready.
+5. The server sets `started_at` and `deadline_at`.
+6. The client countdown synchronizes to the server deadline.
+7. Users submit answers before the deadline.
+8. The server validates answers and calculates scores.
+9. The winner receives the battle reward.
+10. A tie refunds both entry fees.
+
+## Activity and video tracking
+
+SkillArena uses two complementary tracking systems:
+
+1. General active-time tracking through `/activity/heartbeat`.
+2. Lesson video tracking through the lesson player.
+
+YouTube lessons use the YouTube iframe API with `enablejsapi=1`. Time is counted while the video is playing and the browser tab is visible.
+
+For non-YouTube embeds, SkillArena provides a fallback lesson timer.
+
+## Content policy
+
+SkillArena should only embed or link to content that is legal to use:
+
+- YouTube videos that allow embedding;
+- Vimeo videos that allow embedding;
+- free public learning resources with allowed linking or embedding;
+- owned or properly licensed content.
+
+Do not mirror or embed paid/protected content without permission.
+
+## Common development commands
+
+Restart the web container:
 
 ```bash
 docker compose restart web
 ```
 
-For a full clean local restart:
+Run migrations:
 
 ```bash
-docker compose down
-docker compose up --build
+docker compose exec web python -m alembic upgrade head
 ```
 
-To reset the local database completely:
+Seed demo data:
+
+```bash
+docker compose exec web python scripts/seed_demo.py
+```
+
+Run a syntax check:
+
+```bash
+python -m compileall app scripts alembic
+```
+
+Reset the local Docker database volume:
 
 ```bash
 docker compose down -v
 docker compose up --build
-docker compose exec web python scripts/create_db.py
+docker compose exec web python -m alembic upgrade head
 docker compose exec web python scripts/seed_demo.py
 ```
-
-## Roadmap after MVP
-
-Planned next improvements:
-
-- Automatic achievement evaluation.
-- Cosmetic shop and profile customization.
-- Stronger quest progress and claim flow.
-- Stronger real-time PvP matchmaking and Redis-backed multi-process rooms.
-- Alembic migrations.
-- Redis-backed background jobs and scheduled Steam stat refresh.
-- Production deployment configuration.
