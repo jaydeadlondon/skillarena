@@ -14,17 +14,29 @@ branch_labels = None
 depends_on = None
 
 
+def _has_column(table_name: str, column_name: str) -> bool:
+    bind = op.get_bind()
+    inspector = sa.inspect(bind)
+    return column_name in {
+        column["name"] for column in inspector.get_columns(table_name)
+    }
+
+
 def upgrade() -> None:
-    op.add_column(
-        "pvp_battles",
-        sa.Column("started_at", sa.DateTime(timezone=True), nullable=True),
-    )
-    op.add_column(
-        "pvp_battles",
-        sa.Column("deadline_at", sa.DateTime(timezone=True), nullable=True),
-    )
+    if not _has_column("pvp_battles", "started_at"):
+        op.add_column(
+            "pvp_battles",
+            sa.Column("started_at", sa.DateTime(timezone=True), nullable=True),
+        )
+    if not _has_column("pvp_battles", "deadline_at"):
+        op.add_column(
+            "pvp_battles",
+            sa.Column("deadline_at", sa.DateTime(timezone=True), nullable=True),
+        )
 
 
 def downgrade() -> None:
-    op.drop_column("pvp_battles", "deadline_at")
-    op.drop_column("pvp_battles", "started_at")
+    if _has_column("pvp_battles", "deadline_at"):
+        op.drop_column("pvp_battles", "deadline_at")
+    if _has_column("pvp_battles", "started_at"):
+        op.drop_column("pvp_battles", "started_at")

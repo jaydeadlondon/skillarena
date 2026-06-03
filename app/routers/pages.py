@@ -6,7 +6,12 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import selectinload
 
 from app.models.course import Course, LessonProgress
-from app.models.gamification import Achievement, FocusSession, UserCosmetic
+from app.models.gamification import (
+    Achievement,
+    FocusSession,
+    UserCosmetic,
+    UserOnboarding,
+)
 from app.models.pvp import PvpBattle
 from app.models.user import User
 from app.routers.deps import DbSession, get_current_user, require_user
@@ -61,6 +66,25 @@ async def dashboard(
             func.date(FocusSession.created_at) == func.current_date(),
         )
     )
+    onboarding = await db.scalar(
+        select(UserOnboarding).where(UserOnboarding.user_id == user.id)
+    )
+    recommended_action = "Continue your next lesson"
+    recommended_url = (
+        f"/learn/lessons/{continue_lesson.id}" if continue_lesson else "/courses"
+    )
+    if (
+        onboarding
+        and int(focus_minutes_today or 0) < onboarding.daily_goal_minutes
+        and onboarding.preferred_session_minutes <= 25
+    ):
+        recommended_action = (
+            f"Start a {onboarding.preferred_session_minutes}-min focus sprint"
+        )
+        recommended_url = "/focus"
+    elif daily_quest_cards and any(card["can_claim"] for card in daily_quest_cards):
+        recommended_action = "Claim your completed quest reward"
+        recommended_url = "/quests"
     await db.flush()
     battles = (
         (
@@ -101,6 +125,9 @@ async def dashboard(
             "continue_lesson": continue_lesson,
             "continue_progress": continue_progress,
             "focus_minutes_today": focus_minutes_today or 0,
+            "onboarding": onboarding,
+            "recommended_action": recommended_action,
+            "recommended_url": recommended_url,
             "daily_quest_cards": daily_quest_cards[:4],
             "daily_quests_completed": sum(
                 1 for card in daily_quest_cards if card["user_quest"].completed

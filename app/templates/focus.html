@@ -28,7 +28,7 @@
   <h2>Choose duration</h2>
   <div class="focus-options">
     {% for duration in durations %}
-      <button class="btn primary" type="button" data-focus-start data-duration="{{ duration }}">{{ duration }} min · +{{ (duration // 5) * 5 }} SP</button>
+      <button class="btn primary" type="button" data-focus-start data-duration="{{ duration }}">{{ duration }} min · +{{ (duration // 5) * 5 }} SP{% if onboarding and onboarding.preferred_session_minutes == duration %} · recommended{% endif %}</button>
     {% endfor %}
   </div>
 </section>

@@ -10,6 +10,24 @@
   <div class="card"><span class="badge">📚 Lessons</span><h2>{{ completed_lessons }}</h2><p class="muted">Completed across {{ courses_count }} available courses.</p></div>
 </div>
 
+{% if onboarding %}
+<section class="card" style="margin-top:18px">
+  <div class="section-title">
+    <div>
+      <span class="badge">Personalized path</span>
+      <h2>{{ onboarding.learning_goal }}</h2>
+    </div>
+    <a class="btn primary" href="{{ recommended_url }}">{{ recommended_action }}</a>
+  </div>
+  {% set today_learning_minutes = ((activity_summary.lesson_seconds / 60) + focus_minutes_today)|round(0) %}
+  {% set daily_goal = onboarding.daily_goal_minutes if onboarding.daily_goal_minutes else 20 %}
+  {% set daily_pct = (today_learning_minutes * 100 / daily_goal) if daily_goal else 0 %}
+  <p class="muted">Daily target: {{ today_learning_minutes|int }} / {{ daily_goal }} min · Weekly target: {{ onboarding.weekly_goal_minutes }} min · Style: {{ onboarding.preferred_learning_style }}</p>
+  <div class="progress"><span style="width: {{ 100 if daily_pct > 100 else daily_pct }}%"></span></div>
+  <p class="muted">Focus challenge: {{ onboarding.focus_challenge.replace('_', ' ') }} · Preferred sprint: {{ onboarding.preferred_session_minutes }} min</p>
+</section>
+{% endif %}
+
 {% if continue_lesson %}
 <section class="card" style="margin-top:18px">
   <span class="badge">Continue where you left off</span>
@@ -30,12 +48,18 @@
     <p class="muted">The glowing part is lesson time share. Timer counts only visible, recently active browser time.</p>
   </div>
   <div class="card">
-    <h2>Steam vs Study · last 2 weeks</h2>
-    {% set total = steam_minutes_2w + study_minutes_2w %}
-    {% set study_pct = (study_minutes_2w * 100 / total) if total else 0 %}
-    <p>Steam: <strong>{{ (steam_minutes_2w / 60)|round(1) }}h</strong> · Study: <strong>{{ (study_minutes_2w / 60)|round(1) }}h</strong></p>
-    <div class="progress"><span style="width: {{ study_pct }}%"></span></div>
-    <p class="muted">The glowing part is your study share. Keep pushing the balance toward learning.</p>
+    {% if onboarding and not onboarding.wants_steam_balance %}
+      <h2>Study balance</h2>
+      <p class="muted">Steam balance nudges are disabled in your onboarding preferences.</p>
+      <a class="btn" href="/onboarding">Update preferences</a>
+    {% else %}
+      <h2>Steam vs Study · last 2 weeks</h2>
+      {% set total = steam_minutes_2w + study_minutes_2w %}
+      {% set study_pct = (study_minutes_2w * 100 / total) if total else 0 %}
+      <p>Steam: <strong>{{ (steam_minutes_2w / 60)|round(1) }}h</strong> · Study: <strong>{{ (study_minutes_2w / 60)|round(1) }}h</strong></p>
+      <div class="progress"><span style="width: {{ study_pct }}%"></span></div>
+      <p class="muted">The glowing part is your study share. Keep pushing the balance toward learning.</p>
+    {% endif %}
   </div>
 </section>
 

@@ -31,7 +31,12 @@ async def complete_onboarding(
     learning_goal: str = Form(...),
     experience_level: str = Form("beginner"),
     weekly_goal_minutes: int = Form(120),
+    daily_goal_minutes: int = Form(20),
     preferred_session_minutes: int = Form(25),
+    preferred_learning_style: str = Form("video"),
+    focus_challenge: str = Form("distractions"),
+    wants_pvp: bool = Form(False),
+    wants_steam_balance: bool = Form(False),
 ):
     await save_onboarding(
         db,
@@ -40,6 +45,11 @@ async def complete_onboarding(
         experience_level,
         weekly_goal_minutes,
         preferred_session_minutes,
+        daily_goal_minutes,
+        preferred_learning_style,
+        focus_challenge,
+        wants_pvp,
+        wants_steam_balance,
     )
     await db.commit()
     return RedirectResponse("/dashboard?onboarding=completed", status_code=303)

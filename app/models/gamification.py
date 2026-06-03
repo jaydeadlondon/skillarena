@@ -149,8 +149,19 @@ class UserOnboarding(Base):
     weekly_goal_minutes: Mapped[int] = mapped_column(
         Integer, default=120, nullable=False
     )
+    daily_goal_minutes: Mapped[int] = mapped_column(Integer, default=20, nullable=False)
     preferred_session_minutes: Mapped[int] = mapped_column(
         Integer, default=25, nullable=False
+    )
+    preferred_learning_style: Mapped[str] = mapped_column(
+        String(40), default="video", nullable=False
+    )
+    focus_challenge: Mapped[str] = mapped_column(
+        String(80), default="distractions", nullable=False
+    )
+    wants_pvp: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    wants_steam_balance: Mapped[bool] = mapped_column(
+        Boolean, default=True, nullable=False
     )
     completed: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     created_at: Mapped[created_at]

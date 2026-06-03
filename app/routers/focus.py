@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import RedirectResponse
 from sqlalchemy import func, select
 
-from app.models.gamification import FocusSession
+from app.models.gamification import FocusSession, UserOnboarding
 from app.models.user import User
 from app.routers.deps import DbSession, require_user
 from app.services.activity import add_activity_seconds
@@ -40,6 +40,9 @@ async def focus_page(
             func.date(FocusSession.created_at) == func.current_date(),
         )
     )
+    onboarding = await db.scalar(
+        select(UserOnboarding).where(UserOnboarding.user_id == user.id)
+    )
     recent_sessions = (
         (
             await db.execute(
@@ -62,6 +65,7 @@ async def focus_page(
             "completed_today": completed_today or 0,
             "total_today_minutes": total_today_minutes or 0,
             "recent_sessions": recent_sessions,
+            "onboarding": onboarding,
         },
     )
 
