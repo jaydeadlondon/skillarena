@@ -14,6 +14,7 @@
   const liveTimer = document.getElementById("liveTimer");
   const answerForm = document.getElementById("pvpAnswerForm");
   let roundInterval = null;
+  let statePollInterval = null;
   let formSubmitted = false;
   let serverOffsetMs = 0;
 
@@ -47,6 +48,12 @@
     const parsed = Date.parse(serverNow);
     if (!Number.isNaN(parsed)) {
       serverOffsetMs = parsed - Date.now();
+    }
+  }
+  function lockReadyButton(text) {
+    if (readyButton) {
+      readyButton.disabled = true;
+      readyButton.textContent = text;
     }
   }
   function submitIfPossible() {
@@ -95,6 +102,61 @@
     render();
     roundInterval = setInterval(render, 1000);
   }
+  function applyStartedState(deadlineAt, serverNow, source) {
+    if (!deadlineAt) {
+      return;
+    }
+    updateServerOffset(serverNow);
+    cfg.deadlineAt = deadlineAt;
+    setStatus("Started");
+    setMessage(source || "Server-timed battle is active.");
+    lockReadyButton("Started");
+    startDeadlineTimer(deadlineAt, 60);
+  }
+  function applyFinishedState(data) {
+    setScores(data);
+    setStatus("Finished");
+    if (roundInterval) {
+      clearInterval(roundInterval);
+    }
+    if (statePollInterval) {
+      clearInterval(statePollInterval);
+    }
+    if (liveTimer) {
+      liveTimer.textContent = "done";
+    }
+    if (data.winner_id === null || data.result === "tie") {
+      setMessage("Battle finished as a tie. Entry fees refunded.");
+    } else if (data.winner_id === cfg.userId) {
+      setMessage("Battle finished. You won!");
+    } else {
+      setMessage("Battle finished. Opponent won.");
+    }
+  }
+  async function pollBattleState() {
+    try {
+      const response = await fetch(`/pvp/${cfg.battleId}/state`, {
+        headers: { Accept: "application/json" },
+      });
+      if (!response.ok) {
+        return;
+      }
+      const data = await response.json();
+      updateServerOffset(data.server_now);
+      setScores(data);
+      if (data.status === "finished") {
+        applyFinishedState(data);
+        return;
+      }
+      if (data.deadline_at && !cfg.deadlineAt) {
+        applyStartedState(
+          data.deadline_at,
+          data.server_now,
+          "Recovered active server deadline.",
+        );
+      }
+    } catch (e) {}
+  }
 
   if (answerForm) {
     answerForm.addEventListener("submit", () => {
@@ -105,16 +167,15 @@
     updateServerOffset(cfg.serverNow);
   }
   if (cfg.deadlineAt) {
-    setStatus("Started");
-    setMessage(
+    applyStartedState(
+      cfg.deadlineAt,
+      cfg.serverNow,
       "Battle already started. Timer is synchronized with the server deadline.",
     );
-    startDeadlineTimer(cfg.deadlineAt, 60);
-    if (readyButton) {
-      readyButton.disabled = true;
-      readyButton.textContent = "Started";
-    }
   }
+
+  statePollInterval = setInterval(pollBattleState, 3000);
+  setTimeout(pollBattleState, 700);
 
   const protocol = window.location.protocol === "https:" ? "wss" : "ws";
   const socket = new WebSocket(
@@ -134,15 +195,20 @@
     readyButton.addEventListener("click", () => {
       if (socket.readyState === WebSocket.OPEN) {
         socket.send(JSON.stringify({ type: "ready" }));
-        readyButton.disabled = true;
-        readyButton.textContent = "Ready ✓";
+        lockReadyButton("Ready ✓");
+      } else {
+        setMessage(
+          "Live channel is not connected yet. Refresh the page and try again.",
+        );
       }
     });
   }
 
   socket.addEventListener("close", () => {
     setStatus("Offline");
-    setMessage("Live channel closed. Refresh if you want live updates again.");
+    setMessage(
+      "Live channel closed. State polling is still watching the server deadline.",
+    );
   });
 
   socket.addEventListener("message", (event) => {
@@ -158,14 +224,11 @@
 
     if (data.type === "connected") {
       if (data.deadline_at) {
-        cfg.deadlineAt = data.deadline_at;
-        setStatus("Started");
-        setMessage("Connected to active server-timed battle.");
-        if (readyButton) {
-          readyButton.disabled = true;
-          readyButton.textContent = "Started";
-        }
-        startDeadlineTimer(data.deadline_at, 60);
+        applyStartedState(
+          data.deadline_at,
+          data.server_now,
+          "Connected to active server-timed battle.",
+        );
       }
     }
     if (data.type === "presence") {
@@ -188,14 +251,11 @@
       setMessage("A player is ready in the live battle room.");
     }
     if (data.type === "battle_started") {
-      cfg.deadlineAt = data.deadline_at;
-      setStatus("Started");
-      setMessage("Both players are ready. Server deadline started!");
-      if (readyButton) {
-        readyButton.disabled = true;
-        readyButton.textContent = "Started";
-      }
-      startDeadlineTimer(data.deadline_at, data.duration_seconds || 60);
+      applyStartedState(
+        data.deadline_at,
+        data.server_now,
+        "Both players are ready. Server deadline started!",
+      );
     }
     if (data.type === "opponent_joined") {
       setStatus("Opponent joined");
@@ -213,21 +273,7 @@
       );
     }
     if (data.type === "battle_finished") {
-      setScores(data);
-      setStatus("Finished");
-      if (roundInterval) {
-        clearInterval(roundInterval);
-      }
-      if (liveTimer) {
-        liveTimer.textContent = "done";
-      }
-      if (data.result === "tie") {
-        setMessage("Battle finished as a tie. Entry fees refunded.");
-      } else if (data.winner_id === cfg.userId) {
-        setMessage("Battle finished. You won!");
-      } else {
-        setMessage("Battle finished. Opponent won.");
-      }
+      applyFinishedState(data);
     }
   });
 })();

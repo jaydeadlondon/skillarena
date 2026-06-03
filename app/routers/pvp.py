@@ -1,7 +1,7 @@
 from datetime import UTC, datetime, timedelta
 
 from fastapi import APIRouter, Depends, Request, WebSocket, WebSocketDisconnect
-from fastapi.responses import RedirectResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from sqlalchemy import func, select
 from sqlalchemy.orm import selectinload
 
@@ -324,6 +324,40 @@ async def create_battle(db: DbSession, user: User = Depends(require_user)):
     await ensure_battle_questions(db, battle)
     await db.commit()
     return RedirectResponse(f"/pvp/{battle.id}/play", status_code=303)
+
+
+@router.get("/{battle_id}/state")
+async def battle_state(
+    battle_id: int, db: DbSession, user: User = Depends(require_user)
+):
+    battle = await db.get(PvpBattle, battle_id)
+    if not battle or user.id not in {battle.challenger_id, battle.opponent_id}:
+        return JSONResponse({"error": "battle-not-found"}, status_code=404)
+
+    submissions = (
+        (
+            await db.execute(
+                select(PvpBattleSubmission).where(
+                    PvpBattleSubmission.battle_id == battle.id
+                )
+            )
+        )
+        .scalars()
+        .all()
+    )
+    return {
+        "battle_id": battle.id,
+        "status": battle.status.value,
+        "winner_id": battle.winner_id,
+        "challenger_id": battle.challenger_id,
+        "opponent_id": battle.opponent_id,
+        "challenger_score": battle.challenger_score,
+        "opponent_score": battle.opponent_score,
+        "started_at": iso_or_none(battle.started_at),
+        "deadline_at": iso_or_none(battle.deadline_at),
+        "server_now": datetime.now(UTC).isoformat(),
+        "submitted_user_ids": [submission.user_id for submission in submissions],
+    }
 
 
 @router.post("/{battle_id}/join")
