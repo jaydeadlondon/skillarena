@@ -4,6 +4,7 @@ from typing import Any
 from starlette.websockets import WebSocket
 
 LIVE_PVP_ROUND_SECONDS = 60
+PVP_DEADLINE_GRACE_SECONDS = 5
 
 
 class BattleConnectionManager:
@@ -29,7 +30,7 @@ class BattleConnectionManager:
             self._ready_users.pop(battle_id, None)
             self._started_battles.discard(battle_id)
 
-    async def mark_ready(self, battle_id: int, user_id: int) -> None:
+    async def mark_ready(self, battle_id: int, user_id: int) -> bool:
         self._ready_users[battle_id].add(user_id)
         await self.broadcast(
             battle_id,
@@ -45,14 +46,8 @@ class BattleConnectionManager:
             and battle_id not in self._started_battles
         ):
             self._started_battles.add(battle_id)
-            await self.broadcast(
-                battle_id,
-                {
-                    "type": "battle_started",
-                    "battle_id": battle_id,
-                    "duration_seconds": LIVE_PVP_ROUND_SECONDS,
-                },
-            )
+            return True
+        return False
 
     async def broadcast_presence(self, battle_id: int) -> None:
         await self.broadcast(

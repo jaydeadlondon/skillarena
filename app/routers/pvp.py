@@ -1,3 +1,5 @@
+from datetime import UTC, datetime, timedelta
+
 from fastapi import APIRouter, Depends, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import RedirectResponse
 from sqlalchemy import func, select
@@ -11,10 +13,15 @@ from app.models.pvp import (
     PvpBattleSubmission,
     PvpQuestion,
 )
+from app.db.session import AsyncSessionLocal
 from app.models.user import User
 from app.routers.deps import DbSession, require_user
 from app.services.achievements import evaluate_pvp_achievements
-from app.services.realtime import pvp_battle_manager
+from app.services.realtime import (
+    LIVE_PVP_ROUND_SECONDS,
+    PVP_DEADLINE_GRACE_SECONDS,
+    pvp_battle_manager,
+)
 from app.services.rewards import add_skill_points
 from app.services.streaks import sync_user_streak
 
@@ -86,6 +93,30 @@ async def get_user_submission(
             )
         )
     ).scalar_one_or_none()
+
+
+def iso_or_none(value: datetime | None) -> str | None:
+    return value.isoformat() if value else None
+
+
+async def start_battle_round(db: DbSession, battle: PvpBattle) -> None:
+    if battle.started_at and battle.deadline_at:
+        return
+    now = datetime.now(UTC)
+    battle.started_at = now
+    battle.deadline_at = now + timedelta(seconds=LIVE_PVP_ROUND_SECONDS)
+    await db.flush()
+    await pvp_battle_manager.broadcast(
+        battle.id,
+        {
+            "type": "battle_started",
+            "battle_id": battle.id,
+            "duration_seconds": LIVE_PVP_ROUND_SECONDS,
+            "started_at": iso_or_none(battle.started_at),
+            "deadline_at": iso_or_none(battle.deadline_at),
+            "server_now": now.isoformat(),
+        },
+    )
 
 
 async def finish_battle_if_ready(db: DbSession, battle: PvpBattle) -> None:
@@ -230,17 +261,46 @@ async def pvp_battle_websocket(websocket: WebSocket, battle_id: int):
         await websocket.close(code=1008)
         return
 
+    async with AsyncSessionLocal() as db:
+        battle = await db.get(PvpBattle, battle_id)
+        if not battle or int(user_id) not in {battle.challenger_id, battle.opponent_id}:
+            await websocket.close(code=1008)
+            return
+
     await pvp_battle_manager.connect(battle_id, websocket)
     try:
-        await websocket.send_json(
-            {"type": "connected", "battle_id": battle_id, "user_id": user_id}
-        )
+        async with AsyncSessionLocal() as db:
+            battle = await db.get(PvpBattle, battle_id)
+            await websocket.send_json(
+                {
+                    "type": "connected",
+                    "battle_id": battle_id,
+                    "user_id": user_id,
+                    "started_at": iso_or_none(battle.started_at) if battle else None,
+                    "deadline_at": iso_or_none(battle.deadline_at) if battle else None,
+                    "server_now": datetime.now(UTC).isoformat(),
+                }
+            )
         while True:
             data = await websocket.receive_json()
             if data.get("type") == "ready":
-                await pvp_battle_manager.mark_ready(battle_id, int(user_id))
+                should_start = await pvp_battle_manager.mark_ready(
+                    battle_id, int(user_id)
+                )
+                if should_start:
+                    async with AsyncSessionLocal() as db:
+                        battle = await db.get(PvpBattle, battle_id)
+                        if (
+                            battle
+                            and battle.opponent_id
+                            and battle.status != BattleStatus.FINISHED
+                        ):
+                            await start_battle_round(db, battle)
+                            await db.commit()
             elif data.get("type") == "ping":
-                await websocket.send_json({"type": "pong"})
+                await websocket.send_json(
+                    {"type": "pong", "server_now": datetime.now(UTC).isoformat()}
+                )
     except WebSocketDisconnect:
         await pvp_battle_manager.disconnect(battle_id, websocket)
 
@@ -322,6 +382,7 @@ async def play_battle(
             "questions": questions,
             "submission": submission,
             "opponent_submission": opponent_submission,
+            "now_utc": datetime.now(UTC).isoformat(),
         },
     )
 
@@ -343,6 +404,18 @@ async def submit_battle(
     if existing_submission:
         return RedirectResponse(f"/pvp/{battle.id}/play", status_code=303)
 
+    if not battle.started_at or not battle.deadline_at:
+        return RedirectResponse(
+            f"/pvp/{battle.id}/play?error=round-not-started", status_code=303
+        )
+
+    now = datetime.now(UTC)
+    deadline_at = battle.deadline_at
+    if deadline_at.tzinfo is None:
+        deadline_at = deadline_at.replace(tzinfo=UTC)
+    deadline_with_grace = deadline_at + timedelta(seconds=PVP_DEADLINE_GRACE_SECONDS)
+    is_late_submission = now > deadline_with_grace
+
     form = await request.form()
     questions = await ensure_battle_questions(db, battle)
     score = 0
@@ -356,7 +429,11 @@ async def submit_battle(
     await db.flush()
 
     for question in questions:
-        selected = str(form.get(f"question_{question.id}", "")).upper()[:1]
+        selected = (
+            "-"
+            if is_late_submission
+            else str(form.get(f"question_{question.id}", "")).upper()[:1]
+        )
         if selected not in {"A", "B", "C", "D"}:
             selected = "-"
         correct = question.correct_option.upper()[:1]
@@ -387,6 +464,7 @@ async def submit_battle(
             "user_id": user.id,
             "challenger_score": battle.challenger_score,
             "opponent_score": battle.opponent_score,
+            "late": is_late_submission,
         },
     )
     await finish_battle_if_ready(db, battle)

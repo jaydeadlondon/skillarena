@@ -1,6 +1,15 @@
+from datetime import datetime
 from enum import StrEnum
 
-from sqlalchemy import Boolean, ForeignKey, Integer, String, Text, UniqueConstraint
+from sqlalchemy import (
+    Boolean,
+    DateTime,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base, created_at, updated_at
@@ -54,6 +63,8 @@ class PvpBattle(Base):
     reward_points: Mapped[int] = mapped_column(Integer, default=25, nullable=False)
     challenger_score: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     opponent_score: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    deadline_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[created_at]
     updated_at: Mapped[updated_at]
 

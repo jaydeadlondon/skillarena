@@ -15,6 +15,7 @@
   const answerForm = document.getElementById("pvpAnswerForm");
   let roundInterval = null;
   let formSubmitted = false;
+  let serverOffsetMs = 0;
 
   function setStatus(text) {
     if (status) {
@@ -39,6 +40,15 @@
       opponentScore.textContent = data.opponent_score;
     }
   }
+  function updateServerOffset(serverNow) {
+    if (!serverNow) {
+      return;
+    }
+    const parsed = Date.parse(serverNow);
+    if (!Number.isNaN(parsed)) {
+      serverOffsetMs = parsed - Date.now();
+    }
+  }
   function submitIfPossible() {
     if (formSubmitted || !answerForm) {
       return;
@@ -56,35 +66,54 @@
     });
     answerForm.submit();
   }
-  function startRoundTimer(seconds) {
-    let remaining = Number(seconds || 60);
+  function startDeadlineTimer(deadlineAt, fallbackSeconds) {
+    let deadlineMs = Date.parse(deadlineAt || "");
+    if (Number.isNaN(deadlineMs)) {
+      deadlineMs = Date.now() + Number(fallbackSeconds || 60) * 1000;
+    }
     if (roundInterval) {
       clearInterval(roundInterval);
     }
     const render = () => {
+      const serverNowMs = Date.now() + serverOffsetMs;
+      const remaining = Math.max(
+        0,
+        Math.ceil((deadlineMs - serverNowMs) / 1000),
+      );
       if (liveTimer) {
         liveTimer.textContent = `${remaining}s`;
       }
-    };
-    render();
-    roundInterval = setInterval(() => {
-      remaining -= 1;
-      render();
       if (remaining <= 0) {
         clearInterval(roundInterval);
         setStatus("Time up");
         setMessage(
-          "Round timer ended. Submitting selected answers automatically.",
+          "Server deadline reached. Submitting selected answers automatically.",
         );
         submitIfPossible();
       }
-    }, 1000);
+    };
+    render();
+    roundInterval = setInterval(render, 1000);
   }
 
   if (answerForm) {
     answerForm.addEventListener("submit", () => {
       formSubmitted = true;
     });
+  }
+  if (cfg.serverNow) {
+    updateServerOffset(cfg.serverNow);
+  }
+  if (cfg.deadlineAt) {
+    setStatus("Started");
+    setMessage(
+      "Battle already started. Timer is synchronized with the server deadline.",
+    );
+    startDeadlineTimer(cfg.deadlineAt, 60);
+    if (readyButton) {
+      readyButton.disabled = true;
+      readyButton.textContent = "Started";
+    }
   }
 
   const protocol = window.location.protocol === "https:" ? "wss" : "ws";
@@ -93,10 +122,12 @@
   );
 
   socket.addEventListener("open", () => {
-    setStatus("Live");
-    setMessage(
-      "Real-time channel connected. Press Ready when you are prepared.",
-    );
+    setStatus(cfg.deadlineAt ? "Started" : "Live");
+    if (!cfg.deadlineAt) {
+      setMessage(
+        "Real-time channel connected. Press Ready when you are prepared.",
+      );
+    }
   });
 
   if (readyButton) {
@@ -121,7 +152,22 @@
     } catch (e) {
       return;
     }
+    if (data.server_now) {
+      updateServerOffset(data.server_now);
+    }
 
+    if (data.type === "connected") {
+      if (data.deadline_at) {
+        cfg.deadlineAt = data.deadline_at;
+        setStatus("Started");
+        setMessage("Connected to active server-timed battle.");
+        if (readyButton) {
+          readyButton.disabled = true;
+          readyButton.textContent = "Started";
+        }
+        startDeadlineTimer(data.deadline_at, 60);
+      }
+    }
     if (data.type === "presence") {
       if (presence) {
         presence.textContent = data.connections;
@@ -129,9 +175,11 @@
       if (data.ready_count !== undefined) {
         setReadyCount(data.ready_count);
       }
-      setMessage(
-        `${data.connections} player connection(s) in this battle room.`,
-      );
+      if (!cfg.deadlineAt) {
+        setMessage(
+          `${data.connections} player connection(s) in this battle room.`,
+        );
+      }
     }
     if (data.type === "ready") {
       if (data.ready_count !== undefined) {
@@ -140,9 +188,14 @@
       setMessage("A player is ready in the live battle room.");
     }
     if (data.type === "battle_started") {
+      cfg.deadlineAt = data.deadline_at;
       setStatus("Started");
-      setMessage("Both players are ready. Timer started!");
-      startRoundTimer(data.duration_seconds || 60);
+      setMessage("Both players are ready. Server deadline started!");
+      if (readyButton) {
+        readyButton.disabled = true;
+        readyButton.textContent = "Started";
+      }
+      startDeadlineTimer(data.deadline_at, data.duration_seconds || 60);
     }
     if (data.type === "opponent_joined") {
       setStatus("Opponent joined");
@@ -154,7 +207,9 @@
       setScores(data);
       setStatus("Score submitted");
       setMessage(
-        "A player submitted answers. Waiting for final result if needed.",
+        data.late
+          ? "Late submission recorded as zero by server deadline rules."
+          : "A player submitted answers. Waiting for final result if needed.",
       );
     }
     if (data.type === "battle_finished") {

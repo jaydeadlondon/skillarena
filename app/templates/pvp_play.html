@@ -1,6 +1,9 @@
 {% extends "base.html" %}
 {% block title %}Battle #{{ battle.id }} · SkillArena{% endblock %}
 {% block content %}
+{% if request.query_params.get('error') == 'round-not-started' %}
+<div class="card" style="border-color:#fb7185;margin-bottom:18px"><strong>Round not started.</strong><p class="muted">Both players must press Ready before answers can be submitted.</p></div>
+{% endif %}
 <section class="card">
   <span class="badge">⚔️ {{ battle.status.value|upper }}</span>
   <h1>Battle #{{ battle.id }}</h1>
@@ -88,7 +91,13 @@
   </section>
 {% endif %}
 <script>
-window.SkillArenaPvp = { battleId: {{ battle.id }}, userId: {{ user.id }} };
+window.SkillArenaPvp = {
+  battleId: {{ battle.id }},
+  userId: {{ user.id }},
+  startedAt: {{ ('"' ~ battle.started_at.isoformat() ~ '"')|safe if battle.started_at else 'null' }},
+  deadlineAt: {{ ('"' ~ battle.deadline_at.isoformat() ~ '"')|safe if battle.deadline_at else 'null' }},
+  serverNow: "{{ now_utc }}"
+};
 </script>
 <script src="/static/js/pvp-live.js"></script>
 {% endblock %}
