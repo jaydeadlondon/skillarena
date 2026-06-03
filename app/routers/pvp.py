@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import RedirectResponse
 from sqlalchemy import func, select
 from sqlalchemy.orm import selectinload
@@ -14,6 +14,7 @@ from app.models.pvp import (
 from app.models.user import User
 from app.routers.deps import DbSession, require_user
 from app.services.achievements import evaluate_pvp_achievements
+from app.services.realtime import pvp_battle_manager
 from app.services.rewards import add_skill_points
 from app.services.streaks import sync_user_streak
 
@@ -152,6 +153,18 @@ async def finish_battle_if_ready(db: DbSession, battle: PvpBattle) -> None:
         await evaluate_pvp_achievements(db, opponent)
         await sync_user_streak(db, opponent)
 
+    await pvp_battle_manager.broadcast(
+        battle.id,
+        {
+            "type": "battle_finished",
+            "battle_id": battle.id,
+            "winner_id": battle.winner_id,
+            "challenger_score": battle.challenger_score,
+            "opponent_score": battle.opponent_score,
+            "result": "tie" if battle.winner_id is None else "win",
+        },
+    )
+
 
 @router.get("")
 async def pvp_lobby(
@@ -208,6 +221,33 @@ async def pvp_history(
     )
 
 
+@router.websocket("/{battle_id}/ws")
+async def pvp_battle_websocket(websocket: WebSocket, battle_id: int):
+    user_id = (
+        websocket.session.get("user_id") if hasattr(websocket, "session") else None
+    )
+    if not user_id:
+        await websocket.close(code=1008)
+        return
+
+    await pvp_battle_manager.connect(battle_id, websocket)
+    try:
+        await websocket.send_json(
+            {"type": "connected", "battle_id": battle_id, "user_id": user_id}
+        )
+        while True:
+            data = await websocket.receive_json()
+            if data.get("type") == "ready":
+                await pvp_battle_manager.broadcast(
+                    battle_id,
+                    {"type": "ready", "user_id": user_id, "battle_id": battle_id},
+                )
+            elif data.get("type") == "ping":
+                await websocket.send_json({"type": "pong"})
+    except WebSocketDisconnect:
+        await pvp_battle_manager.disconnect(battle_id, websocket)
+
+
 @router.post("/create")
 async def create_battle(db: DbSession, user: User = Depends(require_user)):
     active_questions_count = await db.scalar(
@@ -247,6 +287,10 @@ async def join_battle(
     battle.opponent_id = user.id
     battle.status = BattleStatus.ACTIVE
     await ensure_battle_questions(db, battle)
+    await pvp_battle_manager.broadcast(
+        battle.id,
+        {"type": "opponent_joined", "battle_id": battle.id, "opponent_id": user.id},
+    )
     await db.commit()
     return RedirectResponse(f"/pvp/{battle.id}/play", status_code=303)
 
@@ -338,6 +382,16 @@ async def submit_battle(
     else:
         battle.opponent_score = score
 
+    await pvp_battle_manager.broadcast(
+        battle.id,
+        {
+            "type": "score_submitted",
+            "battle_id": battle.id,
+            "user_id": user.id,
+            "challenger_score": battle.challenger_score,
+            "opponent_score": battle.opponent_score,
+        },
+    )
     await finish_battle_if_ready(db, battle)
     await db.commit()
     return RedirectResponse(f"/pvp/{battle.id}/play", status_code=303)

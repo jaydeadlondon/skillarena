@@ -13,6 +13,16 @@
   <p style="margin-top:14px"><a class="btn" href="/pvp/history">Battle history</a> <a class="btn" href="/pvp">Back to lobby</a></p>
 </section>
 
+<section class="card" style="margin-top:18px">
+  <div class="section-title"><h2>Live battle feed</h2><span class="badge" id="liveStatus">Connecting</span></div>
+  <p class="muted" id="liveMessage">Opening real-time battle channel...</p>
+  <div class="grid cols-3">
+    <div class="stat"><strong id="liveChallengerScore">{{ battle.challenger_score }}</strong><p>Challenger</p></div>
+    <div class="stat"><strong id="liveOpponentScore">{{ battle.opponent_score }}</strong><p>Opponent</p></div>
+    <div class="stat"><strong id="livePresence">1</strong><p>Connected</p></div>
+  </div>
+</section>
+
 {% if battle.status.value == 'waiting' %}
   <section class="card" style="margin-top:18px">
     <h2>Waiting for opponent</h2>
@@ -72,4 +82,8 @@
     {% endif %}
   </section>
 {% endif %}
+<script>
+window.SkillArenaPvp = { battleId: {{ battle.id }}, userId: {{ user.id }} };
+</script>
+<script src="/static/js/pvp-live.js"></script>
 {% endblock %}
