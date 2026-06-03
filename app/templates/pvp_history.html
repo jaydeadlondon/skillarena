@@ -1,33 +1,45 @@
-{% extends "base.html" %}
-{% block title %}PvP History · SkillArena{% endblock %}
-{% block content %}
+{% extends "base.html" %} {% block title %}PvP History · SkillArena{% endblock
+%} {% block content %}
 <a class="badge" href="/pvp">← PvP lobby</a>
 <h1>PvP Battle History</h1>
 <section class="card">
   <table class="table">
-    <tr><th>Battle</th><th>Status</th><th>Your side</th><th>Score</th><th>Result</th><th>Action</th></tr>
-    {% for battle in battles %}
-      {% set is_challenger = battle.challenger_id == user.id %}
-      <tr>
-        <td>#{{ battle.id }}<br><span class="muted">{{ battle.created_at.strftime('%Y-%m-%d %H:%M') }}</span></td>
-        <td>{{ battle.status.value }}</td>
-        <td>{% if is_challenger %}Challenger{% else %}Opponent{% endif %}</td>
-        <td>{{ battle.challenger_score }} : {{ battle.opponent_score }}</td>
-        <td>
-          {% if battle.status.value != 'finished' %}
-            <span class="badge">In progress</span>
-          {% elif not battle.winner_id %}
-            <span class="badge">🤝 Tie</span>
-          {% elif battle.winner_id == user.id %}
-            <span class="badge">🏆 Win</span>
-          {% else %}
-            <span class="badge">Defeat</span>
-          {% endif %}
-        </td>
-        <td><a class="btn" href="/pvp/{{ battle.id }}/play">Open</a></td>
-      </tr>
+    <tr>
+      <th>Battle</th>
+      <th>Status</th>
+      <th>Your side</th>
+      <th>Score</th>
+      <th>Result</th>
+      <th>Action</th>
+    </tr>
+    {% for battle in battles %} {% set is_challenger = battle.challenger_id ==
+    user.id %}
+    <tr>
+      <td>
+        #{{ battle.id }}<br /><span class="muted"
+          >{{ battle.created_at.strftime('%Y-%m-%d %H:%M') }}</span
+        >
+      </td>
+      <td>{{ battle.status.value }}</td>
+      <td>{% if is_challenger %}Challenger{% else %}Opponent{% endif %}</td>
+      <td>{{ battle.challenger_score }} : {{ battle.opponent_score }}</td>
+      <td>
+        {% if battle.status.value != 'finished' %}
+        <span class="badge">In progress</span>
+        {% elif not battle.winner_id %}
+        <span class="badge">🤝 Tie</span>
+        {% elif battle.winner_id == user.id %}
+        <span class="badge">🏆 Win</span>
+        {% else %}
+        <span class="badge">Defeat</span>
+        {% endif %}
+      </td>
+      <td><a class="btn" href="/pvp/{{ battle.id }}/play">Open</a></td>
+    </tr>
     {% else %}
-      <tr><td colspan="6" class="muted">No PvP battles yet.</td></tr>
+    <tr>
+      <td colspan="6" class="muted">No PvP battles yet.</td>
+    </tr>
     {% endfor %}
   </table>
 </section>

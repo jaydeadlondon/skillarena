@@ -1,110 +1,187 @@
-{% extends "base.html" %}
-{% block title %}Dashboard · SkillArena{% endblock %}
-{% block content %}
-{% if request.query_params.get('onboarding') == 'completed' %}
+{% extends "base.html" %} {% block title %}Dashboard · SkillArena{% endblock %}
+{% block content %} {% if request.query_params.get('onboarding') == 'completed'
+%}
 <div data-reward-pop>Journey configured. Welcome to SkillArena ✨</div>
 {% endif %}
 <div class="grid cols-3">
-  <div class="card"><span class="badge">💰 Skill Points</span><h2>{{ user.skill_points }}</h2><p class="muted">Spend on cosmetics or PvP entry fees.</p></div>
-  <div class="card"><span class="badge">🔥 Streak</span><h2>{{ user.current_streak_days }} days</h2><p class="muted">Best: {{ user.best_streak_days }} days.</p><a class="btn" href="/streaks">View streaks</a></div>
-  <div class="card"><span class="badge">📚 Lessons</span><h2>{{ completed_lessons }}</h2><p class="muted">Completed across {{ courses_count }} available courses.</p></div>
-  <div class="card"><span class="badge">🏆 Achievements</span><h2>{{ achievements_unlocked }}/{{ achievements_total }}</h2><p class="muted">Collection progress</p><a class="btn" href="/achievements">Open gallery</a></div>
+  <div class="card">
+    <span class="badge">💰 Skill Points</span>
+    <h2>{{ user.skill_points }}</h2>
+    <p class="muted">Spend on cosmetics or PvP entry fees.</p>
+  </div>
+  <div class="card">
+    <span class="badge">🔥 Streak</span>
+    <h2>{{ user.current_streak_days }} days</h2>
+    <p class="muted">Best: {{ user.best_streak_days }} days.</p>
+    <a class="btn" href="/streaks">View streaks</a>
+  </div>
+  <div class="card">
+    <span class="badge">📚 Lessons</span>
+    <h2>{{ completed_lessons }}</h2>
+    <p class="muted">Completed across {{ courses_count }} available courses.</p>
+  </div>
+  <div class="card">
+    <span class="badge">🏆 Achievements</span>
+    <h2>{{ achievements_unlocked }}/{{ achievements_total }}</h2>
+    <p class="muted">Collection progress</p>
+    <a class="btn" href="/achievements">Open gallery</a>
+  </div>
 </div>
 
 {% if onboarding %}
-<section class="card" style="margin-top:18px">
+<section class="card" style="margin-top: 18px">
   <div class="section-title">
     <div>
       <span class="badge">Personalized path</span>
       <h2>{{ onboarding.learning_goal }}</h2>
     </div>
-    <a class="btn primary" href="{{ recommended_url }}">{{ recommended_action }}</a>
+    <a class="btn primary" href="{{ recommended_url }}"
+      >{{ recommended_action }}</a
+    >
   </div>
-  {% set today_learning_minutes = ((activity_summary.lesson_seconds / 60) + focus_minutes_today)|round(0) %}
-  {% set daily_goal = onboarding.daily_goal_minutes if onboarding.daily_goal_minutes else 20 %}
-  {% set daily_pct = (today_learning_minutes * 100 / daily_goal) if daily_goal else 0 %}
-  <p class="muted">Daily target: {{ today_learning_minutes|int }} / {{ daily_goal }} min · Weekly target: {{ onboarding.weekly_goal_minutes }} min · Style: {{ onboarding.preferred_learning_style }}</p>
-  <div class="progress"><span style="width: {{ 100 if daily_pct > 100 else daily_pct }}%"></span></div>
-  <p class="muted">Focus challenge: {{ onboarding.focus_challenge.replace('_', ' ') }} · Preferred sprint: {{ onboarding.preferred_session_minutes }} min</p>
+  {% set today_learning_minutes = ((activity_summary.lesson_seconds / 60) +
+  focus_minutes_today)|round(0) %} {% set daily_goal =
+  onboarding.daily_goal_minutes if onboarding.daily_goal_minutes else 20 %} {%
+  set daily_pct = (today_learning_minutes * 100 / daily_goal) if daily_goal else
+  0 %}
+  <p class="muted">
+    Daily target: {{ today_learning_minutes|int }} / {{ daily_goal }} min ·
+    Weekly target: {{ onboarding.weekly_goal_minutes }} min · Style: {{
+    onboarding.preferred_learning_style }}
+  </p>
+  <div class="progress">
+    <span style="width: {{ 100 if daily_pct > 100 else daily_pct }}%"></span>
+  </div>
+  <p class="muted">
+    Focus challenge: {{ onboarding.focus_challenge.replace('_', ' ') }} ·
+    Preferred sprint: {{ onboarding.preferred_session_minutes }} min
+  </p>
 </section>
-{% endif %}
-
-{% if continue_lesson %}
-<section class="card" style="margin-top:18px">
+{% endif %} {% if continue_lesson %}
+<section class="card" style="margin-top: 18px">
   <span class="badge">Continue where you left off</span>
   <h2>{{ continue_course.title }}</h2>
-  <p class="muted">Next lesson: {{ continue_lesson.title }} · {{ continue_progress.completed }}/{{ continue_progress.total }} lessons completed</p>
-  <div class="progress"><span style="width: {{ continue_progress.percent }}%"></span></div>
-  <p style="margin-top:14px"><a class="btn primary" href="/learn/lessons/{{ continue_lesson.id }}">Continue learning</a> <a class="btn" href="/courses/{{ continue_course.slug }}">Open course</a></p>
+  <p class="muted">
+    Next lesson: {{ continue_lesson.title }} · {{ continue_progress.completed
+    }}/{{ continue_progress.total }} lessons completed
+  </p>
+  <div class="progress">
+    <span style="width: {{ continue_progress.percent }}%"></span>
+  </div>
+  <p style="margin-top: 14px">
+    <a class="btn primary" href="/learn/lessons/{{ continue_lesson.id }}"
+      >Continue learning</a
+    >
+    <a class="btn" href="/courses/{{ continue_course.slug }}">Open course</a>
+  </p>
 </section>
 {% endif %}
 
-<section class="grid cols-2" style="margin-top:18px">
+<section class="grid cols-2" style="margin-top: 18px">
   <div class="card">
     <h2>Today on SkillArena</h2>
-    <p>Site: <strong>{{ (activity_summary.site_seconds / 60)|round(1) }} min</strong></p>
-    <p>Lessons: <strong>{{ (activity_summary.lesson_seconds / 60)|round(1) }} min</strong> · PvP: <strong>{{ (activity_summary.pvp_seconds / 60)|round(1) }} min</strong></p>
-    {% set site_total = activity_summary.site_seconds if activity_summary.site_seconds else 1 %}
-    <div class="progress"><span style="width: {{ (activity_summary.lesson_seconds * 100 / site_total)|round(0) }}%"></span></div>
-    <p class="muted">The glowing part is lesson time share. Timer counts only visible, recently active browser time.</p>
+    <p>
+      Site:
+      <strong>{{ (activity_summary.site_seconds / 60)|round(1) }} min</strong>
+    </p>
+    <p>
+      Lessons:
+      <strong>{{ (activity_summary.lesson_seconds / 60)|round(1) }} min</strong>
+      · PvP:
+      <strong>{{ (activity_summary.pvp_seconds / 60)|round(1) }} min</strong>
+    </p>
+    {% set site_total = activity_summary.site_seconds if
+    activity_summary.site_seconds else 1 %}
+    <div class="progress">
+      <span
+        style="width: {{ (activity_summary.lesson_seconds * 100 / site_total)|round(0) }}%"
+      ></span>
+    </div>
+    <p class="muted">
+      The glowing part is lesson time share. Timer counts only visible, recently
+      active browser time.
+    </p>
   </div>
   <div class="card">
     {% if onboarding and not onboarding.wants_steam_balance %}
-      <h2>Study balance</h2>
-      <p class="muted">Steam balance nudges are disabled in your onboarding preferences.</p>
-      <a class="btn" href="/onboarding">Update preferences</a>
+    <h2>Study balance</h2>
+    <p class="muted">
+      Steam balance nudges are disabled in your onboarding preferences.
+    </p>
+    <a class="btn" href="/onboarding">Update preferences</a>
     {% else %}
-      <h2>Steam vs Study · last 2 weeks</h2>
-      {% set total = steam_minutes_2w + study_minutes_2w %}
-      {% set study_pct = (study_minutes_2w * 100 / total) if total else 0 %}
-      <p>Steam: <strong>{{ (steam_minutes_2w / 60)|round(1) }}h</strong> · Study: <strong>{{ (study_minutes_2w / 60)|round(1) }}h</strong></p>
-      <div class="progress"><span style="width: {{ study_pct }}%"></span></div>
-      <p class="muted">The glowing part is your study share. Keep pushing the balance toward learning.</p>
+    <h2>Steam vs Study · last 2 weeks</h2>
+    {% set total = steam_minutes_2w + study_minutes_2w %} {% set study_pct =
+    (study_minutes_2w * 100 / total) if total else 0 %}
+    <p>
+      Steam: <strong>{{ (steam_minutes_2w / 60)|round(1) }}h</strong> · Study:
+      <strong>{{ (study_minutes_2w / 60)|round(1) }}h</strong>
+    </p>
+    <div class="progress"><span style="width: {{ study_pct }}%"></span></div>
+    <p class="muted">
+      The glowing part is your study share. Keep pushing the balance toward
+      learning.
+    </p>
     {% endif %}
   </div>
 </section>
 
-<section class="grid cols-2" style="margin-top:18px">
+<section class="grid cols-2" style="margin-top: 18px">
   <div class="card">
     <h2>Focus session</h2>
-    <p class="muted">{{ focus_minutes_today }} focus minutes completed today.</p>
-    <p>Earn Skill Points and keep your streak alive with a short focused sprint.</p>
+    <p class="muted">
+      {{ focus_minutes_today }} focus minutes completed today.
+    </p>
+    <p>
+      Earn Skill Points and keep your streak alive with a short focused sprint.
+    </p>
     <a class="btn primary" href="/focus">Start focus session</a>
   </div>
   <div class="card">
     <h2>Quests</h2>
-    <p class="muted">Daily: {{ daily_quests_completed }}/{{ daily_quests_total }} · Weekly: {{ weekly_quests_completed }}/{{ weekly_quests_total }}</p>
-    {% for card in daily_quest_cards %}
-      {% set quest = card.quest %}
-      {% set user_quest = card.user_quest %}
-      <p><span class="badge">+{{ quest.reward_points }} SP</span> {{ quest.title }}</p>
-      <div class="progress"><span style="width: {{ card.percent }}%"></span></div>
+    <p class="muted">
+      Daily: {{ daily_quests_completed }}/{{ daily_quests_total }} · Weekly: {{
+      weekly_quests_completed }}/{{ weekly_quests_total }}
+    </p>
+    {% for card in daily_quest_cards %} {% set quest = card.quest %} {% set
+    user_quest = card.user_quest %}
+    <p>
+      <span class="badge">+{{ quest.reward_points }} SP</span> {{ quest.title }}
+    </p>
+    <div class="progress"><span style="width: {{ card.percent }}%"></span></div>
     {% else %}
-      <p class="muted">No quests yet. Ask an admin to create one.</p>
+    <p class="muted">No quests yet. Ask an admin to create one.</p>
     {% endfor %}
-    <p style="margin-top:14px"><a class="btn" href="/quests">Open Quests</a></p>
+    <p style="margin-top: 14px">
+      <a class="btn" href="/quests">Open Quests</a>
+    </p>
   </div>
 </section>
 
-<section class="card" style="margin-top:18px">
+<section class="card" style="margin-top: 18px">
   <h2>7-day streak timeline</h2>
-  <div class="streak-timeline" style="grid-template-columns:repeat(7,1fr)">
+  <div class="streak-timeline" style="grid-template-columns: repeat(7, 1fr)">
     {% for day in streak_timeline %}
-      <div class="streak-day {% if day.qualified %}qualified{% endif %} {% if day.is_today %}today{% endif %}">
-        <strong>{{ day.day_label }}</strong>
-        <span>{{ day.date.strftime('%m-%d') }}</span>
-        <em>{% if day.qualified %}🔥{% else %}·{% endif %}</em>
-      </div>
+    <div
+      class="streak-day {% if day.qualified %}qualified{% endif %} {% if day.is_today %}today{% endif %}"
+    >
+      <strong>{{ day.day_label }}</strong>
+      <span>{{ day.date.strftime('%m-%d') }}</span>
+      <em>{% if day.qualified %}🔥{% else %}·{% endif %}</em>
+    </div>
     {% endfor %}
   </div>
 </section>
 
-<section class="card" style="margin-top:18px">
+<section class="card" style="margin-top: 18px">
   <h2>Recent PvP battles</h2>
   {% for battle in battles %}
-    <p>#{{ battle.id }} · {{ battle.status.value }} · scores {{ battle.challenger_score }}:{{ battle.opponent_score }}</p>
+  <p>
+    #{{ battle.id }} · {{ battle.status.value }} · scores {{
+    battle.challenger_score }}:{{ battle.opponent_score }}
+  </p>
   {% else %}
-    <p class="muted">No battles yet. Create your first quiz duel.</p>
+  <p class="muted">No battles yet. Create your first quiz duel.</p>
   {% endfor %}
 </section>
 {% endblock %}

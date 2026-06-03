@@ -1,39 +1,136 @@
-{% extends "base.html" %}
-{% block title %}Admin Cosmetics · SkillArena{% endblock %}
-{% block content %}
+{% extends "base.html" %} {% block title %}Admin Cosmetics · SkillArena{%
+endblock %} {% block content %}
 <header class="page-head">
-  <div><a class="badge" href="/admin">← Admin forge</a><h1>Cosmetic management</h1><p class="muted">Create, price, preview, and activate shop cosmetics.</p></div>
+  <div>
+    <a class="badge" href="/admin">← Admin forge</a>
+    <h1>Cosmetic management</h1>
+    <p class="muted">Create, price, preview, and activate shop cosmetics.</p>
+  </div>
 </header>
-{% if request.query_params.get('success') %}<div data-reward-pop>Cosmetic updated ✨</div>{% endif %}
-{% if request.query_params.get('error') %}<div class="card" style="border-color:#fb7185;margin-bottom:18px"><strong>Action failed.</strong><p class="muted">{{ request.query_params.get('error') }}</p></div>{% endif %}
+{% if request.query_params.get('success') %}
+<div data-reward-pop>Cosmetic updated ✨</div>
+{% endif %} {% if request.query_params.get('error') %}
+<div class="card" style="border-color: #fb7185; margin-bottom: 18px">
+  <strong>Action failed.</strong>
+  <p class="muted">{{ request.query_params.get('error') }}</p>
+</div>
+{% endif %}
 
 <section class="card">
   <h2>Create cosmetic</h2>
   <form class="form" method="post" action="/admin/cosmetics">
-    <input class="input" name="code" placeholder="unique_code" required>
-    <input class="input" name="name" placeholder="Name" required>
-    <select name="item_type"><option value="profile_frame">Profile frame</option><option value="profile_background">Profile background</option><option value="aura">Aura</option></select>
-    <input class="input" type="number" name="price_points" placeholder="Price" value="100" required>
-    <input class="input" name="preview_value" placeholder="#f7c948" value="#f7c948" required>
+    <input class="input" name="code" placeholder="unique_code" required />
+    <input class="input" name="name" placeholder="Name" required />
+    <select name="item_type">
+      <option value="profile_frame">Profile frame</option>
+      <option value="profile_background">Profile background</option>
+      <option value="aura">Aura</option>
+    </select>
+    <input
+      class="input"
+      type="number"
+      name="price_points"
+      placeholder="Price"
+      value="100"
+      required
+    />
+    <input
+      class="input"
+      name="preview_value"
+      placeholder="#f7c948"
+      value="#f7c948"
+      required
+    />
     <button class="btn primary" type="submit">Create</button>
   </form>
 </section>
 
-<section class="grid cols-2" style="margin-top:18px">
+<section class="grid cols-2" style="margin-top: 18px">
   {% for item in cosmetics %}
-    <div class="card">
-      <div class="cosmetic-preview {{ item.item_type }}" style="--preview: {{ item.preview_value }}"><span>{{ item.name[:1] }}</span></div>
-      <h2>{{ item.name }}</h2>
-      <p><span class="badge">{{ item.item_type }}</span> <span class="badge">{{ item.price_points }} SP</span> <span class="badge">{% if item.is_active %}active{% else %}inactive{% endif %}</span></p>
-      <form class="form" method="post" action="/admin/cosmetics/{{ item.id }}/update">
-        <input class="input" name="name" value="{{ item.name }}" required>
-        <select name="item_type"><option value="profile_frame" {% if item.item_type == 'profile_frame' %}selected{% endif %}>Profile frame</option><option value="profile_background" {% if item.item_type == 'profile_background' %}selected{% endif %}>Profile background</option><option value="aura" {% if item.item_type == 'aura' %}selected{% endif %}>Aura</option></select>
-        <input class="input" type="number" name="price_points" value="{{ item.price_points }}" required>
-        <input class="input" name="preview_value" value="{{ item.preview_value }}" required>
-        <button class="btn primary" type="submit">Save</button>
-      </form>
-      <form method="post" action="/admin/cosmetics/{{ item.id }}/toggle" style="margin-top:10px"><button class="btn" type="submit">{% if item.is_active %}Deactivate{% else %}Activate{% endif %}</button></form>
+  <div class="card">
+    <div
+      class="cosmetic-preview {{ item.item_type }}"
+      style="--preview: {{ item.preview_value }}"
+    >
+      <span>{{ item.name[:1] }}</span>
     </div>
+    <h2>{{ item.name }}</h2>
+    <p>
+      <span class="badge">{{ item.item_type }}</span>
+      <span class="badge">{{ item.price_points }} SP</span>
+      <span class="badge"
+        >{% if item.is_active %}active{% else %}inactive{% endif %}</span
+      >
+    </p>
+    <form
+      class="form"
+      method="post"
+      action="/admin/cosmetics/{{ item.id }}/update"
+    >
+      <input class="input" name="name" value="{{ item.name }}" required />
+      <select name="item_type">
+        <option
+          value="profile_frame"
+          {%
+          if
+          item.item_type=""
+          ="profile_frame"
+          %}selected{%
+          endif
+          %}
+        >
+          Profile frame
+        </option>
+        <option
+          value="profile_background"
+          {%
+          if
+          item.item_type=""
+          ="profile_background"
+          %}selected{%
+          endif
+          %}
+        >
+          Profile background
+        </option>
+        <option
+          value="aura"
+          {%
+          if
+          item.item_type=""
+          ="aura"
+          %}selected{%
+          endif
+          %}
+        >
+          Aura
+        </option>
+      </select>
+      <input
+        class="input"
+        type="number"
+        name="price_points"
+        value="{{ item.price_points }}"
+        required
+      />
+      <input
+        class="input"
+        name="preview_value"
+        value="{{ item.preview_value }}"
+        required
+      />
+      <button class="btn primary" type="submit">Save</button>
+    </form>
+    <form
+      method="post"
+      action="/admin/cosmetics/{{ item.id }}/toggle"
+      style="margin-top: 10px"
+    >
+      <button class="btn" type="submit">
+        {% if item.is_active %}Deactivate{% else %}Activate{% endif %}
+      </button>
+    </form>
+  </div>
   {% endfor %}
 </section>
 {% endblock %}

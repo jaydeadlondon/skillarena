@@ -1,80 +1,314 @@
-{% extends "base.html" %}
-{% block title %}Onboarding · SkillArena{% endblock %}
+{% extends "base.html" %} {% block title %}Onboarding · SkillArena{% endblock %}
 {% block content %}
 <section class="card">
   <span class="badge">Welcome, adventurer</span>
   <h1>Set up your SkillArena journey</h1>
-  <p class="muted">A quick setup helps SkillArena recommend small goals, focus sessions, quests, and game-like learning loops that fit you.</p>
+  <p class="muted">
+    A quick setup helps SkillArena recommend small goals, focus sessions,
+    quests, and game-like learning loops that fit you.
+  </p>
 </section>
 
-<section class="grid cols-2" style="margin-top:18px">
+<section class="grid cols-2" style="margin-top: 18px">
   <div class="card">
     <h2>Your learning setup</h2>
     <form class="form" method="post" action="/onboarding">
-      <label>Primary learning goal
+      <label
+        >Primary learning goal
         <select name="learning_goal" required>
           {% set goal = onboarding.learning_goal if onboarding else '' %}
-          <option value="Build a daily learning habit" {% if goal == 'Build a daily learning habit' %}selected{% endif %}>Build a daily learning habit</option>
-          <option value="Learn programming" {% if goal == 'Learn programming' %}selected{% endif %}>Learn programming</option>
-          <option value="Improve focus and consistency" {% if goal == 'Improve focus and consistency' %}selected{% endif %}>Improve focus and consistency</option>
-          <option value="Prepare for a career switch" {% if goal == 'Prepare for a career switch' %}selected{% endif %}>Prepare for a career switch</option>
-          <option value="Explore free courses" {% if goal == 'Explore free courses' %}selected{% endif %}>Explore free courses</option>
+          <option
+            value="Build a daily learning habit"
+            {%
+            if
+            goal=""
+            ="Build a daily learning habit"
+            %}selected{%
+            endif
+            %}
+          >
+            Build a daily learning habit
+          </option>
+          <option
+            value="Learn programming"
+            {%
+            if
+            goal=""
+            ="Learn programming"
+            %}selected{%
+            endif
+            %}
+          >
+            Learn programming
+          </option>
+          <option
+            value="Improve focus and consistency"
+            {%
+            if
+            goal=""
+            ="Improve focus and consistency"
+            %}selected{%
+            endif
+            %}
+          >
+            Improve focus and consistency
+          </option>
+          <option
+            value="Prepare for a career switch"
+            {%
+            if
+            goal=""
+            ="Prepare for a career switch"
+            %}selected{%
+            endif
+            %}
+          >
+            Prepare for a career switch
+          </option>
+          <option
+            value="Explore free courses"
+            {%
+            if
+            goal=""
+            ="Explore free courses"
+            %}selected{%
+            endif
+            %}
+          >
+            Explore free courses
+          </option>
         </select>
       </label>
 
       <div class="grid cols-2">
-        <label>Experience level
-          {% set level = onboarding.experience_level if onboarding else 'beginner' %}
+        <label
+          >Experience level {% set level = onboarding.experience_level if
+          onboarding else 'beginner' %}
           <select name="experience_level">
-            <option value="beginner" {% if level == 'beginner' %}selected{% endif %}>Beginner</option>
-            <option value="intermediate" {% if level == 'intermediate' %}selected{% endif %}>Intermediate</option>
-            <option value="advanced" {% if level == 'advanced' %}selected{% endif %}>Advanced</option>
+            <option
+              value="beginner"
+              {%
+              if
+              level=""
+              ="beginner"
+              %}selected{%
+              endif
+              %}
+            >
+              Beginner
+            </option>
+            <option
+              value="intermediate"
+              {%
+              if
+              level=""
+              ="intermediate"
+              %}selected{%
+              endif
+              %}
+            >
+              Intermediate
+            </option>
+            <option
+              value="advanced"
+              {%
+              if
+              level=""
+              ="advanced"
+              %}selected{%
+              endif
+              %}
+            >
+              Advanced
+            </option>
           </select>
         </label>
-        <label>Preferred learning style
-          {% set style = onboarding.preferred_learning_style if onboarding else 'video' %}
+        <label
+          >Preferred learning style {% set style =
+          onboarding.preferred_learning_style if onboarding else 'video' %}
           <select name="preferred_learning_style">
-            <option value="video" {% if style == 'video' %}selected{% endif %}>Video-first</option>
-            <option value="reading" {% if style == 'reading' %}selected{% endif %}>Reading-first</option>
-            <option value="practice" {% if style == 'practice' %}selected{% endif %}>Practice-first</option>
-            <option value="mixed" {% if style == 'mixed' %}selected{% endif %}>Mixed</option>
+            <option value="video" {% if style="" ="video" %}selected{% endif %}>
+              Video-first
+            </option>
+            <option
+              value="reading"
+              {%
+              if
+              style=""
+              ="reading"
+              %}selected{%
+              endif
+              %}
+            >
+              Reading-first
+            </option>
+            <option
+              value="practice"
+              {%
+              if
+              style=""
+              ="practice"
+              %}selected{%
+              endif
+              %}
+            >
+              Practice-first
+            </option>
+            <option value="mixed" {% if style="" ="mixed" %}selected{% endif %}>
+              Mixed
+            </option>
           </select>
         </label>
       </div>
 
       <div class="grid cols-3">
-        <label>Daily goal, min
-          <input class="input" type="number" name="daily_goal_minutes" min="5" max="240" value="{{ onboarding.daily_goal_minutes if onboarding else 20 }}">
+        <label
+          >Daily goal, min
+          <input
+            class="input"
+            type="number"
+            name="daily_goal_minutes"
+            min="5"
+            max="240"
+            value="{{ onboarding.daily_goal_minutes if onboarding else 20 }}"
+          />
         </label>
-        <label>Weekly goal, min
-          <input class="input" type="number" name="weekly_goal_minutes" min="30" max="2000" value="{{ onboarding.weekly_goal_minutes if onboarding else 120 }}">
+        <label
+          >Weekly goal, min
+          <input
+            class="input"
+            type="number"
+            name="weekly_goal_minutes"
+            min="30"
+            max="2000"
+            value="{{ onboarding.weekly_goal_minutes if onboarding else 120 }}"
+          />
         </label>
-        <label>Focus session, min
-          {% set pref = onboarding.preferred_session_minutes if onboarding else 25 %}
+        <label
+          >Focus session, min {% set pref = onboarding.preferred_session_minutes
+          if onboarding else 25 %}
           <select name="preferred_session_minutes">
-            <option value="5" {% if pref == 5 %}selected{% endif %}>5</option>
-            <option value="15" {% if pref == 15 %}selected{% endif %}>15</option>
-            <option value="25" {% if pref == 25 %}selected{% endif %}>25</option>
-            <option value="50" {% if pref == 50 %}selected{% endif %}>50</option>
+            <option value="5" {% if pref="" ="5" %}selected{% endif %}>
+              5
+            </option>
+            <option value="15" {% if pref="" ="15" %}selected{% endif %}>
+              15
+            </option>
+            <option value="25" {% if pref="" ="25" %}selected{% endif %}>
+              25
+            </option>
+            <option value="50" {% if pref="" ="50" %}selected{% endif %}>
+              50
+            </option>
           </select>
         </label>
       </div>
 
-      <label>Main focus challenge
-        {% set challenge = onboarding.focus_challenge if onboarding else 'distractions' %}
+      <label
+        >Main focus challenge {% set challenge = onboarding.focus_challenge if
+        onboarding else 'distractions' %}
         <select name="focus_challenge">
-          <option value="distractions" {% if challenge == 'distractions' %}selected{% endif %}>Distractions</option>
-          <option value="procrastination" {% if challenge == 'procrastination' %}selected{% endif %}>Procrastination</option>
-          <option value="overwhelm" {% if challenge == 'overwhelm' %}selected{% endif %}>Overwhelm / too many options</option>
-          <option value="consistency" {% if challenge == 'consistency' %}selected{% endif %}>Consistency</option>
-          <option value="time_management" {% if challenge == 'time_management' %}selected{% endif %}>Time management</option>
+          <option
+            value="distractions"
+            {%
+            if
+            challenge=""
+            ="distractions"
+            %}selected{%
+            endif
+            %}
+          >
+            Distractions
+          </option>
+          <option
+            value="procrastination"
+            {%
+            if
+            challenge=""
+            ="procrastination"
+            %}selected{%
+            endif
+            %}
+          >
+            Procrastination
+          </option>
+          <option
+            value="overwhelm"
+            {%
+            if
+            challenge=""
+            ="overwhelm"
+            %}selected{%
+            endif
+            %}
+          >
+            Overwhelm / too many options
+          </option>
+          <option
+            value="consistency"
+            {%
+            if
+            challenge=""
+            ="consistency"
+            %}selected{%
+            endif
+            %}
+          >
+            Consistency
+          </option>
+          <option
+            value="time_management"
+            {%
+            if
+            challenge=""
+            ="time_management"
+            %}selected{%
+            endif
+            %}
+          >
+            Time management
+          </option>
         </select>
       </label>
 
-      <div class="card" style="padding:14px">
+      <div class="card" style="padding: 14px">
         <h3>Gameplay preferences</h3>
-        <label><input type="checkbox" name="wants_pvp" value="true" {% if onboarding is none or onboarding.wants_pvp %}checked{% endif %}> Show PvP and quiz duel recommendations</label>
-        <label><input type="checkbox" name="wants_steam_balance" value="true" {% if onboarding is none or onboarding.wants_steam_balance %}checked{% endif %}> Show Steam vs Study balance nudges</label>
+        <label
+          ><input
+            type="checkbox"
+            name="wants_pvp"
+            value="true"
+            {%
+            if
+            onboarding
+            is
+            none
+            or
+            onboarding.wants_pvp
+            %}checked{%
+            endif
+            %}
+          />
+          Show PvP and quiz duel recommendations</label
+        >
+        <label
+          ><input
+            type="checkbox"
+            name="wants_steam_balance"
+            value="true"
+            {%
+            if
+            onboarding
+            is
+            none
+            or
+            onboarding.wants_steam_balance
+            %}checked{%
+            endif
+            %}
+          />
+          Show Steam vs Study balance nudges</label
+        >
       </div>
 
       <button class="btn primary" type="submit">Start my journey</button>
@@ -82,10 +316,31 @@
   </div>
 
   <div class="grid">
-    <div class="card"><h2>1. Tiny daily target</h2><p class="muted">Your daily minutes become a simple target for dashboard recommendations.</p></div>
-    <div class="card"><h2>2. Personalized focus</h2><p class="muted">Preferred session length powers your Focus recommendations.</p></div>
-    <div class="card"><h2>3. Less overwhelm</h2><p class="muted">SkillArena can suggest one best next move instead of ten choices.</p></div>
-    <div class="card"><h2>4. Game layer</h2><p class="muted">Quests, streaks, PvP, achievements, and cosmetics stay connected to your goals.</p></div>
+    <div class="card">
+      <h2>1. Tiny daily target</h2>
+      <p class="muted">
+        Your daily minutes become a simple target for dashboard recommendations.
+      </p>
+    </div>
+    <div class="card">
+      <h2>2. Personalized focus</h2>
+      <p class="muted">
+        Preferred session length powers your Focus recommendations.
+      </p>
+    </div>
+    <div class="card">
+      <h2>3. Less overwhelm</h2>
+      <p class="muted">
+        SkillArena can suggest one best next move instead of ten choices.
+      </p>
+    </div>
+    <div class="card">
+      <h2>4. Game layer</h2>
+      <p class="muted">
+        Quests, streaks, PvP, achievements, and cosmetics stay connected to your
+        goals.
+      </p>
+    </div>
   </div>
 </section>
 {% endblock %}

@@ -1,37 +1,94 @@
-{% extends "base.html" %}
-{% block title %}Admin Users · SkillArena{% endblock %}
-{% block content %}
+{% extends "base.html" %} {% block title %}Admin Users · SkillArena{% endblock
+%} {% block content %}
 <header class="page-head">
-  <div><a class="badge" href="/admin">← Admin forge</a><h1>User management</h1><p class="muted">Manage roles, streaks, and Skill Point adjustments.</p></div>
+  <div>
+    <a class="badge" href="/admin">← Admin forge</a>
+    <h1>User management</h1>
+    <p class="muted">Manage roles, streaks, and Skill Point adjustments.</p>
+  </div>
 </header>
-{% if request.query_params.get('success') %}<div data-reward-pop>User updated ✨</div>{% endif %}
-{% if request.query_params.get('error') %}<div class="card" style="border-color:#fb7185;margin-bottom:18px"><strong>Action failed.</strong><p class="muted">{{ request.query_params.get('error') }}</p></div>{% endif %}
+{% if request.query_params.get('success') %}
+<div data-reward-pop>User updated ✨</div>
+{% endif %} {% if request.query_params.get('error') %}
+<div class="card" style="border-color: #fb7185; margin-bottom: 18px">
+  <strong>Action failed.</strong>
+  <p class="muted">{{ request.query_params.get('error') }}</p>
+</div>
+{% endif %}
 <section class="card table-wrap">
   <table class="table">
-    <tr><th>User</th><th>Role</th><th>Skill Points</th><th>Streak</th><th>Role action</th><th>Points action</th></tr>
+    <tr>
+      <th>User</th>
+      <th>Role</th>
+      <th>Skill Points</th>
+      <th>Streak</th>
+      <th>Role action</th>
+      <th>Points action</th>
+    </tr>
     {% for u in users %}
-      <tr>
-        <td>#{{ u.id }} · {{ u.display_name }}<br><span class="muted">{{ u.steam_id }}</span></td>
-        <td>{{ u.role.value }}</td>
-        <td>{{ u.skill_points }}</td>
-        <td>{{ u.current_streak_days }} / best {{ u.best_streak_days }}</td>
-        <td>
-          <form class="form" method="post" action="/admin/users/{{ u.id }}/role">
-            <select name="role">
-              <option value="user" {% if u.role.value == 'user' %}selected{% endif %}>User</option>
-              <option value="admin" {% if u.role.value == 'admin' %}selected{% endif %}>Admin</option>
-            </select>
-            <button class="btn" type="submit">Update role</button>
-          </form>
-        </td>
-        <td>
-          <form class="form" method="post" action="/admin/users/{{ u.id }}/points">
-            <input class="input" type="number" name="amount" placeholder="+100 or -50" required>
-            <input class="input" name="reason" placeholder="Reason" value="Admin adjustment">
-            <button class="btn primary" type="submit">Apply</button>
-          </form>
-        </td>
-      </tr>
+    <tr>
+      <td>
+        #{{ u.id }} · {{ u.display_name }}<br /><span class="muted"
+          >{{ u.steam_id }}</span
+        >
+      </td>
+      <td>{{ u.role.value }}</td>
+      <td>{{ u.skill_points }}</td>
+      <td>{{ u.current_streak_days }} / best {{ u.best_streak_days }}</td>
+      <td>
+        <form class="form" method="post" action="/admin/users/{{ u.id }}/role">
+          <select name="role">
+            <option
+              value="user"
+              {%
+              if
+              u.role.value=""
+              ="user"
+              %}selected{%
+              endif
+              %}
+            >
+              User
+            </option>
+            <option
+              value="admin"
+              {%
+              if
+              u.role.value=""
+              ="admin"
+              %}selected{%
+              endif
+              %}
+            >
+              Admin
+            </option>
+          </select>
+          <button class="btn" type="submit">Update role</button>
+        </form>
+      </td>
+      <td>
+        <form
+          class="form"
+          method="post"
+          action="/admin/users/{{ u.id }}/points"
+        >
+          <input
+            class="input"
+            type="number"
+            name="amount"
+            placeholder="+100 or -50"
+            required
+          />
+          <input
+            class="input"
+            name="reason"
+            placeholder="Reason"
+            value="Admin adjustment"
+          />
+          <button class="btn primary" type="submit">Apply</button>
+        </form>
+      </td>
+    </tr>
     {% endfor %}
   </table>
 </section>

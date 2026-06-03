@@ -1,88 +1,126 @@
-{% extends "base.html" %}
-{% block title %}Focus Sessions · SkillArena{% endblock %}
-{% block content %}
-{% if request.query_params.get('success') == 'completed' %}
-  <div data-reward-pop>Focus session completed! +{{ request.query_params.get('reward') }} SP 🧘</div>
-{% endif %}
-{% if request.query_params.get('error') %}
-<div class="card" style="border-color:#fb7185;margin-bottom:18px"><strong>Focus action failed.</strong><p class="muted">{{ request.query_params.get('error') }}</p></div>
+{% extends "base.html" %} {% block title %}Focus Sessions · SkillArena{%
+endblock %} {% block content %} {% if request.query_params.get('success') ==
+'completed' %}
+<div data-reward-pop>
+  Focus session completed! +{{ request.query_params.get('reward') }} SP 🧘
+</div>
+{% endif %} {% if request.query_params.get('error') %}
+<div class="card" style="border-color: #fb7185; margin-bottom: 18px">
+  <strong>Focus action failed.</strong>
+  <p class="muted">{{ request.query_params.get('error') }}</p>
+</div>
 {% endif %}
 
 <header class="page-head">
   <div>
     <span class="badge">🧘 ADHD-friendly focus</span>
     <h1>Focus Sessions</h1>
-    <p class="muted">Pick a timer, stay active, and claim Skill Points when the session ends.</p>
+    <p class="muted">
+      Pick a timer, stay active, and claim Skill Points when the session ends.
+    </p>
   </div>
   <div class="page-actions"><a class="btn" href="/quests">Daily quests</a></div>
 </header>
 <section class="card">
   <div class="grid cols-3">
-    <div class="stat"><strong>{{ completed_today }}</strong><p>Sessions today</p></div>
-    <div class="stat"><strong>{{ total_today_minutes }}</strong><p>Focus minutes today</p></div>
-    <div class="stat"><strong>+5</strong><p>SP per 5 minutes</p></div>
+    <div class="stat">
+      <strong>{{ completed_today }}</strong>
+      <p>Sessions today</p>
+    </div>
+    <div class="stat">
+      <strong>{{ total_today_minutes }}</strong>
+      <p>Focus minutes today</p>
+    </div>
+    <div class="stat">
+      <strong>+5</strong>
+      <p>SP per 5 minutes</p>
+    </div>
   </div>
 </section>
 
-<section class="card" style="margin-top:18px">
+<section class="card" style="margin-top: 18px">
   <h2>Choose duration</h2>
   <div class="focus-options">
     {% for duration in durations %}
-      <button class="btn primary" type="button" data-focus-start data-duration="{{ duration }}">{{ duration }} min · +{{ (duration // 5) * 5 }} SP{% if onboarding and onboarding.preferred_session_minutes == duration %} · recommended{% endif %}</button>
+    <button
+      class="btn primary"
+      type="button"
+      data-focus-start
+      data-duration="{{ duration }}"
+    >
+      {{ duration }} min · +{{ (duration // 5) * 5 }} SP{% if onboarding and
+      onboarding.preferred_session_minutes == duration %} · recommended{% endif
+      %}
+    </button>
     {% endfor %}
   </div>
 </section>
 
-<section class="card" style="margin-top:18px" id="focusPanel" hidden>
+<section class="card" style="margin-top: 18px" id="focusPanel" hidden>
   <span class="badge">Focus running</span>
   <h2 id="focusTimer">25:00</h2>
-  <p class="muted">Keep this tab visible. You can use this time for reading, watching lessons, or solving quiz notes.</p>
-  <div class="progress"><span id="focusProgress" style="width:0%"></span></div>
+  <p class="muted">
+    Keep this tab visible. You can use this time for reading, watching lessons,
+    or solving quiz notes.
+  </p>
+  <div class="progress"><span id="focusProgress" style="width: 0%"></span></div>
   <form method="post" action="/focus/complete" id="focusCompleteForm">
-    <input type="hidden" name="duration_minutes" id="focusDurationInput">
-    <button class="btn primary" type="submit" id="focusClaimButton" disabled>Claim reward</button>
+    <input type="hidden" name="duration_minutes" id="focusDurationInput" />
+    <button class="btn primary" type="submit" id="focusClaimButton" disabled>
+      Claim reward
+    </button>
   </form>
 </section>
 
-<section class="card" style="margin-top:18px">
+<section class="card" style="margin-top: 18px">
   <h2>Recent focus sessions</h2>
   {% for session in recent_sessions %}
-    <p><span class="badge">+{{ session.reward_points }} SP</span> {{ session.duration_minutes }} minutes · {{ session.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+  <p>
+    <span class="badge">+{{ session.reward_points }} SP</span> {{
+    session.duration_minutes }} minutes · {{
+    session.created_at.strftime('%Y-%m-%d %H:%M') }}
+  </p>
   {% else %}
-    <p class="muted">No focus sessions yet.</p>
+  <p class="muted">No focus sessions yet.</p>
   {% endfor %}
 </section>
 
 <script>
-let focusInterval = null;
-document.querySelectorAll('[data-focus-start]').forEach((button)=>{
-  button.addEventListener('click',()=>{
-    const duration = Number(button.dataset.duration);
-    const totalSeconds = duration * 60;
-    let remaining = totalSeconds;
-    document.getElementById('focusPanel').hidden = false;
-    document.getElementById('focusDurationInput').value = duration;
-    document.getElementById('focusClaimButton').disabled = true;
-    if(focusInterval){clearInterval(focusInterval)}
-    const render = ()=>{
-      const minutes = Math.floor(remaining / 60).toString().padStart(2,'0');
-      const seconds = (remaining % 60).toString().padStart(2,'0');
-      document.getElementById('focusTimer').textContent = `${minutes}:${seconds}`;
-      document.getElementById('focusProgress').style.width = `${Math.round((totalSeconds - remaining) * 100 / totalSeconds)}%`;
-    };
-    render();
-    focusInterval = setInterval(()=>{
-      if(document.visibilityState === 'visible'){
-        remaining -= 1;
-      }
-      if(remaining <= 0){
-        remaining = 0;
+  let focusInterval = null;
+  document.querySelectorAll("[data-focus-start]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const duration = Number(button.dataset.duration);
+      const totalSeconds = duration * 60;
+      let remaining = totalSeconds;
+      document.getElementById("focusPanel").hidden = false;
+      document.getElementById("focusDurationInput").value = duration;
+      document.getElementById("focusClaimButton").disabled = true;
+      if (focusInterval) {
         clearInterval(focusInterval);
-        document.getElementById('focusClaimButton').disabled = false;
       }
+      const render = () => {
+        const minutes = Math.floor(remaining / 60)
+          .toString()
+          .padStart(2, "0");
+        const seconds = (remaining % 60).toString().padStart(2, "0");
+        document.getElementById("focusTimer").textContent =
+          `${minutes}:${seconds}`;
+        document.getElementById("focusProgress").style.width =
+          `${Math.round(((totalSeconds - remaining) * 100) / totalSeconds)}%`;
+      };
       render();
-    },1000);
+      focusInterval = setInterval(() => {
+        if (document.visibilityState === "visible") {
+          remaining -= 1;
+        }
+        if (remaining <= 0) {
+          remaining = 0;
+          clearInterval(focusInterval);
+          document.getElementById("focusClaimButton").disabled = false;
+        }
+        render();
+      }, 1000);
+    });
   });
-});
 </script>
 {% endblock %}

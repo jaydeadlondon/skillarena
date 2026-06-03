@@ -1,37 +1,57 @@
-{% extends "base.html" %}
-{% block title %}Streaks · SkillArena{% endblock %}
-{% block content %}
+{% extends "base.html" %} {% block title %}Streaks · SkillArena{% endblock %} {%
+block content %}
 <section class="card">
   <span class="badge">🔥 Momentum system</span>
   <h1>Learning Streaks</h1>
-  <p class="muted">A day counts when you complete at least one lesson, win a PvP battle, or study for {{ min_study_minutes }} minutes. Your streak stays alive if the latest qualified day is today or yesterday.</p>
+  <p class="muted">
+    A day counts when you complete at least one lesson, win a PvP battle, or
+    study for {{ min_study_minutes }} minutes. Your streak stays alive if the
+    latest qualified day is today or yesterday.
+  </p>
   <div class="grid cols-3">
-    <div class="stat"><strong>{{ user.current_streak_days }}</strong><p>Current streak</p></div>
-    <div class="stat"><strong>{{ user.best_streak_days }}</strong><p>Best streak</p></div>
-    <div class="stat"><strong>{{ min_study_minutes }}</strong><p>Study minutes needed</p></div>
+    <div class="stat">
+      <strong>{{ user.current_streak_days }}</strong>
+      <p>Current streak</p>
+    </div>
+    <div class="stat">
+      <strong>{{ user.best_streak_days }}</strong>
+      <p>Best streak</p>
+    </div>
+    <div class="stat">
+      <strong>{{ min_study_minutes }}</strong>
+      <p>Study minutes needed</p>
+    </div>
   </div>
 </section>
 
-<section class="card" style="margin-top:18px">
+<section class="card" style="margin-top: 18px">
   <h2>Last 14 days</h2>
   <div class="streak-timeline">
     {% for day in timeline %}
-      <div class="streak-day {% if day.qualified %}qualified{% endif %} {% if day.is_today %}today{% endif %}">
-        <strong>{{ day.day_label }}</strong>
-        <span>{{ day.date.strftime('%m-%d') }}</span>
-        <em>{% if day.qualified %}🔥{% else %}·{% endif %}</em>
-      </div>
+    <div
+      class="streak-day {% if day.qualified %}qualified{% endif %} {% if day.is_today %}today{% endif %}"
+    >
+      <strong>{{ day.day_label }}</strong>
+      <span>{{ day.date.strftime('%m-%d') }}</span>
+      <em>{% if day.qualified %}🔥{% else %}·{% endif %}</em>
+    </div>
     {% endfor %}
   </div>
 </section>
 
-<section class="grid cols-2" style="margin-top:18px">
+<section class="grid cols-2" style="margin-top: 18px">
   {% for day in timeline|reverse %}
-    <div class="card">
-      <span class="badge">{{ day.date.isoformat() }}</span>
-      <h3>{% if day.qualified %}Qualified day 🔥{% else %}No streak credit yet{% endif %}</h3>
-      <p class="muted">Study: {{ day.study_minutes }} min · Lessons: {{ day.lessons_completed }} · PvP wins: {{ day.pvp_wins }}</p>
-    </div>
+  <div class="card">
+    <span class="badge">{{ day.date.isoformat() }}</span>
+    <h3>
+      {% if day.qualified %}Qualified day 🔥{% else %}No streak credit yet{%
+      endif %}
+    </h3>
+    <p class="muted">
+      Study: {{ day.study_minutes }} min · Lessons: {{ day.lessons_completed }}
+      · PvP wins: {{ day.pvp_wins }}
+    </p>
+  </div>
   {% endfor %}
 </section>
 {% endblock %}

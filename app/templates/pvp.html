@@ -1,15 +1,15 @@
-{% extends "base.html" %}
-{% block title %}PvP · SkillArena{% endblock %}
-{% block content %}
-{% if request.query_params.get('error') %}
-<div class="card" style="border-color:#fb7185;margin-bottom:18px">
+{% extends "base.html" %} {% block title %}PvP · SkillArena{% endblock %} {%
+block content %} {% if request.query_params.get('error') %}
+<div class="card" style="border-color: #fb7185; margin-bottom: 18px">
   <strong>PvP action failed.</strong>
   {% if request.query_params.get('error') == 'not-enough-points' %}
-    <p class="muted">Not enough Skill Points for the entry fee.</p>
+  <p class="muted">Not enough Skill Points for the entry fee.</p>
   {% elif request.query_params.get('error') == 'no-questions' %}
-    <p class="muted">No active PvP questions yet. Create some in the admin panel first.</p>
+  <p class="muted">
+    No active PvP questions yet. Create some in the admin panel first.
+  </p>
   {% else %}
-    <p class="muted">{{ request.query_params.get('error') }}</p>
+  <p class="muted">{{ request.query_params.get('error') }}</p>
   {% endif %}
 </div>
 {% endif %}
@@ -18,35 +18,55 @@
   <div>
     <span class="badge">⚔️ Arena</span>
     <h1>PvP Quiz Battles</h1>
-    <p class="muted">Entry fee: {{ entry_fee }} Skill Points. Server-validated answers, fair tie refunds.</p>
-    <p><span class="badge">{{ questions_count }} active questions</span> <span class="badge">Tie refunds entry fees</span></p>
+    <p class="muted">
+      Entry fee: {{ entry_fee }} Skill Points. Server-validated answers, fair
+      tie refunds.
+    </p>
+    <p>
+      <span class="badge">{{ questions_count }} active questions</span>
+      <span class="badge">Tie refunds entry fees</span>
+    </p>
   </div>
   <div class="page-actions">
-    <form method="post" action="/pvp/create"><button class="btn primary" type="submit">Create battle</button></form>
+    <form method="post" action="/pvp/create">
+      <button class="btn primary" type="submit">Create battle</button>
+    </form>
     <a class="btn" href="/pvp/history">Battle history</a>
   </div>
 </header>
-<section class="card" style="margin-top:18px">
+<section class="card" style="margin-top: 18px">
   <h2>Lobby</h2>
-  <table class="table"><tr><th>ID</th><th>Status</th><th>Score</th><th>Prize</th><th>Action</th></tr>
-  {% for battle in battles %}
+  <table class="table">
+    <tr>
+      <th>ID</th>
+      <th>Status</th>
+      <th>Score</th>
+      <th>Prize</th>
+      <th>Action</th>
+    </tr>
+    {% for battle in battles %}
     <tr>
       <td>#{{ battle.id }}</td>
       <td>{{ battle.status.value }}</td>
       <td>{{ battle.challenger_score }}:{{ battle.opponent_score }}</td>
       <td>+{{ battle.reward_points + battle.entry_fee_points * 2 }} SP</td>
       <td>
-        {% if battle.status.value == 'waiting' and battle.challenger_id != user.id %}
-          <form method="post" action="/pvp/{{ battle.id }}/join"><button class="btn" type="submit">Join</button></form>
-        {% endif %}
-        {% if battle.challenger_id == user.id or battle.opponent_id == user.id %}
-          <a class="btn" href="/pvp/{{ battle.id }}/play">Open</a>
+        {% if battle.status.value == 'waiting' and battle.challenger_id !=
+        user.id %}
+        <form method="post" action="/pvp/{{ battle.id }}/join">
+          <button class="btn" type="submit">Join</button>
+        </form>
+        {% endif %} {% if battle.challenger_id == user.id or battle.opponent_id
+        == user.id %}
+        <a class="btn" href="/pvp/{{ battle.id }}/play">Open</a>
         {% endif %}
       </td>
     </tr>
-  {% else %}
-    <tr><td colspan="5" class="muted">No battles yet. Create the first duel.</td></tr>
-  {% endfor %}
+    {% else %}
+    <tr>
+      <td colspan="5" class="muted">No battles yet. Create the first duel.</td>
+    </tr>
+    {% endfor %}
   </table>
 </section>
 {% endblock %}

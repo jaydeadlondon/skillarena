@@ -1,34 +1,53 @@
-{% extends "base.html" %}
-{% block title %}{{ course.title }} · SkillArena{% endblock %}
-{% block content %}
-{% if request.query_params.get('course_completed') %}
+{% extends "base.html" %} {% block title %}{{ course.title }} · SkillArena{%
+endblock %} {% block content %} {% if
+request.query_params.get('course_completed') %}
 <div data-reward-pop>Course completed! +{{ course.reward_points }} SP 🏆</div>
 {% elif request.query_params.get('lesson_completed') %}
 <div data-reward-pop>Lesson completed! Rewards claimed ✨</div>
 {% endif %}
 <div class="card">
   <span class="badge">{{ course.category }}</span>
-  {% if course_progress.is_completed %}<span class="badge">✅ Course completed</span>{% endif %}
+  {% if course_progress.is_completed %}<span class="badge"
+    >✅ Course completed</span
+  >{% endif %}
   <h1>{{ course.title }}</h1>
   <p class="muted">{{ course.description }}</p>
-  <p><strong>{{ course_progress.completed }}</strong> / {{ course_progress.total }} lessons completed · {{ course_progress.percent }}%</p>
-  <div class="progress"><span style="width: {{ course_progress.percent }}%"></span></div>
-  <div style="display:flex;gap:12px;margin-top:18px;flex-wrap:wrap">
+  <p>
+    <strong>{{ course_progress.completed }}</strong> / {{ course_progress.total
+    }} lessons completed · {{ course_progress.percent }}%
+  </p>
+  <div class="progress">
+    <span style="width: {{ course_progress.percent }}%"></span>
+  </div>
+  <div style="display: flex; gap: 12px; margin-top: 18px; flex-wrap: wrap">
     {% if course_progress.next_lesson %}
-      <a class="btn primary" href="/learn/lessons/{{ course_progress.next_lesson.id }}">Continue learning</a>
+    <a
+      class="btn primary"
+      href="/learn/lessons/{{ course_progress.next_lesson.id }}"
+      >Continue learning</a
+    >
     {% else %}
-      <span class="badge">All lessons finished</span>
+    <span class="badge">All lessons finished</span>
     {% endif %}
     <a class="btn" href="/courses">Back to course map</a>
   </div>
 </div>
-<div class="lesson-list" style="margin-top:18px">
-  {% for lesson in course.lessons %}
-    {% set p = progress_by_lesson.get(lesson.id) %}
-    <a class="lesson-row" href="/learn/lessons/{{ lesson.id }}">
-      <div><strong>{{ lesson.position }}. {{ lesson.title }}</strong><p class="muted">{{ lesson.duration_minutes }} min · +{{ lesson.reward_points }} SP</p></div>
-      <span class="badge">{% if p and p.completed %}✅ completed{% elif course_progress.next_lesson and course_progress.next_lesson.id == lesson.id %}▶ next{% else %}○ locked by focus{% endif %}</span>
-    </a>
+<div class="lesson-list" style="margin-top: 18px">
+  {% for lesson in course.lessons %} {% set p =
+  progress_by_lesson.get(lesson.id) %}
+  <a class="lesson-row" href="/learn/lessons/{{ lesson.id }}">
+    <div>
+      <strong>{{ lesson.position }}. {{ lesson.title }}</strong>
+      <p class="muted">
+        {{ lesson.duration_minutes }} min · +{{ lesson.reward_points }} SP
+      </p>
+    </div>
+    <span class="badge"
+      >{% if p and p.completed %}✅ completed{% elif course_progress.next_lesson
+      and course_progress.next_lesson.id == lesson.id %}▶ next{% else %}○ locked
+      by focus{% endif %}</span
+    >
+  </a>
   {% endfor %}
 </div>
 {% endblock %}

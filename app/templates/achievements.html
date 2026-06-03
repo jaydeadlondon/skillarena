@@ -1,42 +1,69 @@
-{% extends "base.html" %}
-{% block title %}Achievements · SkillArena{% endblock %}
-{% block content %}
+{% extends "base.html" %} {% block title %}Achievements · SkillArena{% endblock
+%} {% block content %}
 <header class="page-head">
   <div>
     <span class="badge">🏆 Collection</span>
     <h1>Achievement Gallery</h1>
-    <p class="muted">Track unlocked achievements, locked goals, reward points, and your next milestones.</p>
+    <p class="muted">
+      Track unlocked achievements, locked goals, reward points, and your next
+      milestones.
+    </p>
   </div>
-  <div class="page-actions"><a class="btn" href="/profile">Profile</a><a class="btn" href="/dashboard">Dashboard</a></div>
+  <div class="page-actions">
+    <a class="btn" href="/profile">Profile</a
+    ><a class="btn" href="/dashboard">Dashboard</a>
+  </div>
 </header>
 
 <section class="card">
   <div class="grid cols-3">
-    <div class="stat"><strong>{{ gallery.unlocked_count }}</strong><p>Unlocked</p></div>
-    <div class="stat"><strong>{{ gallery.locked_count }}</strong><p>Locked</p></div>
-    <div class="stat"><strong>{{ gallery.completion_percent }}%</strong><p>Collection progress</p></div>
+    <div class="stat">
+      <strong>{{ gallery.unlocked_count }}</strong>
+      <p>Unlocked</p>
+    </div>
+    <div class="stat">
+      <strong>{{ gallery.locked_count }}</strong>
+      <p>Locked</p>
+    </div>
+    <div class="stat">
+      <strong>{{ gallery.completion_percent }}%</strong>
+      <p>Collection progress</p>
+    </div>
   </div>
-  <div class="progress" style="margin-top:16px"><span style="width: {{ gallery.completion_percent }}%"></span></div>
+  <div class="progress" style="margin-top: 16px">
+    <span style="width: {{ gallery.completion_percent }}%"></span>
+  </div>
 </section>
 
 {% for group, cards in gallery.grouped.items() %}
-<section class="card" style="margin-top:18px">
-  <div class="section-title"><h2>{{ group }}</h2><span class="badge">{{ cards|selectattr('unlocked')|list|length }}/{{ cards|length }} unlocked</span></div>
+<section class="card" style="margin-top: 18px">
+  <div class="section-title">
+    <h2>{{ group }}</h2>
+    <span class="badge"
+      >{{ cards|selectattr('unlocked')|list|length }}/{{ cards|length }}
+      unlocked</span
+    >
+  </div>
 </section>
-<section class="grid cols-3" style="margin-top:18px">
-  {% for card in cards %}
-    {% set achievement = card.achievement %}
-    <div class="card achievement-card {% if card.unlocked %}achievement-unlocked{% else %}achievement-locked{% endif %}">
-      <span class="badge">{% if card.unlocked %}Unlocked{% else %}Locked{% endif %}</span>
-      <span class="badge">+{{ achievement.reward_points }} SP</span>
-      <h2>{{ achievement.badge_icon }} {{ achievement.title }}</h2>
-      <p class="muted">{{ achievement.description }}</p>
-      <p>{{ card.current }} / {{ card.target }}</p>
-      <div class="progress"><span style="width: {{ card.percent }}%"></span></div>
-    </div>
+<section class="grid cols-3" style="margin-top: 18px">
+  {% for card in cards %} {% set achievement = card.achievement %}
+  <div
+    class="card achievement-card {% if card.unlocked %}achievement-unlocked{% else %}achievement-locked{% endif %}"
+  >
+    <span class="badge"
+      >{% if card.unlocked %}Unlocked{% else %}Locked{% endif %}</span
+    >
+    <span class="badge">+{{ achievement.reward_points }} SP</span>
+    <h2>{{ achievement.badge_icon }} {{ achievement.title }}</h2>
+    <p class="muted">{{ achievement.description }}</p>
+    <p>{{ card.current }} / {{ card.target }}</p>
+    <div class="progress"><span style="width: {{ card.percent }}%"></span></div>
+  </div>
   {% endfor %}
 </section>
 {% else %}
-<div class="empty-state">No achievements found. Run demo seed data or create achievements in the database.</div>
-{% endfor %}
-{% endblock %}
+<div class="empty-state">
+  No achievements found. Run demo seed data or create achievements in the
+  database.
+</div>
+{% endfor %} {% endblock %}

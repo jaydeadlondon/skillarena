@@ -1,32 +1,49 @@
-{% extends "base.html" %}
-{% block title %}Notifications · SkillArena{% endblock %}
-{% block content %}
-{% if request.query_params.get('success') == 'read-all' %}
+{% extends "base.html" %} {% block title %}Notifications · SkillArena{% endblock
+%} {% block content %} {% if request.query_params.get('success') == 'read-all'
+%}
 <div data-reward-pop>Notifications cleared ✨</div>
 {% endif %}
 <header class="page-head">
   <div>
     <span class="badge">🔔 {{ unread_count }} unread</span>
     <h1>Notifications</h1>
-    <p class="muted">Rewards, refunds, achievements, focus sessions, and system updates appear here.</p>
+    <p class="muted">
+      Rewards, refunds, achievements, focus sessions, and system updates appear
+      here.
+    </p>
   </div>
-  <div class="page-actions"><form method="post" action="/notifications/read-all"><button class="btn" type="submit">Mark all as read</button></form></div>
+  <div class="page-actions">
+    <form method="post" action="/notifications/read-all">
+      <button class="btn" type="submit">Mark all as read</button>
+    </form>
+  </div>
 </header>
 
-<section class="grid" style="margin-top:18px">
+<section class="grid" style="margin-top: 18px">
   {% for notification in notifications %}
-    <div class="card notification-card {% if not notification.is_read %}unread{% endif %}">
-      <span class="badge">{{ notification.notification_type }}</span>
-      {% if not notification.is_read %}<span class="badge">new</span>{% endif %}
-      <h2>{{ notification.title }}</h2>
-      <p class="muted">{{ notification.message }}</p>
-      <p class="muted">{{ notification.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
-      {% if not notification.is_read %}
-        <form method="post" action="/notifications/{{ notification.id }}/read"><button class="btn" type="submit">Mark read</button></form>
-      {% endif %}
-    </div>
+  <div
+    class="card notification-card {% if not notification.is_read %}unread{% endif %}"
+  >
+    <span class="badge">{{ notification.notification_type }}</span>
+    {% if not notification.is_read %}<span class="badge">new</span>{% endif %}
+    <h2>{{ notification.title }}</h2>
+    <p class="muted">{{ notification.message }}</p>
+    <p class="muted">
+      {{ notification.created_at.strftime('%Y-%m-%d %H:%M') }}
+    </p>
+    {% if not notification.is_read %}
+    <form method="post" action="/notifications/{{ notification.id }}/read">
+      <button class="btn" type="submit">Mark read</button>
+    </form>
+    {% endif %}
+  </div>
   {% else %}
-    <div class="card"><p class="muted">No notifications yet. Complete lessons, quests, focus sessions, or PvP to earn rewards.</p></div>
+  <div class="card">
+    <p class="muted">
+      No notifications yet. Complete lessons, quests, focus sessions, or PvP to
+      earn rewards.
+    </p>
+  </div>
   {% endfor %}
 </section>
 {% endblock %}

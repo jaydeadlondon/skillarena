@@ -1,50 +1,51 @@
-{% extends "base.html" %}
-{% block title %}Quests · SkillArena{% endblock %}
-{% macro quest_grid(cards, empty_text) %}
-<section class="grid cols-2" style="margin-top:18px">
-  {% for card in cards %}
-    {% set quest = card.quest %}
-    {% set user_quest = card.user_quest %}
-    <div class="card">
-      <span class="badge">{{ quest.frequency.value }}</span>
-      <span class="badge">+{{ quest.reward_points }} SP</span>
-      <h2>{{ quest.title }}</h2>
-      <p class="muted">{{ quest.description }}</p>
-      <p>{{ user_quest.progress_value }} / {{ quest.target_value }} {{ quest.target_metric.replace('_', ' ') }}</p>
-      <div class="progress"><span style="width: {{ card.percent }}%"></span></div>
-      <p class="muted">Period: {{ user_quest.period_key }}</p>
-      <div class="action-row" style="margin-top:14px">
-        {% if user_quest.claimed %}
-          <span class="badge">✅ Claimed</span>
-        {% elif card.can_claim %}
-          <form method="post" action="/quests/{{ quest.id }}/claim">
-            <button class="btn primary" type="submit">Claim reward</button>
-          </form>
-        {% elif user_quest.completed %}
-          <span class="badge">Completed</span>
-        {% else %}
-          <span class="badge">In progress</span>
-        {% endif %}
-      </div>
+{% extends "base.html" %} {% block title %}Quests · SkillArena{% endblock %} {%
+macro quest_grid(cards, empty_text) %}
+<section class="grid cols-2" style="margin-top: 18px">
+  {% for card in cards %} {% set quest = card.quest %} {% set user_quest =
+  card.user_quest %}
+  <div class="card">
+    <span class="badge">{{ quest.frequency.value }}</span>
+    <span class="badge">+{{ quest.reward_points }} SP</span>
+    <h2>{{ quest.title }}</h2>
+    <p class="muted">{{ quest.description }}</p>
+    <p>
+      {{ user_quest.progress_value }} / {{ quest.target_value }} {{
+      quest.target_metric.replace('_', ' ') }}
+    </p>
+    <div class="progress"><span style="width: {{ card.percent }}%"></span></div>
+    <p class="muted">Period: {{ user_quest.period_key }}</p>
+    <div class="action-row" style="margin-top: 14px">
+      {% if user_quest.claimed %}
+      <span class="badge">✅ Claimed</span>
+      {% elif card.can_claim %}
+      <form method="post" action="/quests/{{ quest.id }}/claim">
+        <button class="btn primary" type="submit">Claim reward</button>
+      </form>
+      {% elif user_quest.completed %}
+      <span class="badge">Completed</span>
+      {% else %}
+      <span class="badge">In progress</span>
+      {% endif %}
     </div>
+  </div>
   {% else %}
-    <div class="empty-state">{{ empty_text }}</div>
+  <div class="empty-state">{{ empty_text }}</div>
   {% endfor %}
 </section>
-{% endmacro %}
-{% block content %}
-{% if request.query_params.get('success') == 'claimed' %}
-  <div data-reward-pop>Quest reward claimed ✨</div>
-{% endif %}
-{% if request.query_params.get('error') %}
-<div class="card" style="border-color:#fb7185;margin-bottom:18px">
+{% endmacro %} {% block content %} {% if request.query_params.get('success') ==
+'claimed' %}
+<div data-reward-pop>Quest reward claimed ✨</div>
+{% endif %} {% if request.query_params.get('error') %}
+<div class="card" style="border-color: #fb7185; margin-bottom: 18px">
   <strong>Quest action failed.</strong>
   {% if request.query_params.get('error') == 'not-completed' %}
-    <p class="muted">Complete the quest objective before claiming the reward.</p>
+  <p class="muted">Complete the quest objective before claiming the reward.</p>
   {% elif request.query_params.get('error') == 'already-claimed' %}
-    <p class="muted">This quest reward has already been claimed for this period.</p>
+  <p class="muted">
+    This quest reward has already been claimed for this period.
+  </p>
   {% else %}
-    <p class="muted">{{ request.query_params.get('error') }}</p>
+  <p class="muted">{{ request.query_params.get('error') }}</p>
   {% endif %}
 </div>
 {% endif %}
@@ -53,25 +54,54 @@
   <div>
     <span class="badge">📜 Daily & weekly quests</span>
     <h1>Quests</h1>
-    <p class="muted">Daily quests build momentum. Weekly quests reward deeper consistency.</p>
+    <p class="muted">
+      Daily quests build momentum. Weekly quests reward deeper consistency.
+    </p>
   </div>
-  <div class="page-actions"><a class="btn" href="/focus">Start focus</a><a class="btn" href="/courses">Learn</a></div>
+  <div class="page-actions">
+    <a class="btn" href="/focus">Start focus</a
+    ><a class="btn" href="/courses">Learn</a>
+  </div>
 </header>
 <section class="card">
   <div class="grid cols-3">
-    <div class="stat"><strong>{{ daily_quest_cards|length + weekly_quest_cards|length }}</strong><p>Total quests</p></div>
-    <div class="stat"><strong>{{ completed_count }}</strong><p>Completed this period</p></div>
-    <div class="stat"><strong>{{ claimed_count }}</strong><p>Rewards claimed</p></div>
+    <div class="stat">
+      <strong
+        >{{ daily_quest_cards|length + weekly_quest_cards|length }}</strong
+      >
+      <p>Total quests</p>
+    </div>
+    <div class="stat">
+      <strong>{{ completed_count }}</strong>
+      <p>Completed this period</p>
+    </div>
+    <div class="stat">
+      <strong>{{ claimed_count }}</strong>
+      <p>Rewards claimed</p>
+    </div>
   </div>
 </section>
 
-<section class="card" style="margin-top:18px">
-  <div class="section-title"><h2>Daily quests</h2><span class="badge">{{ daily_completed_count }}/{{ daily_quest_cards|length }} completed today</span></div>
+<section class="card" style="margin-top: 18px">
+  <div class="section-title">
+    <h2>Daily quests</h2>
+    <span class="badge"
+      >{{ daily_completed_count }}/{{ daily_quest_cards|length }} completed
+      today</span
+    >
+  </div>
 </section>
-{{ quest_grid(daily_quest_cards, 'No daily quests yet. Add quests in the admin panel or run seed data.') }}
+{{ quest_grid(daily_quest_cards, 'No daily quests yet. Add quests in the admin
+panel or run seed data.') }}
 
-<section class="card" style="margin-top:18px">
-  <div class="section-title"><h2>Weekly quests</h2><span class="badge">{{ weekly_completed_count }}/{{ weekly_quest_cards|length }} completed this week</span></div>
+<section class="card" style="margin-top: 18px">
+  <div class="section-title">
+    <h2>Weekly quests</h2>
+    <span class="badge"
+      >{{ weekly_completed_count }}/{{ weekly_quest_cards|length }} completed
+      this week</span
+    >
+  </div>
 </section>
-{{ quest_grid(weekly_quest_cards, 'No weekly quests yet. Add weekly quests in the admin panel or run seed data.') }}
-{% endblock %}
+{{ quest_grid(weekly_quest_cards, 'No weekly quests yet. Add weekly quests in
+the admin panel or run seed data.') }} {% endblock %}

@@ -1,31 +1,39 @@
-{% extends "base.html" %}
-{% block title %}Courses · SkillArena{% endblock %}
-{% block content %}
-{% if request.query_params.get('lesson_completed') %}
+{% extends "base.html" %} {% block title %}Courses · SkillArena{% endblock %} {%
+block content %} {% if request.query_params.get('lesson_completed') %}
 <div data-reward-pop>Lesson completed! Rewards claimed ✨</div>
 {% endif %}
 <header class="page-head">
   <div>
     <span class="badge">🗺️ Learning map</span>
     <h1>Course map</h1>
-    <p class="muted">Choose a path, continue from your progress, and collect rewards.</p>
+    <p class="muted">
+      Choose a path, continue from your progress, and collect rewards.
+    </p>
   </div>
   <div class="page-actions"><a class="btn" href="/dashboard">Dashboard</a></div>
 </header>
 <div class="grid cols-3">
-  {% for card in course_cards %}
-    {% set course = card.course %}
-    {% set progress = card.progress %}
-    <a class="card" href="/courses/{{ course.slug }}">
-      <span class="badge">{{ course.category }}</span>
-      {% if progress.is_completed %}<span class="badge">✅ completed</span>{% endif %}
-      <h2>{{ course.title }}</h2>
-      <p class="muted">{{ course.description }}</p>
-      <p>⚔️ {{ progress.completed }}/{{ progress.total }} small quests · +{{ course.reward_points }} SP course reward</p>
-      <div class="progress"><span style="width: {{ progress.percent }}%"></span></div>
-    </a>
+  {% for card in course_cards %} {% set course = card.course %} {% set progress
+  = card.progress %}
+  <a class="card" href="/courses/{{ course.slug }}">
+    <span class="badge">{{ course.category }}</span>
+    {% if progress.is_completed %}<span class="badge">✅ completed</span>{%
+    endif %}
+    <h2>{{ course.title }}</h2>
+    <p class="muted">{{ course.description }}</p>
+    <p>
+      ⚔️ {{ progress.completed }}/{{ progress.total }} small quests · +{{
+      course.reward_points }} SP course reward
+    </p>
+    <div class="progress">
+      <span style="width: {{ progress.percent }}%"></span>
+    </div>
+  </a>
   {% else %}
-    <div class="empty-state">No published courses yet. Check back later or ask an admin to publish a course.</div>
+  <div class="empty-state">
+    No published courses yet. Check back later or ask an admin to publish a
+    course.
+  </div>
   {% endfor %}
 </div>
 {% endblock %}
