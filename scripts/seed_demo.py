@@ -179,6 +179,30 @@ async def main() -> None:
                 target_value=1,
                 reward_points=40,
             ),
+            dict(
+                title="Study for 120 minutes this week",
+                description="Build a strong weekly learning rhythm with two hours of study time.",
+                frequency=QuestFrequency.WEEKLY,
+                target_metric="study_minutes",
+                target_value=120,
+                reward_points=120,
+            ),
+            dict(
+                title="Complete 3 lessons this week",
+                description="Finish three lessons before the weekly reset.",
+                frequency=QuestFrequency.WEEKLY,
+                target_metric="lessons_completed",
+                target_value=3,
+                reward_points=90,
+            ),
+            dict(
+                title="Focus for 60 minutes this week",
+                description="Complete one hour of focus sessions this week.",
+                frequency=QuestFrequency.WEEKLY,
+                target_metric="focus_minutes",
+                target_value=60,
+                reward_points=80,
+            ),
         ]
         for quest_data in quests:
             await upsert_quest(db, **quest_data)

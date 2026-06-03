@@ -71,8 +71,8 @@
     <a class="btn primary" href="/focus">Start focus session</a>
   </div>
   <div class="card">
-    <h2>Daily quests</h2>
-    <p class="muted">{{ daily_quests_completed }}/{{ daily_quests_total }} completed today</p>
+    <h2>Quests</h2>
+    <p class="muted">Daily: {{ daily_quests_completed }}/{{ daily_quests_total }} · Weekly: {{ weekly_quests_completed }}/{{ weekly_quests_total }}</p>
     {% for card in daily_quest_cards %}
       {% set quest = card.quest %}
       {% set user_quest = card.user_quest %}

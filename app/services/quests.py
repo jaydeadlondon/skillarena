@@ -1,4 +1,4 @@
-from datetime import UTC, date, datetime, time
+from datetime import UTC, date, datetime, time, timedelta
 from typing import Any
 
 from sqlalchemy import func, select
@@ -11,22 +11,55 @@ from app.models.user import User
 from app.services.rewards import add_skill_points
 
 
+def today_utc() -> date:
+    return datetime.now(UTC).date()
+
+
 def daily_period_key(day: date | None = None) -> str:
-    return (day or datetime.now(UTC).date()).isoformat()
+    return (day or today_utc()).isoformat()
+
+
+def week_start(day: date | None = None) -> date:
+    day = day or today_utc()
+    return day - timedelta(days=day.weekday())
+
+
+def weekly_period_key(day: date | None = None) -> str:
+    start = week_start(day)
+    iso = start.isocalendar()
+    return f"{iso.year}-W{iso.week:02d}"
+
+
+def period_key_for_frequency(frequency: QuestFrequency, day: date | None = None) -> str:
+    if frequency == QuestFrequency.WEEKLY:
+        return weekly_period_key(day)
+    return daily_period_key(day)
 
 
 def day_start(day: date | None = None) -> datetime:
-    return datetime.combine(day or datetime.now(UTC).date(), time.min, tzinfo=UTC)
+    return datetime.combine(day or today_utc(), time.min, tzinfo=UTC)
 
 
-async def calculate_metric_value(db: AsyncSession, user: User, metric: str) -> int:
-    start = day_start()
+def period_start_for_frequency(frequency: QuestFrequency) -> datetime:
+    if frequency == QuestFrequency.WEEKLY:
+        return datetime.combine(week_start(), time.min, tzinfo=UTC)
+    return day_start()
+
+
+async def calculate_metric_value(
+    db: AsyncSession,
+    user: User,
+    metric: str,
+    frequency: QuestFrequency = QuestFrequency.DAILY,
+) -> int:
+    start = period_start_for_frequency(frequency)
+    activity_date_start = start.date()
 
     if metric == "study_minutes":
         tracked_seconds = await db.scalar(
             select(func.coalesce(func.sum(UserActivityDay.seconds), 0)).where(
                 UserActivityDay.user_id == user.id,
-                UserActivityDay.activity_date == datetime.now(UTC).date(),
+                UserActivityDay.activity_date >= activity_date_start,
                 UserActivityDay.activity_type == "lesson",
             )
         )
@@ -42,7 +75,7 @@ async def calculate_metric_value(db: AsyncSession, user: User, metric: str) -> i
         focus_seconds = await db.scalar(
             select(func.coalesce(func.sum(UserActivityDay.seconds), 0)).where(
                 UserActivityDay.user_id == user.id,
-                UserActivityDay.activity_date == datetime.now(UTC).date(),
+                UserActivityDay.activity_date >= activity_date_start,
                 UserActivityDay.activity_type == "focus",
             )
         )
@@ -86,7 +119,7 @@ async def calculate_metric_value(db: AsyncSession, user: User, metric: str) -> i
 async def get_or_create_user_quest(
     db: AsyncSession, user: User, quest: Quest
 ) -> UserQuest:
-    period_key = daily_period_key()
+    period_key = period_key_for_frequency(quest.frequency)
     user_quest = await db.scalar(
         select(UserQuest).where(
             UserQuest.user_id == user.id,
@@ -105,20 +138,22 @@ async def get_or_create_user_quest(
 
 async def sync_user_quest(db: AsyncSession, user: User, quest: Quest) -> UserQuest:
     user_quest = await get_or_create_user_quest(db, user, quest)
-    value = await calculate_metric_value(db, user, quest.target_metric)
+    value = await calculate_metric_value(db, user, quest.target_metric, quest.frequency)
     user_quest.progress_value = min(value, quest.target_value)
     user_quest.completed = value >= quest.target_value
     return user_quest
 
 
-async def get_daily_quest_cards(db: AsyncSession, user: User) -> list[dict[str, Any]]:
+async def get_quest_cards(
+    db: AsyncSession,
+    user: User,
+    frequency: QuestFrequency,
+) -> list[dict[str, Any]]:
     quests = (
         (
             await db.execute(
                 select(Quest)
-                .where(
-                    Quest.is_active.is_(True), Quest.frequency == QuestFrequency.DAILY
-                )
+                .where(Quest.is_active.is_(True), Quest.frequency == frequency)
                 .order_by(Quest.reward_points.desc(), Quest.title)
             )
         )
@@ -145,9 +180,15 @@ async def get_daily_quest_cards(db: AsyncSession, user: User) -> list[dict[str, 
     return cards
 
 
-async def claim_daily_quest(
-    db: AsyncSession, user: User, quest_id: int
-) -> tuple[bool, str]:
+async def get_daily_quest_cards(db: AsyncSession, user: User) -> list[dict[str, Any]]:
+    return await get_quest_cards(db, user, QuestFrequency.DAILY)
+
+
+async def get_weekly_quest_cards(db: AsyncSession, user: User) -> list[dict[str, Any]]:
+    return await get_quest_cards(db, user, QuestFrequency.WEEKLY)
+
+
+async def claim_quest(db: AsyncSession, user: User, quest_id: int) -> tuple[bool, str]:
     quest = await db.get(Quest, quest_id)
     if quest is None or not quest.is_active:
         return False, "quest-not-found"
@@ -159,12 +200,19 @@ async def claim_daily_quest(
         return False, "not-completed"
 
     user_quest.claimed = True
+    label = "Weekly" if quest.frequency == QuestFrequency.WEEKLY else "Daily"
     await add_skill_points(
         db,
         user,
         quest.reward_points,
-        f"Daily quest completed: {quest.title}",
+        f"{label} quest completed: {quest.title}",
         "quest",
         quest.id,
     )
     return True, "claimed"
+
+
+async def claim_daily_quest(
+    db: AsyncSession, user: User, quest_id: int
+) -> tuple[bool, str]:
+    return await claim_quest(db, user, quest_id)

@@ -20,7 +20,7 @@ from app.services.achievements import evaluate_all_achievements
 from app.services.activity import get_activity_summary
 from app.services.course_progress import find_continue_lesson, get_course_progress
 from app.services.onboarding import has_completed_onboarding
-from app.services.quests import get_daily_quest_cards
+from app.services.quests import get_daily_quest_cards, get_weekly_quest_cards
 from app.services.streaks import get_streak_timeline, sync_user_streak
 
 router = APIRouter(tags=["pages"])
@@ -60,6 +60,7 @@ async def dashboard(
         db, user
     )
     daily_quest_cards = await get_daily_quest_cards(db, user)
+    weekly_quest_cards = await get_weekly_quest_cards(db, user)
     focus_minutes_today = await db.scalar(
         select(func.coalesce(func.sum(FocusSession.duration_minutes), 0)).where(
             FocusSession.user_id == user.id,

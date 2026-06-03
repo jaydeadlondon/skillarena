@@ -455,7 +455,9 @@ async def create_lesson(
         )
     )
     await db.commit()
-    return RedirectResponse("/admin", status_code=303)
+    return RedirectResponse(
+        f"/admin/courses/{course_id}?success=lesson-created", status_code=303
+    )
 
 
 @router.post("/quests")
@@ -464,15 +466,21 @@ async def create_quest(
     user: User = Depends(require_admin),
     title: str = Form(...),
     description: str = Form(...),
+    frequency: str = Form("daily"),
     target_metric: str = Form("study_minutes"),
     target_value: int = Form(20),
     reward_points: int = Form(25),
 ):
+    quest_frequency = (
+        QuestFrequency.WEEKLY
+        if frequency == QuestFrequency.WEEKLY.value
+        else QuestFrequency.DAILY
+    )
     db.add(
         Quest(
             title=title,
             description=description,
-            frequency=QuestFrequency.DAILY,
+            frequency=quest_frequency,
             target_metric=target_metric,
             target_value=target_value,
             reward_points=reward_points,
