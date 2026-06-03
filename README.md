@@ -16,13 +16,13 @@ The current MVP includes:
 - Cosmetic shop with purchasable/equippable profile frames, backgrounds, and auras.
 - Daily quests page with automatic progress tracking and claimable Skill Point rewards.
 - Pomodoro-style focus sessions with selectable timers, Skill Point rewards, and streak support.
-- Onboarding flow for learning goals, experience level, weekly target, and preferred focus session length.
+- Expanded onboarding flow for learning goals, experience level, daily/weekly targets, preferred learning style, focus challenges, PvP preferences, Steam-balance nudges, and preferred focus session length.
 - Notifications page and reward animations for Skill Point rewards, refunds, and system updates.
 - Learning streak system with LeetCode-style navbar streak indicator, 14-day timeline, and streak achievements.
 - Active-time tracking that only counts visible, recently active browser time and updates lesson progress automatically.
 - Server-rendered English UI using FastAPI and Jinja templates.
 - Polished dark RPG UI with compact navigation, responsive cards, improved empty states, hover states, and page headers.
-- PvP quiz battles with server-side answer validation, battle history, result display, and tie refunds.
+- PvP quiz battles with server-side answer validation, live WebSocket battle feed, ready check, server-authoritative deadline, battle history, result display, and tie refunds.
 - Admin panel for full course/lesson editing, quests, PvP questions, users, role changes, Skill Point adjustments, and cosmetics.
 - Production-readiness basics: Alembic migrations, database health check, environment examples, secure session settings, and custom error pages.
 - Demo seed data for local development.
@@ -307,7 +307,7 @@ Planned next improvements:
 - Automatic achievement evaluation.
 - Cosmetic shop and profile customization.
 - Stronger quest progress and claim flow.
-- Real-time PvP through WebSockets.
+- Stronger real-time PvP matchmaking and Redis-backed multi-process rooms.
 - Alembic migrations.
 - Redis-backed background jobs and scheduled Steam stat refresh.
 - Production deployment configuration.
