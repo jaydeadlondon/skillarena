@@ -8,6 +8,7 @@
   <div class="card"><span class="badge">💰 Skill Points</span><h2>{{ user.skill_points }}</h2><p class="muted">Spend on cosmetics or PvP entry fees.</p></div>
   <div class="card"><span class="badge">🔥 Streak</span><h2>{{ user.current_streak_days }} days</h2><p class="muted">Best: {{ user.best_streak_days }} days.</p><a class="btn" href="/streaks">View streaks</a></div>
   <div class="card"><span class="badge">📚 Lessons</span><h2>{{ completed_lessons }}</h2><p class="muted">Completed across {{ courses_count }} available courses.</p></div>
+  <div class="card"><span class="badge">🏆 Achievements</span><h2>{{ achievements_unlocked }}/{{ achievements_total }}</h2><p class="muted">Collection progress</p><a class="btn" href="/achievements">Open gallery</a></div>
 </div>
 
 {% if onboarding %}

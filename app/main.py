@@ -11,6 +11,7 @@ from starlette.middleware.sessions import SessionMiddleware
 from app.core.config import get_settings
 from app.db.session import engine
 from app.routers import (
+    achievements,
     activity,
     admin,
     auth,
@@ -45,6 +46,7 @@ app.state.templates = Jinja2Templates(directory="app/templates")
 
 app.include_router(auth.router)
 app.include_router(activity.router)
+app.include_router(achievements.router)
 app.include_router(pages.router)
 app.include_router(learning.router)
 app.include_router(onboarding.router)

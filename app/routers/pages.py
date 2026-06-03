@@ -9,6 +9,7 @@ from app.models.course import Course, LessonProgress
 from app.models.gamification import (
     Achievement,
     FocusSession,
+    UserAchievement,
     UserActivityDay,
     UserCosmetic,
     UserOnboarding,
@@ -88,6 +89,10 @@ async def dashboard(
         recommended_action = "Claim your completed quest reward"
         recommended_url = "/quests"
     await db.flush()
+    achievements_total = await db.scalar(select(func.count(Achievement.id)))
+    achievements_unlocked = await db.scalar(
+        select(func.count(UserAchievement.id)).where(UserAchievement.user_id == user.id)
+    )
     battles = (
         (
             await db.execute(
@@ -135,6 +140,12 @@ async def dashboard(
                 1 for card in daily_quest_cards if card["user_quest"].completed
             ),
             "daily_quests_total": len(daily_quest_cards),
+            "weekly_quests_completed": sum(
+                1 for card in weekly_quest_cards if card["user_quest"].completed
+            ),
+            "weekly_quests_total": len(weekly_quest_cards),
+            "achievements_total": achievements_total or 0,
+            "achievements_unlocked": achievements_unlocked or 0,
             "battles": battles,
             "study_minutes_2w": study_minutes_2w,
             "steam_minutes_2w": user.steam_playtime_2w_minutes,
