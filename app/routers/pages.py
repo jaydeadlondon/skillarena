@@ -304,7 +304,7 @@ async def profile(request: Request, db: DbSession, user: User = Depends(require_
     lifetime_earned_points = int(lifetime_earned_points or 0)
     level = max(1, lifetime_earned_points // 100 + 1)
     next_level_points = level * 100
-    level_progress = min(100, int((lifetime_earned_points % 100)))
+    level_progress = min(100, int(lifetime_earned_points % 100))
     onboarding = await db.scalar(
         select(UserOnboarding).where(UserOnboarding.user_id == user.id)
     )

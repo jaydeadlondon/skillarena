@@ -1,6 +1,5 @@
-from enum import StrEnum
-
 from datetime import date
+from enum import StrEnum
 
 from sqlalchemy import (
     Boolean,

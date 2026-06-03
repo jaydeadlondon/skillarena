@@ -3,7 +3,7 @@ from fastapi.responses import RedirectResponse
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
-from app.models.course import Course, Lesson, LessonProgress
+from app.models.course import Lesson, LessonProgress
 from app.models.user import User
 from app.routers.deps import DbSession, require_user
 from app.services.achievements import evaluate_learning_achievements

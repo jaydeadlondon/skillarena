@@ -1,5 +1,5 @@
-from pydantic import BaseModel, Field
 from fastapi import APIRouter, Depends
+from pydantic import BaseModel, Field
 
 from app.models.user import User
 from app.routers.deps import DbSession, require_user

@@ -1,6 +1,5 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from fastapi.responses import RedirectResponse
-from fastapi import Request
 
 from app.models.user import User
 from app.routers.deps import DbSession, require_user

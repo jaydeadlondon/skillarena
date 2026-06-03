@@ -6,7 +6,6 @@ Create Date: 2026-06-02
 """
 
 from alembic import op
-
 from app import models  # noqa: F401
 from app.db.base import Base
 

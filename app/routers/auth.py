@@ -1,7 +1,6 @@
 from urllib.parse import urljoin
 
 import httpx
-
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse, RedirectResponse
 
