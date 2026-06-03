@@ -8,39 +8,101 @@
   <div>
     <span class="badge">Hero profile</span>
     <h1>Profile</h1>
-    <p class="muted">Your learning identity, achievements, cosmetics, and Steam balance.</p>
+    <p class="muted">Your learning identity, achievements, cosmetics, battle stats, and focus history.</p>
   </div>
-  <div class="page-actions"><a class="btn" href="/shop">Customize</a></div>
+  <div class="page-actions"><a class="btn" href="/shop">Customize</a><a class="btn" href="/notifications">Notifications</a></div>
 </header>
+
 <section class="card profile-card" {% if bg %}data-profile-background style="--profile-background: {{ bg.preview_value }}"{% endif %}>
   <div style="display:flex;gap:18px;align-items:center;flex-wrap:wrap">
     <div class="profile-avatar-frame" style="--profile-frame: {{ frame.preview_value if frame else 'transparent' }}; --profile-aura: {{ aura.preview_value if aura else 'transparent' }}">
       {% if user.avatar_url %}<img class="avatar" src="{{ user.avatar_url }}" alt="Steam avatar">{% else %}<div class="avatar"></div>{% endif %}
     </div>
-    <div>
+    <div style="flex:1;min-width:240px">
       <span class="badge">{{ user.selected_title or 'Apprentice Adventurer' }}</span>
+      <span class="badge">Level {{ profile_stats.level }}</span>
       <h1>{{ user.display_name }}</h1>
       <p class="muted">Steam ID: {{ user.steam_id }}</p>
+      <p class="muted">Lifetime earned: {{ profile_stats.lifetime_earned_points }} SP · Next level at {{ profile_stats.next_level_points }} SP</p>
+      <div class="progress"><span style="width: {{ profile_stats.level_progress }}%"></span></div>
       <p>
         {% if bg %}<span class="badge">Background: {{ bg.name }}</span>{% endif %}
         {% if frame %}<span class="badge">Frame: {{ frame.name }}</span>{% endif %}
         {% if aura %}<span class="badge">Aura: {{ aura.name }}</span>{% endif %}
       </p>
-      <a class="btn" href="/shop">Open cosmetic shop</a>
     </div>
   </div>
 </section>
+
 <div class="grid cols-3" style="margin-top:18px">
-  <div class="card"><h2>{{ user.skill_points }}</h2><p class="muted">Skill Points</p></div>
-  <div class="card"><h2>{{ study_hours_total }}h</h2><p class="muted">Total study time</p></div>
-  <div class="card"><h2>{{ (user.steam_playtime_2w_minutes / 60)|round(1) }}h</h2><p class="muted">Steam in last 2 weeks</p></div>
+  <div class="card"><span class="badge">💰 Balance</span><h2>{{ user.skill_points }}</h2><p class="muted">Current Skill Points</p></div>
+  <div class="card"><span class="badge">🔥 Streak</span><h2>{{ user.current_streak_days }}</h2><p class="muted">Best: {{ user.best_streak_days }} days</p></div>
+  <div class="card"><span class="badge">📚 Study</span><h2>{{ study_hours_total }}h</h2><p class="muted">Tracked lesson time</p></div>
 </div>
+
+<section class="grid cols-2" style="margin-top:18px">
+  <div class="card">
+    <h2>Learning stats</h2>
+    <div class="grid cols-2">
+      <div class="stat"><strong>{{ profile_stats.completed_lessons }}</strong><p>Lessons completed</p></div>
+      <div class="stat"><strong>{{ profile_stats.completed_courses }}</strong><p>Courses completed</p></div>
+      <div class="stat"><strong>{{ profile_stats.focus_minutes_total }}</strong><p>Focus minutes</p></div>
+      <div class="stat"><strong>{{ profile_stats.active_site_hours }}h</strong><p>Active site time</p></div>
+    </div>
+  </div>
+  <div class="card">
+    <h2>PvP record</h2>
+    <div class="grid cols-2">
+      <div class="stat"><strong>{{ profile_stats.pvp_wins }}</strong><p>Wins</p></div>
+      <div class="stat"><strong>{{ profile_stats.pvp_losses }}</strong><p>Losses</p></div>
+      <div class="stat"><strong>{{ profile_stats.pvp_ties }}</strong><p>Ties</p></div>
+      <div class="stat"><strong>{{ profile_stats.pvp_total }}</strong><p>Total battles</p></div>
+    </div>
+    <p style="margin-top:14px"><a class="btn" href="/pvp/history">Open battle history</a></p>
+  </div>
+</section>
+
+<section class="grid cols-2" style="margin-top:18px">
+  <div class="card">
+    <h2>Learning setup</h2>
+    {% if onboarding %}
+      <p><span class="badge">Goal</span> {{ onboarding.learning_goal }}</p>
+      <p><span class="badge">Level</span> {{ onboarding.experience_level }} · <span class="badge">Style</span> {{ onboarding.preferred_learning_style }}</p>
+      <p><span class="badge">Daily</span> {{ onboarding.daily_goal_minutes }} min · <span class="badge">Weekly</span> {{ onboarding.weekly_goal_minutes }} min</p>
+      <p><span class="badge">Focus</span> {{ onboarding.preferred_session_minutes }} min · {{ onboarding.focus_challenge.replace('_', ' ') }}</p>
+      <p><span class="badge">PvP</span> {% if onboarding.wants_pvp %}Enabled{% else %}Hidden from recommendations{% endif %}</p>
+      <p><span class="badge">Steam balance</span> {% if onboarding.wants_steam_balance %}Enabled{% else %}Disabled{% endif %}</p>
+      <a class="btn" href="/onboarding">Update setup</a>
+    {% else %}
+      <p class="muted">No onboarding setup found.</p>
+      <a class="btn primary" href="/onboarding">Set up your journey</a>
+    {% endif %}
+  </div>
+  <div class="card">
+    <h2>Steam vs Study</h2>
+    <div class="grid cols-2">
+      <div class="stat"><strong>{{ (user.steam_playtime_2w_minutes / 60)|round(1) }}h</strong><p>Steam · 2 weeks</p></div>
+      <div class="stat"><strong>{{ study_hours_total }}h</strong><p>Total study</p></div>
+    </div>
+    <p class="muted">Use focus sessions and daily quests to shift the balance toward learning.</p>
+  </div>
+</section>
+
 <section class="card" style="margin-top:18px">
-  <h2>Earned achievements</h2>
+  <div class="section-title"><h2>Earned achievements</h2><a class="btn" href="/profile">Refresh</a></div>
   {% for achievement in achievements %}
     <span class="badge">{{ achievement.badge_icon }} {{ achievement.title }}</span>
   {% else %}
     <p class="muted">No achievements yet. Complete a lesson to start your collection.</p>
+  {% endfor %}
+</section>
+
+<section class="card" style="margin-top:18px">
+  <div class="section-title"><h2>Recent PvP battles</h2><a class="btn" href="/pvp/history">All battles</a></div>
+  {% for battle in recent_battles %}
+    <p>#{{ battle.id }} · {{ battle.status.value }} · {{ battle.challenger_score }}:{{ battle.opponent_score }} · {% if battle.winner_id == user.id %}<span class="badge">Win</span>{% elif battle.status.value == 'finished' and not battle.winner_id %}<span class="badge">Tie</span>{% elif battle.status.value == 'finished' %}<span class="badge">Loss</span>{% else %}<span class="badge">In progress</span>{% endif %}</p>
+  {% else %}
+    <p class="muted">No battles yet.</p>
   {% endfor %}
 </section>
 {% endblock %}

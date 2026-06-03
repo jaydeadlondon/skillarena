@@ -9,11 +9,12 @@ from app.models.course import Course, LessonProgress
 from app.models.gamification import (
     Achievement,
     FocusSession,
+    UserActivityDay,
     UserCosmetic,
     UserOnboarding,
 )
-from app.models.pvp import PvpBattle
-from app.models.user import User
+from app.models.pvp import BattleStatus, PvpBattle
+from app.models.user import CurrencyTransaction, User
 from app.routers.deps import DbSession, get_current_user, require_user
 from app.services.achievements import evaluate_all_achievements
 from app.services.activity import get_activity_summary
@@ -223,6 +224,108 @@ async def profile(request: Request, db: DbSession, user: User = Depends(require_
             LessonProgress.user_id == user.id
         )
     )
+    completed_lessons = await db.scalar(
+        select(func.count(LessonProgress.id)).where(
+            LessonProgress.user_id == user.id,
+            LessonProgress.completed.is_(True),
+        )
+    )
+    courses_list = (
+        (
+            await db.execute(
+                select(Course)
+                .where(Course.is_published.is_(True))
+                .options(selectinload(Course.lessons))
+            )
+        )
+        .scalars()
+        .all()
+    )
+    completed_courses = 0
+    for course in courses_list:
+        progress = await get_course_progress(db, user, course)
+        if progress["is_completed"]:
+            completed_courses += 1
+
+    focus_minutes_total = await db.scalar(
+        select(func.coalesce(func.sum(FocusSession.duration_minutes), 0)).where(
+            FocusSession.user_id == user.id,
+            FocusSession.completed.is_(True),
+        )
+    )
+    active_site_seconds = await db.scalar(
+        select(func.coalesce(func.sum(UserActivityDay.seconds), 0)).where(
+            UserActivityDay.user_id == user.id,
+            UserActivityDay.activity_type == "site",
+        )
+    )
+    pvp_total = await db.scalar(
+        select(func.count(PvpBattle.id)).where(
+            (PvpBattle.challenger_id == user.id) | (PvpBattle.opponent_id == user.id)
+        )
+    )
+    pvp_wins = await db.scalar(
+        select(func.count(PvpBattle.id)).where(PvpBattle.winner_id == user.id)
+    )
+    pvp_ties = await db.scalar(
+        select(func.count(PvpBattle.id)).where(
+            ((PvpBattle.challenger_id == user.id) | (PvpBattle.opponent_id == user.id)),
+            PvpBattle.status == BattleStatus.FINISHED,
+            PvpBattle.winner_id.is_(None),
+        )
+    )
+    pvp_finished = await db.scalar(
+        select(func.count(PvpBattle.id)).where(
+            ((PvpBattle.challenger_id == user.id) | (PvpBattle.opponent_id == user.id)),
+            PvpBattle.status == BattleStatus.FINISHED,
+        )
+    )
+    pvp_losses = max(
+        0, int(pvp_finished or 0) - int(pvp_wins or 0) - int(pvp_ties or 0)
+    )
+    lifetime_earned_points = await db.scalar(
+        select(func.coalesce(func.sum(CurrencyTransaction.amount), 0)).where(
+            CurrencyTransaction.user_id == user.id,
+            CurrencyTransaction.amount > 0,
+        )
+    )
+    lifetime_earned_points = int(lifetime_earned_points or 0)
+    level = max(1, lifetime_earned_points // 100 + 1)
+    next_level_points = level * 100
+    level_progress = min(100, int((lifetime_earned_points % 100)))
+    onboarding = await db.scalar(
+        select(UserOnboarding).where(UserOnboarding.user_id == user.id)
+    )
+    recent_battles = (
+        (
+            await db.execute(
+                select(PvpBattle)
+                .where(
+                    (PvpBattle.challenger_id == user.id)
+                    | (PvpBattle.opponent_id == user.id)
+                )
+                .order_by(PvpBattle.created_at.desc())
+                .limit(5)
+            )
+        )
+        .scalars()
+        .all()
+    )
+
+    profile_stats = {
+        "completed_lessons": completed_lessons or 0,
+        "completed_courses": completed_courses,
+        "focus_minutes_total": int(focus_minutes_total or 0),
+        "active_site_hours": round(int(active_site_seconds or 0) / 3600, 1),
+        "pvp_total": pvp_total or 0,
+        "pvp_wins": pvp_wins or 0,
+        "pvp_losses": pvp_losses,
+        "pvp_ties": pvp_ties or 0,
+        "lifetime_earned_points": lifetime_earned_points,
+        "level": level,
+        "next_level_points": next_level_points,
+        "level_progress": level_progress,
+    }
     return templates(request).TemplateResponse(
         request,
         "profile.html",
@@ -232,5 +335,8 @@ async def profile(request: Request, db: DbSession, user: User = Depends(require_
             "achievements": achievements,
             "equipped_by_type": equipped_by_type,
             "study_hours_total": round((study_seconds or 0) / 3600, 1),
+            "profile_stats": profile_stats,
+            "onboarding": onboarding,
+            "recent_battles": recent_battles,
         },
     )
