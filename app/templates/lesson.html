@@ -71,6 +71,11 @@ endblock %} {% block content %}
       page.
     </p>
     <div class="action-row">
+      <button class="btn danger" type="button" id="aiClearHistoryButton">
+        Clear History
+      </button>
+    </div>
+    <div class="action-row">
       <button class="btn" type="button" data-ai-action="explain">
         Explain simply
       </button>
@@ -97,7 +102,7 @@ endblock %} {% block content %}
       {% for item in ai_history %}
       <div class="card">
         <span class="badge">{{ item.prompt_type }}</span>
-        <p>{{ item.response }}</p>
+        <p class="ai-rendered-response">{{ item.response }}</p>
       </div>
       {% endfor %}
     </div>
@@ -133,5 +138,5 @@ endblock %} {% block content %}
   window.SkillArenaAI = { lessonId: {{ lesson.id }} };
 </script>
 <script src="/static/js/video-tracking.js"></script>
-<script src="/static/js/ai-companion.js?v=thinking-toast-2"></script>
+<script src="/static/js/ai-companion.js?v=companion-polish-1"></script>
 {% endblock %}

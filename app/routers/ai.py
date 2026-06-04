@@ -16,6 +16,7 @@ from app.services.llm import (
     LLMServiceError,
     ask_dashboard_planner,
     ask_lesson_companion,
+    delete_lesson_interactions,
     get_llm_config,
     recent_lesson_interactions,
     user_llm_requests_today,
@@ -143,6 +144,15 @@ async def lesson_ai_history(
             for item in interactions
         ],
     }
+
+
+@router.delete("/lessons/{lesson_id}/history")
+async def clear_lesson_ai_history(
+    lesson_id: int, db: DbSession, user: User = Depends(require_user)
+):
+    deleted_count = await delete_lesson_interactions(db, user, lesson_id)
+    await db.commit()
+    return {"ok": True, "deleted_count": deleted_count}
 
 
 @router.post("/lessons/{lesson_id}/ask")

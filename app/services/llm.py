@@ -526,3 +526,28 @@ async def recent_lesson_interactions(
         .scalars()
         .all()
     )
+
+
+async def delete_lesson_interactions(
+    db: AsyncSession, user: User, lesson_id: int
+) -> int:
+    interactions = (
+        (
+            await db.execute(
+                select(AIInteraction).where(
+                    AIInteraction.user_id == user.id,
+                    AIInteraction.context_type == "lesson",
+                    AIInteraction.context_id == lesson_id,
+                    AIInteraction.prompt_type.in_(
+                        ["explain", "summarize", "practice", "next_step", "custom"]
+                    ),
+                )
+            )
+        )
+        .scalars()
+        .all()
+    )
+    deleted_count = len(interactions)
+    for interaction in interactions:
+        await db.delete(interaction)
+    return deleted_count

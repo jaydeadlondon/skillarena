@@ -845,6 +845,23 @@ form {
 .ai-companion #aiResponses .card {
   box-shadow: var(--shadow-soft);
 }
+.ai-rendered-response {
+  line-height: 1.65;
+  white-space: normal;
+}
+.ai-rendered-response p {
+  margin: 8px 0;
+}
+.ai-rendered-response ul {
+  margin: 8px 0 8px 22px;
+}
+.ai-rendered-response code {
+  background: #0b1020;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 1px 5px;
+  color: var(--gold);
+}
 .ai-planner {
   border-color: rgba(139, 92, 246, 0.34);
 }
