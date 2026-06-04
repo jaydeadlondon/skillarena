@@ -17,6 +17,13 @@ SkillArena{% endblock %} {% block content %}
   <strong>Action failed.</strong>
   <p class="muted">{{ request.query_params.get('error') }}</p>
 </div>
+{% endif %} {% if request.query_params.get('success') == 'ai-quiz-generated' %}
+<div class="card" style="border-color: #36d399; margin-bottom: 18px">
+  <strong>AI quiz generated.</strong>
+  <p class="muted">
+    Created {{ request.query_params.get('created') }} PvP questions.
+  </p>
+</div>
 {% endif %}
 
 <section class="grid cols-2">
@@ -81,6 +88,59 @@ SkillArena{% endblock %} {% block content %}
         <button class="btn danger" type="submit">Delete course</button>
       </form>
     </div>
+  </div>
+
+  <div class="card">
+    <h2>AI Quiz Generator</h2>
+    <p class="muted">
+      Generate PvP questions from a lesson's text content. Review generated
+      questions in the admin dashboard after creation.
+    </p>
+    <form
+      class="form"
+      method="post"
+      action="/admin/courses/{{ course.id }}/ai-generate-quiz"
+    >
+      <label
+        >Lesson
+        <select name="lesson_id" required>
+          {% for lesson in course.lessons %}
+          <option value="{{ lesson.id }}">
+            {{ lesson.position }}. {{ lesson.title }}
+          </option>
+          {% endfor %}
+        </select>
+      </label>
+      <label
+        >Question count
+        <select name="count">
+          <option value="3">3</option>
+          <option value="5" selected>5</option>
+          <option value="10">10</option>
+        </select>
+      </label>
+      <label
+        >Difficulty
+        <select name="difficulty">
+          <option value="1">1 · Easy</option>
+          <option value="2">2 · Medium</option>
+          <option value="3">3 · Hard</option>
+        </select>
+      </label>
+      <button
+        class="btn primary"
+        type="submit"
+        {%
+        if
+        not
+        course.lessons
+        %}disabled{%
+        endif
+        %}
+      >
+        Generate and save PvP questions
+      </button>
+    </form>
   </div>
 
   <div class="card">

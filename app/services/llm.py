@@ -1,4 +1,7 @@
+import json
+import re
 from datetime import UTC, datetime
+from typing import Any
 
 import httpx
 from sqlalchemy import func, select
@@ -7,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import get_settings
 from app.models.ai import AIInteraction
 from app.models.course import Lesson
+from app.models.pvp import PvpQuestion
 from app.models.user import User
 
 LESSON_ACTIONS = {
@@ -15,6 +19,8 @@ LESSON_ACTIONS = {
     "practice": "Create 3 short practice questions based on this lesson. Include answers.",
     "next_step": "Give exactly one tiny next step the learner should do now.",
 }
+
+VALID_QUIZ_OPTIONS = {"A", "B", "C", "D"}
 
 PROVIDER_DEFAULTS = {
     "groq": {
@@ -86,6 +92,19 @@ async def ensure_llm_available(db: AsyncSession, user: User) -> None:
     used = await user_llm_requests_today(db, user)
     if used >= settings.llm_daily_limit_per_user:
         raise LLMServiceError("Daily AI request limit reached. Try again tomorrow.")
+
+
+def compact_json_from_text(text: str) -> Any:
+    """Extract JSON from plain text or fenced markdown returned by an LLM."""
+    text = text.strip()
+    if text.startswith("```"):
+        text = re.sub(r"^```(?:json)?\s*", "", text)
+        text = re.sub(r"\s*```$", "", text).strip()
+    if not text.startswith("["):
+        match = re.search(r"\[[\s\S]*\]", text)
+        if match:
+            text = match.group(0)
+    return json.loads(text)
 
 
 def lesson_system_prompt() -> str:
@@ -172,6 +191,105 @@ async def ask_lesson_companion(
     )
     db.add(interaction)
     return interaction
+
+
+def quiz_generator_system_prompt() -> str:
+    return (
+        "You generate quiz questions for SkillArena PvP battles. "
+        "Return only valid JSON. No markdown, no explanation. "
+        "Each question must be clear, factual, and answerable from the provided lesson text. "
+        "Avoid trick questions and avoid unsafe content."
+    )
+
+
+def build_quiz_generation_prompt(lesson: Lesson, count: int, difficulty: int) -> str:
+    count = max(1, min(int(count), 10))
+    difficulty = max(1, min(int(difficulty), 3))
+    return (
+        f"Generate {count} multiple-choice quiz questions.\n"
+        f"Difficulty: {difficulty}/3.\n\n"
+        "Return JSON array only. Each item must have exactly these keys:\n"
+        "question, option_a, option_b, option_c, option_d, correct_option.\n"
+        "correct_option must be one of: A, B, C, D.\n\n"
+        f"Course: {lesson.course.title if lesson.course else 'Unknown'}\n"
+        f"Lesson title: {lesson.title}\n"
+        f"Lesson content:\n{lesson.content[:3500]}\n"
+    )
+
+
+def validate_generated_quiz_items(items: Any, max_count: int) -> list[dict[str, str]]:
+    if not isinstance(items, list):
+        raise LLMServiceError("AI did not return a JSON array.")
+    validated: list[dict[str, str]] = []
+    for item in items[:max_count]:
+        if not isinstance(item, dict):
+            continue
+        question = str(item.get("question", "")).strip()[:1000]
+        option_a = str(item.get("option_a", "")).strip()[:255]
+        option_b = str(item.get("option_b", "")).strip()[:255]
+        option_c = str(item.get("option_c", "")).strip()[:255]
+        option_d = str(item.get("option_d", "")).strip()[:255]
+        correct_option = str(item.get("correct_option", "")).strip().upper()[:1]
+        if not question or not option_a or not option_b or not option_c or not option_d:
+            continue
+        if correct_option not in VALID_QUIZ_OPTIONS:
+            continue
+        validated.append(
+            {
+                "question": question,
+                "option_a": option_a,
+                "option_b": option_b,
+                "option_c": option_c,
+                "option_d": option_d,
+                "correct_option": correct_option,
+            }
+        )
+    if not validated:
+        raise LLMServiceError("AI did not return valid quiz questions.")
+    return validated
+
+
+async def generate_quiz_questions_for_lesson(
+    db: AsyncSession,
+    user: User,
+    lesson: Lesson,
+    count: int,
+    difficulty: int,
+) -> tuple[list[PvpQuestion], AIInteraction]:
+    await ensure_llm_available(db, user)
+    provider, _, model = get_llm_config()
+    count = max(1, min(int(count), 10))
+    difficulty = max(1, min(int(difficulty), 3))
+    prompt = build_quiz_generation_prompt(lesson, count, difficulty)
+    raw_response = await call_openai_compatible_chat(
+        quiz_generator_system_prompt(), prompt
+    )
+    try:
+        parsed = compact_json_from_text(raw_response)
+    except json.JSONDecodeError as exc:
+        raise LLMServiceError("AI returned invalid JSON. Try again.") from exc
+    items = validate_generated_quiz_items(parsed, count)
+
+    questions: list[PvpQuestion] = []
+    for item in items:
+        question = PvpQuestion(
+            course_id=lesson.course_id, difficulty=difficulty, is_active=True, **item
+        )
+        db.add(question)
+        questions.append(question)
+
+    interaction = AIInteraction(
+        user_id=user.id,
+        context_type="lesson",
+        context_id=lesson.id,
+        prompt_type="quiz_generator",
+        prompt=prompt,
+        response=raw_response,
+        provider=provider,
+        model=model,
+    )
+    db.add(interaction)
+    return questions, interaction
 
 
 async def recent_lesson_interactions(

@@ -8,6 +8,7 @@ from app.models.gamification import Achievement, CosmeticItem, Quest, QuestFrequ
 from app.models.pvp import PvpQuestion
 from app.models.user import User, UserRole
 from app.routers.deps import DbSession, require_admin
+from app.services.llm import LLMServiceError, generate_quiz_questions_for_lesson
 from app.services.rewards import add_skill_points
 
 router = APIRouter(prefix="/admin", tags=["admin"])
@@ -499,6 +500,47 @@ async def toggle_quest(
         quest.is_active = not quest.is_active
         await db.commit()
     return RedirectResponse("/admin?success=quest-toggled", status_code=303)
+
+
+@router.post("/courses/{course_id}/ai-generate-quiz")
+async def ai_generate_course_quiz(
+    course_id: int,
+    db: DbSession,
+    user: User = Depends(require_admin),
+    lesson_id: int = Form(...),
+    count: int = Form(5),
+    difficulty: int = Form(1),
+):
+    lesson = (
+        await db.execute(
+            select(Lesson)
+            .where(Lesson.id == lesson_id, Lesson.course_id == course_id)
+            .options(selectinload(Lesson.course))
+        )
+    ).scalar_one_or_none()
+    if lesson is None:
+        return RedirectResponse(
+            f"/admin/courses/{course_id}?error=lesson-not-found", status_code=303
+        )
+    if not lesson.content or len(lesson.content.strip()) < 40:
+        return RedirectResponse(
+            f"/admin/courses/{course_id}?error=lesson-content-too-short",
+            status_code=303,
+        )
+    try:
+        questions, _ = await generate_quiz_questions_for_lesson(
+            db, user, lesson, count, difficulty
+        )
+        await db.commit()
+        return RedirectResponse(
+            f"/admin/courses/{course_id}?success=ai-quiz-generated&created={len(questions)}",
+            status_code=303,
+        )
+    except LLMServiceError as exc:
+        await db.rollback()
+        return RedirectResponse(
+            f"/admin/courses/{course_id}?error=ai-generation-failed", status_code=303
+        )
 
 
 @router.post("/pvp-questions")
