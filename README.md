@@ -43,6 +43,7 @@ The interface is built in English with a dark RPG/gaming style.
 - Course detail pages.
 - Lesson pages with embedded legal video content.
 - AI Study Companion on lesson pages.
+- AI Dashboard Planner for personalized next-action recommendations.
 - YouTube iframe API support for real playback tracking.
 - Fallback manual lesson timer for non-YouTube embeds.
 - Lesson progress tracking.
@@ -143,8 +144,8 @@ The interface is built in English with a dark RPG/gaming style.
 - Course management.
 - Lesson management.
 - Course publishing controls.
-- AI quiz generation from lesson content.
-- AI quest generation for daily and weekly quests.
+- AI quiz generation from lesson content with admin preview before saving.
+- AI quest generation for daily and weekly quests with admin preview before saving.
 - Quest creation and activation controls.
 - PvP question creation and activation controls.
 - Cosmetic creation, editing, pricing, previewing, activation, and deactivation.
@@ -347,6 +348,7 @@ docker compose exec web python scripts/grant_admin.py <steam_id_64>
 /learn/lessons/{id}       Lesson player
 /activity/heartbeat       Activity tracking endpoint
 /achievements             Achievement gallery
+/ai/dashboard/plan        AI Dashboard Planner endpoint
 /ai/lessons/{id}/ask      AI Study Companion request endpoint
 /ai/lessons/{id}/history  AI Study Companion history endpoint
 /focus                    Focus sessions
