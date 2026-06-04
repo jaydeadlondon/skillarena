@@ -42,6 +42,7 @@ The interface is built in English with a dark RPG/gaming style.
 - Course catalog.
 - Course detail pages.
 - Lesson pages with embedded legal video content.
+- AI Study Companion on lesson pages.
 - YouTube iframe API support for real playback tracking.
 - Fallback manual lesson timer for non-YouTube embeds.
 - Lesson progress tracking.
@@ -150,6 +151,7 @@ The interface is built in English with a dark RPG/gaming style.
 
 - Python 3.12+
 - FastAPI
+- httpx-based LLM provider integration
 - Jinja2 templates
 - SQLAlchemy 2.x async ORM
 - PostgreSQL
@@ -213,6 +215,14 @@ ADMIN_STEAM_IDS=7656119xxxxxxxxxx,7656119yyyyyyyyyy
 SESSION_COOKIE_SECURE=false
 SESSION_COOKIE_SAMESITE=lax
 SESSION_MAX_AGE_SECONDS=1209600
+
+LLM_ENABLED=false
+LLM_PROVIDER=groq
+LLM_API_KEY=put-your-llm-api-key-here
+LLM_BASE_URL=https://api.groq.com/openai/v1
+LLM_MODEL=llama-3.3-70b-versatile
+LLM_DAILY_LIMIT_PER_USER=20
+LLM_TIMEOUT_SECONDS=30
 ```
 
 A production-oriented environment template is available as:
@@ -335,6 +345,8 @@ docker compose exec web python scripts/grant_admin.py <steam_id_64>
 /learn/lessons/{id}       Lesson player
 /activity/heartbeat       Activity tracking endpoint
 /achievements             Achievement gallery
+/ai/lessons/{id}/ask      AI Study Companion request endpoint
+/ai/lessons/{id}/history  AI Study Companion history endpoint
 /focus                    Focus sessions
 /onboarding               User onboarding
 /notifications            User notifications
