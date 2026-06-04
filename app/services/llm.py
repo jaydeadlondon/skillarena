@@ -64,9 +64,7 @@ def get_llm_config() -> tuple[str, str, str]:
     settings = get_settings()
     provider = settings.llm_provider.lower().strip()
     defaults = PROVIDER_DEFAULTS.get(provider, PROVIDER_DEFAULTS["groq"])
-    base_url = normalize_llm_base_url(
-        provider, settings.llm_base_url or defaults["base_url"]
-    )
+    base_url = normalize_llm_base_url(provider, settings.llm_base_url or defaults["base_url"])
     model = settings.llm_model or defaults["model"]
     return provider, base_url, model
 
@@ -85,9 +83,7 @@ async def user_llm_requests_today(db: AsyncSession, user: User) -> int:
 async def ensure_llm_available(db: AsyncSession, user: User) -> None:
     settings = get_settings()
     if not settings.llm_enabled:
-        raise LLMServiceError(
-            "AI assistant is disabled. Enable LLM_ENABLED in environment settings."
-        )
+        raise LLMServiceError("AI assistant is disabled. Enable LLM_ENABLED in environment settings.")
     if not settings.llm_api_key or settings.llm_api_key.startswith("put-"):
         raise LLMServiceError("AI assistant API key is not configured.")
     used = await user_llm_requests_today(db, user)
@@ -119,9 +115,7 @@ def lesson_system_prompt() -> str:
     )
 
 
-def build_lesson_prompt(
-    lesson: Lesson, action: str, custom_prompt: str | None = None
-) -> str:
+def build_lesson_prompt(lesson: Lesson, action: str, custom_prompt: str | None = None) -> str:
     action_instruction = LESSON_ACTIONS.get(action, LESSON_ACTIONS["explain"])
     if custom_prompt:
         action_instruction = f"User request: {custom_prompt[:700]}"
@@ -155,9 +149,7 @@ async def call_openai_compatible_chat(system_prompt: str, user_prompt: str) -> s
         response = await client.post(endpoint, json=payload, headers=headers)
     if response.status_code >= 400:
         error_detail = response.text[:500]
-        raise LLMServiceError(
-            f"AI provider error: {response.status_code}. Endpoint: {endpoint}. Details: {error_detail}"
-        )
+        raise LLMServiceError(f"AI provider error: {response.status_code}. Endpoint: {endpoint}. Details: {error_detail}")
     data = response.json()
     try:
         return data["choices"][0]["message"]["content"].strip()
@@ -262,9 +254,7 @@ async def generate_quiz_questions_for_lesson(
     count = max(1, min(int(count), 10))
     difficulty = max(1, min(int(difficulty), 3))
     prompt = build_quiz_generation_prompt(lesson, count, difficulty)
-    raw_response = await call_openai_compatible_chat(
-        quiz_generator_system_prompt(), prompt
-    )
+    raw_response = await call_openai_compatible_chat(quiz_generator_system_prompt(), prompt)
     try:
         parsed = compact_json_from_text(raw_response)
     except json.JSONDecodeError as exc:
@@ -273,15 +263,13 @@ async def generate_quiz_questions_for_lesson(
 
     questions: list[PvpQuestion] = []
     for item in items:
-        question = PvpQuestion(
-            course_id=lesson.course_id, difficulty=difficulty, is_active=True, **item
-        )
+        question = PvpQuestion(course_id=lesson.course_id, difficulty=difficulty, is_active=True, **item)
         db.add(question)
         questions.append(question)
 
     interaction = AIInteraction(
         user_id=user.id,
-        context_type="lesson",
+        context_type="admin_quiz_generator",
         context_id=lesson.id,
         prompt_type="quiz_generator",
         prompt=prompt,
@@ -293,13 +281,7 @@ async def generate_quiz_questions_for_lesson(
     return questions, interaction
 
 
-VALID_QUEST_METRICS = {
-    "study_minutes",
-    "focus_minutes",
-    "lessons_completed",
-    "pvp_wins",
-    "pvp_participation",
-}
+VALID_QUEST_METRICS = {"study_minutes", "focus_minutes", "lessons_completed", "pvp_wins", "pvp_participation"}
 VALID_QUEST_FREQUENCIES = {"daily", "weekly"}
 
 
@@ -340,15 +322,11 @@ def build_quest_generation_prompt(
     )
 
 
-def validate_generated_quest_items(
-    items: Any, max_count: int, forced_frequency: str
-) -> list[dict[str, Any]]:
+def validate_generated_quest_items(items: Any, max_count: int, forced_frequency: str) -> list[dict[str, Any]]:
     if not isinstance(items, list):
         raise LLMServiceError("AI did not return a JSON array.")
     validated: list[dict[str, Any]] = []
-    forced_frequency = (
-        forced_frequency if forced_frequency in VALID_QUEST_FREQUENCIES else "daily"
-    )
+    forced_frequency = forced_frequency if forced_frequency in VALID_QUEST_FREQUENCIES else "daily"
     for item in items[:max_count]:
         if not isinstance(item, dict):
             continue
@@ -400,12 +378,8 @@ async def generate_quests(
     provider, _, model = get_llm_config()
     count = max(1, min(int(count), 10))
     frequency = frequency if frequency in VALID_QUEST_FREQUENCIES else "daily"
-    prompt = build_quest_generation_prompt(
-        count, frequency, user_goal, focus_challenge, preferred_minutes
-    )
-    raw_response = await call_openai_compatible_chat(
-        quest_generator_system_prompt(), prompt
-    )
+    prompt = build_quest_generation_prompt(count, frequency, user_goal, focus_challenge, preferred_minutes)
+    raw_response = await call_openai_compatible_chat(quest_generator_system_prompt(), prompt)
     try:
         parsed = compact_json_from_text(raw_response)
     except json.JSONDecodeError as exc:
@@ -414,11 +388,7 @@ async def generate_quests(
 
     quests: list[Quest] = []
     for item in items:
-        quest_frequency = (
-            QuestFrequency.WEEKLY
-            if item["frequency"] == "weekly"
-            else QuestFrequency.DAILY
-        )
+        quest_frequency = QuestFrequency.WEEKLY if item["frequency"] == "weekly" else QuestFrequency.DAILY
         quest = Quest(
             title=item["title"],
             description=item["description"],
@@ -445,22 +415,17 @@ async def generate_quests(
     return quests, interaction
 
 
-async def recent_lesson_interactions(
-    db: AsyncSession, user: User, lesson_id: int, limit: int = 8
-) -> list[AIInteraction]:
+async def recent_lesson_interactions(db: AsyncSession, user: User, lesson_id: int, limit: int = 8) -> list[AIInteraction]:
     return (
-        (
-            await db.execute(
-                select(AIInteraction)
-                .where(
-                    AIInteraction.user_id == user.id,
-                    AIInteraction.context_type == "lesson",
-                    AIInteraction.context_id == lesson_id,
-                )
-                .order_by(AIInteraction.created_at.desc())
-                .limit(limit)
+        await db.execute(
+            select(AIInteraction)
+            .where(
+                AIInteraction.user_id == user.id,
+                AIInteraction.context_type == "lesson",
+                AIInteraction.context_id == lesson_id,
+                AIInteraction.prompt_type.in_(["explain", "summarize", "practice", "next_step", "custom"]),
             )
+            .order_by(AIInteraction.created_at.desc())
+            .limit(limit)
         )
-        .scalars()
-        .all()
-    )
+    ).scalars().all()
