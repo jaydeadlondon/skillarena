@@ -144,6 +144,7 @@ The interface is built in English with a dark RPG/gaming style.
 - Lesson management.
 - Course publishing controls.
 - AI quiz generation from lesson content.
+- AI quest generation for daily and weekly quests.
 - Quest creation and activation controls.
 - PvP question creation and activation controls.
 - Cosmetic creation, editing, pricing, previewing, activation, and deactivation.
