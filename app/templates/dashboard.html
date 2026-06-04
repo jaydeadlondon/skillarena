@@ -57,7 +57,31 @@
     Preferred sprint: {{ onboarding.preferred_session_minutes }} min
   </p>
 </section>
-{% endif %} {% if continue_lesson %}
+{% endif %}
+
+<section class="card ai-planner" style="margin-top: 18px">
+  <div class="section-title">
+    <div>
+      <span class="badge">AI Planner</span>
+      <h2>Best next move</h2>
+    </div>
+    <button class="btn primary" type="button" id="aiPlannerButton">
+      Ask planner
+    </button>
+  </div>
+  <p class="muted">
+    Get one short recommendation based on your goal, quests, streak, focus time,
+    and course progress.
+  </p>
+  <div id="aiPlannerStatus" class="muted"></div>
+  <div
+    id="aiPlannerResult"
+    class="card"
+    style="display: none; margin-top: 14px"
+  ></div>
+</section>
+
+{% if continue_lesson %}
 <section class="card" style="margin-top: 18px">
   <span class="badge">Continue where you left off</span>
   <h2>{{ continue_course.title }}</h2>
@@ -184,4 +208,5 @@
   <p class="muted">No battles yet. Create your first quiz duel.</p>
   {% endfor %}
 </section>
+<script src="/static/js/ai-planner.js?v=1"></script>
 {% endblock %}
