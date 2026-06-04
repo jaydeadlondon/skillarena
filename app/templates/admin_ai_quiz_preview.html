@@ -1,0 +1,48 @@
+{% extends "base.html" %} {% block title %}AI Quiz Preview · SkillArena{%
+endblock %} {% block content %}
+<header class="page-head">
+  <div>
+    <a class="badge" href="/admin/courses/{{ course_id }}">← Course editor</a>
+    <h1>AI Quiz Preview</h1>
+    <p class="muted">Review generated PvP questions before saving them.</p>
+  </div>
+</header>
+<section class="card">
+  <h2>{{ lesson.title }}</h2>
+  <form
+    class="form"
+    method="post"
+    action="/admin/courses/{{ course_id }}/ai-save-quiz"
+  >
+    <textarea name="generated_json" style="display: none">
+{{ items|tojson }}</textarea
+    >
+    <input type="hidden" name="difficulty" value="{{ difficulty }}" />
+    <div class="grid">
+      {% for item in items %}
+      <div class="card">
+        <label
+          ><input
+            type="checkbox"
+            name="selected"
+            value="{{ loop.index0 }}"
+            checked
+          />
+          Save this question</label
+        >
+        <h3>{{ item.question }}</h3>
+        <p>A. {{ item.option_a }}</p>
+        <p>B. {{ item.option_b }}</p>
+        <p>C. {{ item.option_c }}</p>
+        <p>D. {{ item.option_d }}</p>
+        <span class="badge">Correct: {{ item.correct_option }}</span>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="action-row">
+      <button class="btn primary" type="submit">Save selected questions</button>
+      <a class="btn" href="/admin/courses/{{ course_id }}">Cancel</a>
+    </div>
+  </form>
+</section>
+{% endblock %}

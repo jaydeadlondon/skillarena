@@ -1,8 +1,11 @@
+import json
+
 from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import RedirectResponse
 from sqlalchemy import func, select
 from sqlalchemy.orm import selectinload
 
+from app.models.ai import AIInteraction
 from app.models.course import Course, Lesson, VideoProvider
 from app.models.gamification import (
     Achievement,
@@ -16,8 +19,16 @@ from app.models.user import User, UserRole
 from app.routers.deps import DbSession, require_admin
 from app.services.llm import (
     LLMServiceError,
-    generate_quests,
-    generate_quiz_questions_for_lesson,
+    build_quest_generation_prompt,
+    build_quiz_generation_prompt,
+    call_openai_compatible_chat,
+    compact_json_from_text,
+    ensure_llm_available,
+    get_llm_config,
+    quest_generator_system_prompt,
+    quiz_generator_system_prompt,
+    validate_generated_quest_items,
+    validate_generated_quiz_items,
 )
 from app.services.rewards import add_skill_points
 
@@ -472,7 +483,8 @@ async def create_lesson(
 
 
 @router.post("/ai-generate-quests")
-async def ai_generate_quests(
+async def ai_generate_quests_preview(
+    request: Request,
     db: DbSession,
     user: User = Depends(require_admin),
     count: int = Form(3),
@@ -491,24 +503,84 @@ async def ai_generate_quests(
     if onboarding and preferred_minutes == 25:
         preferred_minutes = onboarding.preferred_session_minutes
     try:
-        quests, _ = await generate_quests(
-            db,
-            user,
+        await ensure_llm_available(db, user)
+        provider, _, model = get_llm_config()
+        prompt = build_quest_generation_prompt(
             count,
             frequency,
             user_goal or "Build a consistent learning habit",
             focus_challenge or "consistency",
             preferred_minutes,
         )
-        await db.commit()
-        return RedirectResponse(
-            f"/admin?success=ai-quests-generated&created={len(quests)}", status_code=303
+        raw_response = await call_openai_compatible_chat(
+            quest_generator_system_prompt(), prompt
         )
-    except LLMServiceError:
+        items = validate_generated_quest_items(
+            compact_json_from_text(raw_response), max(1, min(int(count), 10)), frequency
+        )
+        db.add(
+            AIInteraction(
+                user_id=user.id,
+                context_type="admin_quest_preview",
+                context_id=None,
+                prompt_type="quest_generator_preview",
+                prompt=prompt,
+                response=raw_response,
+                provider=provider,
+                model=model,
+            )
+        )
+        await db.commit()
+        return templates(request).TemplateResponse(
+            request,
+            "admin_ai_quest_preview.html",
+            {"request": request, "user": user, "items": items},
+        )
+    except Exception:
         await db.rollback()
         return RedirectResponse(
             "/admin?error=ai-quest-generation-failed", status_code=303
         )
+
+
+@router.post("/ai-save-quests")
+async def ai_save_quests(
+    db: DbSession,
+    user: User = Depends(require_admin),
+    generated_json: str = Form(...),
+    selected: list[int] = Form(default=[]),
+):
+    try:
+        items = json.loads(generated_json)
+        selected_set = {int(index) for index in selected}
+        created = 0
+        for index, item in enumerate(items):
+            if index not in selected_set:
+                continue
+            quest_frequency = (
+                QuestFrequency.WEEKLY
+                if item["frequency"] == "weekly"
+                else QuestFrequency.DAILY
+            )
+            db.add(
+                Quest(
+                    title=item["title"],
+                    description=item["description"],
+                    frequency=quest_frequency,
+                    target_metric=item["target_metric"],
+                    target_value=int(item["target_value"]),
+                    reward_points=int(item["reward_points"]),
+                    is_active=True,
+                )
+            )
+            created += 1
+        await db.commit()
+        return RedirectResponse(
+            f"/admin?success=ai-quests-generated&created={created}", status_code=303
+        )
+    except Exception:
+        await db.rollback()
+        return RedirectResponse("/admin?error=ai-quest-save-failed", status_code=303)
 
 
 @router.post("/quests")
@@ -553,8 +625,9 @@ async def toggle_quest(
 
 
 @router.post("/courses/{course_id}/ai-generate-quiz")
-async def ai_generate_course_quiz(
+async def ai_generate_course_quiz_preview(
     course_id: int,
+    request: Request,
     db: DbSession,
     user: User = Depends(require_admin),
     lesson_id: int = Form(...),
@@ -578,18 +651,86 @@ async def ai_generate_course_quiz(
             status_code=303,
         )
     try:
-        questions, _ = await generate_quiz_questions_for_lesson(
-            db, user, lesson, count, difficulty
+        await ensure_llm_available(db, user)
+        provider, _, model = get_llm_config()
+        prompt = build_quiz_generation_prompt(lesson, count, difficulty)
+        raw_response = await call_openai_compatible_chat(
+            quiz_generator_system_prompt(), prompt
+        )
+        items = validate_generated_quiz_items(
+            compact_json_from_text(raw_response), max(1, min(int(count), 10))
+        )
+        db.add(
+            AIInteraction(
+                user_id=user.id,
+                context_type="admin_quiz_preview",
+                context_id=lesson.id,
+                prompt_type="quiz_generator_preview",
+                prompt=prompt,
+                response=raw_response,
+                provider=provider,
+                model=model,
+            )
         )
         await db.commit()
-        return RedirectResponse(
-            f"/admin/courses/{course_id}?success=ai-quiz-generated&created={len(questions)}",
-            status_code=303,
+        return templates(request).TemplateResponse(
+            request,
+            "admin_ai_quiz_preview.html",
+            {
+                "request": request,
+                "user": user,
+                "course_id": course_id,
+                "lesson": lesson,
+                "items": items,
+                "difficulty": difficulty,
+            },
         )
-    except LLMServiceError as exc:
+    except Exception:
         await db.rollback()
         return RedirectResponse(
             f"/admin/courses/{course_id}?error=ai-generation-failed", status_code=303
+        )
+
+
+@router.post("/courses/{course_id}/ai-save-quiz")
+async def ai_save_course_quiz(
+    course_id: int,
+    db: DbSession,
+    user: User = Depends(require_admin),
+    generated_json: str = Form(...),
+    difficulty: int = Form(1),
+    selected: list[int] = Form(default=[]),
+):
+    try:
+        items = json.loads(generated_json)
+        selected_set = {int(index) for index in selected}
+        created = 0
+        for index, item in enumerate(items):
+            if index not in selected_set:
+                continue
+            db.add(
+                PvpQuestion(
+                    course_id=course_id,
+                    difficulty=max(1, min(int(difficulty), 3)),
+                    is_active=True,
+                    question=item["question"],
+                    option_a=item["option_a"],
+                    option_b=item["option_b"],
+                    option_c=item["option_c"],
+                    option_d=item["option_d"],
+                    correct_option=item["correct_option"],
+                )
+            )
+            created += 1
+        await db.commit()
+        return RedirectResponse(
+            f"/admin/courses/{course_id}?success=ai-quiz-generated&created={created}",
+            status_code=303,
+        )
+    except Exception:
+        await db.rollback()
+        return RedirectResponse(
+            f"/admin/courses/{course_id}?error=ai-quiz-save-failed", status_code=303
         )
 
 
