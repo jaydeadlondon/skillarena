@@ -807,3 +807,99 @@ form {
 .shop-item form .btn {
   margin-top: 8px;
 }
+.achievement-card {
+  position: relative;
+  overflow: hidden;
+}
+.achievement-unlocked {
+  border-color: rgba(247, 201, 72, 0.42);
+  background: linear-gradient(
+    180deg,
+    rgba(47, 38, 13, 0.92),
+    rgba(12, 15, 25, 0.94)
+  );
+}
+.achievement-locked {
+  filter: saturate(0.55);
+  opacity: 0.82;
+}
+.achievement-locked h2 {
+  color: var(--muted);
+}
+.achievement-unlocked:after {
+  content: "";
+  position: absolute;
+  inset: auto -40px -60px auto;
+  width: 140px;
+  height: 140px;
+  background: radial-gradient(
+    circle,
+    rgba(247, 201, 72, 0.22),
+    transparent 65%
+  );
+  pointer-events: none;
+}
+.ai-companion textarea {
+  min-height: 86px;
+}
+.ai-companion #aiResponses .card {
+  box-shadow: var(--shadow-soft);
+}
+.lesson-content {
+  white-space: pre-wrap;
+  line-height: 1.7;
+  color: var(--text);
+}
+.lesson-notes {
+  border-color: rgba(139, 92, 246, 0.28);
+}
+/* AI companion transient toast */
+.ai-toast {
+  position: fixed;
+  right: 20px;
+  bottom: 92px;
+  z-index: 1100;
+  border: 1px solid rgba(247, 201, 72, 0.45);
+  background: linear-gradient(
+    180deg,
+    rgba(27, 34, 53, 0.98),
+    rgba(12, 15, 25, 0.98)
+  );
+  color: var(--text);
+  padding: 12px 16px;
+  border-radius: 16px;
+  font-weight: 800;
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.38);
+  animation: ai-toast-in 0.22s ease both;
+}
+.ai-toast.thinking:before {
+  content: "✦ ";
+  color: var(--gold);
+}
+.ai-toast.error {
+  border-color: rgba(251, 113, 133, 0.55);
+  color: #fecdd3;
+}
+.ai-toast.hide {
+  animation: ai-toast-out 0.2s ease both;
+}
+@keyframes ai-toast-in {
+  from {
+    transform: translateY(12px) scale(0.96);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+@keyframes ai-toast-out {
+  from {
+    transform: none;
+    opacity: 1;
+  }
+  to {
+    transform: translateY(8px) scale(0.97);
+    opacity: 0;
+  }
+}

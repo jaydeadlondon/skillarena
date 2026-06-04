@@ -24,7 +24,17 @@ endblock %} {% block content %}
     data-provider="{{ tracking_provider }}"
     data-lesson-id="{{ lesson.id }}"
   ></iframe>
-  <p>{{ lesson.content }}</p>
+  <section class="card lesson-notes" style="margin-top: 18px">
+    <div class="section-title">
+      <h2>Lesson notes</h2>
+      <span class="badge">Text material</span>
+    </div>
+    {% if lesson.content %}
+    <div class="lesson-content">{{ lesson.content }}</div>
+    {% else %}
+    <p class="muted">No text notes for this lesson yet.</p>
+    {% endif %}
+  </section>
   <div class="card" style="margin-top: 18px">
     <div class="section-title">
       <h2>Lesson progress</h2>
@@ -43,6 +53,56 @@ endblock %} {% block content %}
       only while the video is playing and the tab is visible.
     </p>
   </div>
+  <section class="card ai-companion" style="margin-top: 18px">
+    <div class="section-title">
+      <h2>AI Study Companion</h2>
+      <span class="badge"
+        >{{ llm_used_today }}/{{ llm_daily_limit }} today</span
+      >
+    </div>
+    {% if not llm_enabled %}
+    <p class="muted">
+      AI assistant is disabled. Configure LLM settings in the environment to
+      enable it.
+    </p>
+    {% else %}
+    <p class="muted">
+      Short, practical help for this lesson. History is shown for this lesson
+      page.
+    </p>
+    <div class="action-row">
+      <button class="btn" type="button" data-ai-action="explain">
+        Explain simply
+      </button>
+      <button class="btn" type="button" data-ai-action="summarize">
+        Summarize
+      </button>
+      <button class="btn" type="button" data-ai-action="practice">
+        Practice questions
+      </button>
+      <button class="btn" type="button" data-ai-action="next_step">
+        Tiny next step
+      </button>
+    </div>
+    <form class="form" id="aiCustomForm" style="margin-top: 12px">
+      <textarea
+        id="aiCustomPrompt"
+        placeholder="Ask a short question about this lesson..."
+      ></textarea>
+      <button class="btn primary" type="submit">Ask AI</button>
+    </form>
+    <div id="aiStatus" class="muted" style="margin-top: 10px"></div>
+    {% endif %}
+    <div id="aiResponses" class="grid" style="margin-top: 14px">
+      {% for item in ai_history %}
+      <div class="card">
+        <span class="badge">{{ item.prompt_type }}</span>
+        <p>{{ item.response }}</p>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
   <form
     class="form"
     method="post"
@@ -69,5 +129,9 @@ endblock %} {% block content %}
     durationSeconds: {{ duration_seconds }}
   };
 </script>
+<script>
+  window.SkillArenaAI = { lessonId: {{ lesson.id }} };
+</script>
 <script src="/static/js/video-tracking.js"></script>
+<script src="/static/js/ai-companion.js?v=thinking-toast-2"></script>
 {% endblock %}

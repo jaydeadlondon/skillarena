@@ -14,6 +14,7 @@ from app.routers import (
     achievements,
     activity,
     admin,
+    ai,
     auth,
     focus,
     learning,
@@ -47,6 +48,7 @@ app.state.templates = Jinja2Templates(directory="app/templates")
 app.include_router(auth.router)
 app.include_router(activity.router)
 app.include_router(achievements.router)
+app.include_router(ai.router)
 app.include_router(pages.router)
 app.include_router(learning.router)
 app.include_router(onboarding.router)

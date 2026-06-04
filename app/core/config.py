@@ -22,6 +22,14 @@ class Settings(BaseSettings):
     session_cookie_samesite: str = "lax"
     session_max_age_seconds: int = 60 * 60 * 24 * 14
 
+    llm_enabled: bool = False
+    llm_provider: str = "groq"
+    llm_api_key: str = ""
+    llm_base_url: str = "https://api.groq.com/openai/v1"
+    llm_model: str = "llama-3.3-70b-versatile"
+    llm_daily_limit_per_user: int = 20
+    llm_timeout_seconds: int = 30
+
     model_config = SettingsConfigDict(
         env_file=".env", env_file_encoding="utf-8", extra="ignore"
     )

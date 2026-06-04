@@ -1,14 +1,15 @@
+from app.models.ai import AIInteraction
 from app.models.course import Course, Lesson, LessonProgress, VideoProvider
 from app.models.gamification import (
     Achievement,
     AchievementType,
     CosmeticItem,
     FocusSession,
+    UserCosmetic,
     Quest,
     QuestFrequency,
     UserAchievement,
     UserActivityDay,
-    UserCosmetic,
     UserNotification,
     UserOnboarding,
     UserQuest,
@@ -25,6 +26,7 @@ from app.models.pvp import (
 from app.models.user import CurrencyTransaction, User, UserRole
 
 __all__ = [
+    "AIInteraction",
     "Achievement",
     "AchievementType",
     "BattleStatus",

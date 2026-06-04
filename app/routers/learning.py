@@ -3,13 +3,15 @@ from fastapi.responses import RedirectResponse
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
-from app.models.course import Lesson, LessonProgress
+from app.models.course import Course, Lesson, LessonProgress
 from app.models.user import User
 from app.routers.deps import DbSession, require_user
 from app.services.achievements import evaluate_learning_achievements
 from app.services.course_progress import maybe_award_course_completion
 from app.services.rewards import add_skill_points
 from app.services.streaks import sync_user_streak
+from app.services.llm import recent_lesson_interactions, user_llm_requests_today
+from app.core.config import get_settings
 from app.services.video import to_embed_url, video_tracking_provider
 
 router = APIRouter(prefix="/learn", tags=["learning"])
@@ -41,6 +43,9 @@ async def lesson_page(
     watched_seconds = int(progress.watched_seconds or 0) if progress else 0
     duration_seconds = max(lesson.duration_minutes * 60, 1)
     watched_percent = min(100, int(watched_seconds * 100 / duration_seconds))
+    settings = get_settings()
+    ai_history = await recent_lesson_interactions(db, user, lesson.id)
+    ai_used_today = await user_llm_requests_today(db, user)
     return templates(request).TemplateResponse(
         request,
         "lesson.html",
@@ -55,6 +60,10 @@ async def lesson_page(
             "watched_seconds": watched_seconds,
             "duration_seconds": duration_seconds,
             "watched_percent": watched_percent,
+            "llm_enabled": settings.llm_enabled,
+            "llm_daily_limit": settings.llm_daily_limit_per_user,
+            "llm_used_today": ai_used_today,
+            "ai_history": ai_history,
         },
     )
 
