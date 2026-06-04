@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import get_settings
 from app.models.ai import AIInteraction
 from app.models.course import Lesson
+from app.models.gamification import Quest, QuestFrequency
 from app.models.pvp import PvpQuestion
 from app.models.user import User
 
@@ -290,6 +291,158 @@ async def generate_quiz_questions_for_lesson(
     )
     db.add(interaction)
     return questions, interaction
+
+
+VALID_QUEST_METRICS = {
+    "study_minutes",
+    "focus_minutes",
+    "lessons_completed",
+    "pvp_wins",
+    "pvp_participation",
+}
+VALID_QUEST_FREQUENCIES = {"daily", "weekly"}
+
+
+def quest_generator_system_prompt() -> str:
+    return (
+        "You generate gamified quests for SkillArena. "
+        "Return only valid JSON. No markdown, no explanation. "
+        "Quests must be clear, measurable, realistic, and useful for learning consistency. "
+        "Use only allowed target metrics. Avoid unsafe or medical advice."
+    )
+
+
+def build_quest_generation_prompt(
+    count: int,
+    frequency: str,
+    user_goal: str,
+    focus_challenge: str,
+    preferred_minutes: int,
+) -> str:
+    count = max(1, min(int(count), 10))
+    frequency = frequency if frequency in VALID_QUEST_FREQUENCIES else "daily"
+    return (
+        f"Generate {count} {frequency} quests for a gamified learning platform.\n\n"
+        "Allowed target_metric values:\n"
+        "study_minutes, focus_minutes, lessons_completed, pvp_wins, pvp_participation.\n\n"
+        "Return JSON array only. Each item must have exactly these keys:\n"
+        "title, description, frequency, target_metric, target_value, reward_points.\n\n"
+        "Rules:\n"
+        f"- frequency must be '{frequency}'.\n"
+        "- target_value must be an integer.\n"
+        "- reward_points must be an integer between 10 and 200.\n"
+        "- daily quests should be small and achievable.\n"
+        "- weekly quests can be larger but still realistic.\n"
+        "- Keep titles short.\n\n"
+        f"User learning goal: {user_goal[:200] or 'Build a consistent learning habit'}\n"
+        f"Focus challenge: {focus_challenge[:120] or 'consistency'}\n"
+        f"Preferred focus session minutes: {preferred_minutes}\n"
+    )
+
+
+def validate_generated_quest_items(
+    items: Any, max_count: int, forced_frequency: str
+) -> list[dict[str, Any]]:
+    if not isinstance(items, list):
+        raise LLMServiceError("AI did not return a JSON array.")
+    validated: list[dict[str, Any]] = []
+    forced_frequency = (
+        forced_frequency if forced_frequency in VALID_QUEST_FREQUENCIES else "daily"
+    )
+    for item in items[:max_count]:
+        if not isinstance(item, dict):
+            continue
+        title = str(item.get("title", "")).strip()[:160]
+        description = str(item.get("description", "")).strip()[:1000]
+        frequency = str(item.get("frequency", forced_frequency)).strip().lower()
+        target_metric = str(item.get("target_metric", "")).strip().lower()
+        try:
+            target_value = int(item.get("target_value", 0))
+            reward_points = int(item.get("reward_points", 0))
+        except (TypeError, ValueError):
+            continue
+        if not title or not description:
+            continue
+        if frequency not in VALID_QUEST_FREQUENCIES:
+            frequency = forced_frequency
+        if frequency != forced_frequency:
+            frequency = forced_frequency
+        if target_metric not in VALID_QUEST_METRICS:
+            continue
+        if target_value <= 0:
+            continue
+        reward_points = max(10, min(reward_points, 200))
+        validated.append(
+            {
+                "title": title,
+                "description": description,
+                "frequency": frequency,
+                "target_metric": target_metric,
+                "target_value": target_value,
+                "reward_points": reward_points,
+            }
+        )
+    if not validated:
+        raise LLMServiceError("AI did not return valid quests.")
+    return validated
+
+
+async def generate_quests(
+    db: AsyncSession,
+    user: User,
+    count: int,
+    frequency: str,
+    user_goal: str,
+    focus_challenge: str,
+    preferred_minutes: int,
+) -> tuple[list[Quest], AIInteraction]:
+    await ensure_llm_available(db, user)
+    provider, _, model = get_llm_config()
+    count = max(1, min(int(count), 10))
+    frequency = frequency if frequency in VALID_QUEST_FREQUENCIES else "daily"
+    prompt = build_quest_generation_prompt(
+        count, frequency, user_goal, focus_challenge, preferred_minutes
+    )
+    raw_response = await call_openai_compatible_chat(
+        quest_generator_system_prompt(), prompt
+    )
+    try:
+        parsed = compact_json_from_text(raw_response)
+    except json.JSONDecodeError as exc:
+        raise LLMServiceError("AI returned invalid JSON. Try again.") from exc
+    items = validate_generated_quest_items(parsed, count, frequency)
+
+    quests: list[Quest] = []
+    for item in items:
+        quest_frequency = (
+            QuestFrequency.WEEKLY
+            if item["frequency"] == "weekly"
+            else QuestFrequency.DAILY
+        )
+        quest = Quest(
+            title=item["title"],
+            description=item["description"],
+            frequency=quest_frequency,
+            target_metric=item["target_metric"],
+            target_value=item["target_value"],
+            reward_points=item["reward_points"],
+            is_active=True,
+        )
+        db.add(quest)
+        quests.append(quest)
+
+    interaction = AIInteraction(
+        user_id=user.id,
+        context_type="admin",
+        context_id=None,
+        prompt_type="quest_generator",
+        prompt=prompt,
+        response=raw_response,
+        provider=provider,
+        model=model,
+    )
+    db.add(interaction)
+    return quests, interaction
 
 
 async def recent_lesson_interactions(

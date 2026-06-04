@@ -1,6 +1,19 @@
 {% extends "base.html" %} {% block title %}Admin · SkillArena{% endblock %} {%
 block content %}
 <h1>Admin forge</h1>
+{% if request.query_params.get('success') == 'ai-quests-generated' %}
+<div data-reward-pop>
+  AI generated {{ request.query_params.get('created') }} quests ✨
+</div>
+{% endif %} {% if request.query_params.get('error') ==
+'ai-quest-generation-failed' %}
+<div class="card" style="border-color: #fb7185; margin-bottom: 18px">
+  <strong>AI quest generation failed.</strong>
+  <p class="muted">
+    Check LLM settings, limits, or try again with a smaller request.
+  </p>
+</div>
+{% endif %}
 <div class="grid cols-3">
   <a class="card" href="/admin/users"
     ><span class="badge">Users</span>
@@ -94,6 +107,39 @@ block content %}
         type="number"
         value="25"
       /><button class="btn primary">Create</button>
+    </form>
+  </section>
+  <section class="card">
+    <h2>AI Quest Generator</h2>
+    <p class="muted">
+      Generate daily or weekly quests from a learning goal and focus challenge.
+    </p>
+    <form class="form" method="post" action="/admin/ai-generate-quests">
+      <select name="frequency">
+        <option value="daily">Daily</option>
+        <option value="weekly">Weekly</option></select
+      ><select name="count">
+        <option value="3" selected>3 quests</option>
+        <option value="5">5 quests</option>
+        <option value="10">10 quests</option></select
+      ><input
+        class="input"
+        name="user_goal"
+        placeholder="Learning goal, optional"
+      /><input
+        class="input"
+        name="focus_challenge"
+        placeholder="Focus challenge, optional"
+      /><input
+        class="input"
+        type="number"
+        name="preferred_minutes"
+        value="25"
+        min="5"
+        max="120"
+      /><button class="btn primary" type="submit">
+        Generate and save quests
+      </button>
     </form>
   </section>
   <section class="card">

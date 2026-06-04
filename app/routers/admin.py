@@ -4,11 +4,21 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import selectinload
 
 from app.models.course import Course, Lesson, VideoProvider
-from app.models.gamification import Achievement, CosmeticItem, Quest, QuestFrequency
+from app.models.gamification import (
+    Achievement,
+    CosmeticItem,
+    Quest,
+    QuestFrequency,
+    UserOnboarding,
+)
 from app.models.pvp import PvpQuestion
 from app.models.user import User, UserRole
 from app.routers.deps import DbSession, require_admin
-from app.services.llm import LLMServiceError, generate_quiz_questions_for_lesson
+from app.services.llm import (
+    LLMServiceError,
+    generate_quests,
+    generate_quiz_questions_for_lesson,
+)
 from app.services.rewards import add_skill_points
 
 router = APIRouter(prefix="/admin", tags=["admin"])
@@ -459,6 +469,46 @@ async def create_lesson(
     return RedirectResponse(
         f"/admin/courses/{course_id}?success=lesson-created", status_code=303
     )
+
+
+@router.post("/ai-generate-quests")
+async def ai_generate_quests(
+    db: DbSession,
+    user: User = Depends(require_admin),
+    count: int = Form(3),
+    frequency: str = Form("daily"),
+    user_goal: str = Form(""),
+    focus_challenge: str = Form(""),
+    preferred_minutes: int = Form(25),
+):
+    onboarding = await db.scalar(
+        select(UserOnboarding).where(UserOnboarding.user_id == user.id)
+    )
+    if not user_goal and onboarding:
+        user_goal = onboarding.learning_goal
+    if not focus_challenge and onboarding:
+        focus_challenge = onboarding.focus_challenge
+    if onboarding and preferred_minutes == 25:
+        preferred_minutes = onboarding.preferred_session_minutes
+    try:
+        quests, _ = await generate_quests(
+            db,
+            user,
+            count,
+            frequency,
+            user_goal or "Build a consistent learning habit",
+            focus_challenge or "consistency",
+            preferred_minutes,
+        )
+        await db.commit()
+        return RedirectResponse(
+            f"/admin?success=ai-quests-generated&created={len(quests)}", status_code=303
+        )
+    except LLMServiceError:
+        await db.rollback()
+        return RedirectResponse(
+            "/admin?error=ai-quest-generation-failed", status_code=303
+        )
 
 
 @router.post("/quests")
