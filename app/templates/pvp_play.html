@@ -1,6 +1,25 @@
 {% extends "base.html" %} {% block title %}Battle #{{ battle.id }} ·
-SkillArena{% endblock %} {% block content %} {% if
-request.query_params.get('error') == 'round-not-started' %}
+SkillArena{% endblock %} {% block content %} {% if battle.status.value ==
+'finished' and submission %} {% if not battle.winner_id %}
+<section class="card pvp-result-banner tie">
+  <span class="badge">🤝 Tie</span>
+  <h1>It's a tie!</h1>
+  <p class="muted">Both players got their entry fee refunded.</p>
+</section>
+{% elif battle.winner_id == user.id %}
+<section class="card pvp-result-banner victory">
+  <span class="badge">🏆 Victory</span>
+  <h1>You won!</h1>
+  <p>Congratulations! Your reward has been claimed.</p>
+</section>
+{% else %}
+<section class="card pvp-result-banner defeat">
+  <span class="badge">Defeat</span>
+  <h1>You lost.</h1>
+  <p>Better luck next time. Review your answers and come back stronger.</p>
+</section>
+{% endif %} {% endif %} {% if request.query_params.get('error') ==
+'round-not-started' %}
 <div class="card" style="border-color: #fb7185; margin-bottom: 18px">
   <strong>Round not started.</strong>
   <p class="muted">
@@ -94,9 +113,10 @@ request.query_params.get('error') == 'round-not-started' %}
   <div data-reward-pop>Tie! Entry fee refunded 🤝</div>
   <p><span class="badge">🤝 Tie — both players got entry fee back</span></p>
   {% elif battle.winner_id == user.id %}
-  <div data-reward-pop>Victory! Prize claimed ⚔️</div>
+  <div data-reward-pop>Congratulations! You won! 🏆</div>
   <p><span class="badge">🏆 You won this duel</span></p>
   {% else %}
+  <div data-reward-pop>You lost. Better luck next time ⚔️</div>
   <p><span class="badge">Defeat. Learn, retry, conquer.</span></p>
   {% endif %} {% endif %}
 </section>

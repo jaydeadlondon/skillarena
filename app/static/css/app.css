@@ -903,3 +903,60 @@ form {
     opacity: 0;
   }
 }
+
+/* PvP result banner */
+.pvp-result-banner {
+  text-align: center;
+  margin-bottom: 18px;
+  padding: 34px 24px;
+  border-width: 2px;
+  animation: reward-pop-in 0.45s ease both;
+}
+.pvp-result-banner h1 {
+  margin: 10px 0;
+  font-size: 52px;
+  line-height: 1;
+}
+.pvp-result-banner p {
+  font-size: 18px;
+  margin: 0;
+}
+.pvp-result-banner.victory {
+  border-color: rgba(247, 201, 72, 0.72);
+  background: radial-gradient(
+    circle at top,
+    rgba(247, 201, 72, 0.24),
+    rgba(27, 34, 53, 0.94) 58%,
+    rgba(12, 15, 25, 0.96)
+  );
+  box-shadow: 0 28px 90px rgba(247, 201, 72, 0.18);
+}
+.pvp-result-banner.victory h1 {
+  color: var(--gold);
+}
+.pvp-result-banner.defeat {
+  border-color: rgba(251, 113, 133, 0.55);
+  background: radial-gradient(
+    circle at top,
+    rgba(251, 113, 133, 0.16),
+    rgba(27, 34, 53, 0.94) 58%,
+    rgba(12, 15, 25, 0.96)
+  );
+}
+.pvp-result-banner.defeat h1 {
+  color: #fecdd3;
+}
+.pvp-result-banner.tie {
+  border-color: rgba(139, 92, 246, 0.55);
+  background: radial-gradient(
+    circle at top,
+    rgba(139, 92, 246, 0.2),
+    rgba(27, 34, 53, 0.94) 58%,
+    rgba(12, 15, 25, 0.96)
+  );
+}
+@media (max-width: 760px) {
+  .pvp-result-banner h1 {
+    font-size: 38px;
+  }
+}
