@@ -46,6 +46,7 @@ The interface is built in English with a dark RPG/gaming style.
 - AI Dashboard Planner for personalized next-action recommendations.
 - AI request limits, cooldowns, and prompt size limits.
 - Input validation for admin content, onboarding, lesson progress, URLs, rewards, cosmetics, quests, and PvP question data.
+- CSRF protection foundation for unsafe requests using session tokens, same-origin checks, and automatic form token injection.
 - YouTube iframe API support for real playback tracking.
 - Fallback manual lesson timer for non-YouTube embeds.
 - Lesson progress tracking.
