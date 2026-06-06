@@ -453,6 +453,12 @@ Seed demo data:
 docker compose exec web python scripts/seed_demo.py
 ```
 
+Run tests:
+
+```bash
+pytest
+```
+
 Run a syntax check:
 
 ```bash
