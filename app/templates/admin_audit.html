@@ -1,0 +1,45 @@
+{% extends "base.html" %} {% block title %}Admin Audit · SkillArena{% endblock
+%} {% block content %}
+<header class="page-head">
+  <div>
+    <a class="badge" href="/admin">← Admin forge</a>
+    <h1>Admin audit log</h1>
+    <p class="muted">
+      Recent administrative actions, target objects, and short details.
+    </p>
+  </div>
+</header>
+
+<section class="card table-wrap">
+  <table class="table">
+    <tr>
+      <th>Time</th>
+      <th>Admin</th>
+      <th>Action</th>
+      <th>Target</th>
+      <th>Details</th>
+    </tr>
+    {% for log in logs %}
+    <tr>
+      <td>{{ log.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+      <td>
+        {% if log.admin_user %}{{ log.admin_user.display_name }}{% else %}<span
+          class="muted"
+          >deleted admin</span
+        >{% endif %}
+      </td>
+      <td><span class="badge">{{ log.action }}</span></td>
+      <td>
+        {{ log.target_type }}{% if log.target_id %} #{{ log.target_id }}{% endif
+        %}
+      </td>
+      <td class="muted">{{ log.details }}</td>
+    </tr>
+    {% else %}
+    <tr>
+      <td colspan="5" class="muted">No admin actions logged yet.</td>
+    </tr>
+    {% endfor %}
+  </table>
+</section>
+{% endblock %}

@@ -1,4 +1,5 @@
 from app.models.ai import AIInteraction
+from app.models.audit import AdminAuditLog
 from app.models.course import Course, Lesson, LessonProgress, VideoProvider
 from app.models.gamification import (
     Achievement,
@@ -27,6 +28,7 @@ from app.models.user import CurrencyTransaction, User, UserRole
 
 __all__ = [
     "AIInteraction",
+    "AdminAuditLog",
     "Achievement",
     "AchievementType",
     "BattleStatus",

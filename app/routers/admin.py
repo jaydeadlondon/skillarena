@@ -15,6 +15,7 @@ from app.core.validation import (
     validate_url,
 )
 from app.models.ai import AIInteraction
+from app.models.audit import AdminAuditLog
 from app.models.course import Course, Lesson, VideoProvider
 from app.models.gamification import (
     Achievement,
@@ -26,6 +27,7 @@ from app.models.gamification import (
 from app.models.pvp import PvpQuestion
 from app.models.user import User, UserRole
 from app.routers.deps import DbSession, require_admin
+from app.services.audit import log_admin_action
 from app.services.llm import (
     LLMServiceError,
     build_quest_generation_prompt,
@@ -108,6 +110,7 @@ async def admin_dashboard(
         "quests": await db.scalar(select(func.count(Quest.id))) or 0,
         "questions": await db.scalar(select(func.count(PvpQuestion.id))) or 0,
         "cosmetics": await db.scalar(select(func.count(CosmeticItem.id))) or 0,
+        "audit_logs": await db.scalar(select(func.count(AdminAuditLog.id))) or 0,
     }
     return templates(request).TemplateResponse(
         request,
@@ -123,6 +126,29 @@ async def admin_dashboard(
             "cosmetics": cosmetics,
             "stats": stats,
         },
+    )
+
+
+@router.get("/audit")
+async def admin_audit(
+    request: Request, db: DbSession, user: User = Depends(require_admin)
+):
+    logs = (
+        (
+            await db.execute(
+                select(AdminAuditLog)
+                .options(selectinload(AdminAuditLog.admin_user))
+                .order_by(AdminAuditLog.created_at.desc())
+                .limit(200)
+            )
+        )
+        .scalars()
+        .all()
+    )
+    return templates(request).TemplateResponse(
+        request,
+        "admin_audit.html",
+        {"request": request, "user": user, "logs": logs},
     )
 
 
@@ -156,7 +182,16 @@ async def update_user_role(
         return RedirectResponse(
             "/admin/users?error=cannot-demote-yourself", status_code=303
         )
+    old_role = target.role.value
     target.role = UserRole.ADMIN if role == UserRole.ADMIN.value else UserRole.USER
+    await log_admin_action(
+        db,
+        user,
+        "user.role.update",
+        "user",
+        target.id,
+        f"{target.display_name}: {old_role} -> {target.role.value}",
+    )
     await db.commit()
     return RedirectResponse("/admin/users?success=role-updated", status_code=303)
 
@@ -176,6 +211,14 @@ async def adjust_user_points(
         return RedirectResponse("/admin/users?error=negative-balance", status_code=303)
     await add_skill_points(
         db, target, amount, reason or "Admin adjustment", "admin_user", target.id
+    )
+    await log_admin_action(
+        db,
+        user,
+        "user.points.adjust",
+        "user",
+        target.id,
+        f"{target.display_name}: {amount} SP · {reason or 'Admin adjustment'}",
     )
     await db.commit()
     return RedirectResponse("/admin/users?success=points-updated", status_code=303)
@@ -229,15 +272,23 @@ async def create_cosmetic(
         preview_value = validate_hex_color_or_css(preview_value)
     except ValidationError as exc:
         return validation_redirect("/admin/cosmetics", exc)
-    db.add(
-        CosmeticItem(
-            code=code,
-            name=name,
-            item_type=item_type,
-            price_points=price_points,
-            preview_value=preview_value,
-            is_active=True,
-        )
+    cosmetic = CosmeticItem(
+        code=code,
+        name=name,
+        item_type=item_type,
+        price_points=price_points,
+        preview_value=preview_value,
+        is_active=True,
+    )
+    db.add(cosmetic)
+    await db.flush()
+    await log_admin_action(
+        db,
+        user,
+        "cosmetic.create",
+        "cosmetic",
+        cosmetic.id,
+        f"{name} · {item_type} · {price_points} SP",
     )
     await db.commit()
     return RedirectResponse("/admin/cosmetics?success=created", status_code=303)
@@ -272,6 +323,14 @@ async def update_cosmetic(
         cosmetic.preview_value = validate_hex_color_or_css(preview_value)
     except ValidationError as exc:
         return validation_redirect("/admin/cosmetics", exc)
+    await log_admin_action(
+        db,
+        user,
+        "cosmetic.update",
+        "cosmetic",
+        cosmetic.id,
+        f"{cosmetic.name} · {cosmetic.item_type} · {cosmetic.price_points} SP",
+    )
     await db.commit()
     return RedirectResponse("/admin/cosmetics?success=updated", status_code=303)
 
@@ -283,6 +342,14 @@ async def toggle_cosmetic(
     cosmetic = await db.get(CosmeticItem, item_id)
     if cosmetic:
         cosmetic.is_active = not cosmetic.is_active
+        await log_admin_action(
+            db,
+            user,
+            "cosmetic.toggle",
+            "cosmetic",
+            cosmetic.id,
+            f"active={cosmetic.is_active}",
+        )
         await db.commit()
     return RedirectResponse("/admin/cosmetics?success=toggled", status_code=303)
 
@@ -350,14 +417,17 @@ async def create_course(
         )
     except ValidationError as exc:
         return validation_redirect("/admin/courses", exc)
-    db.add(
-        Course(
-            title=title,
-            slug=slug,
-            description=description,
-            category=category,
-            is_published=True,
-        )
+    course = Course(
+        title=title,
+        slug=slug,
+        description=description,
+        category=category,
+        is_published=True,
+    )
+    db.add(course)
+    await db.flush()
+    await log_admin_action(
+        db, user, "course.create", "course", course.id, f"{title} · {slug}"
     )
     await db.commit()
     return RedirectResponse("/admin/courses?success=created", status_code=303)
@@ -399,6 +469,14 @@ async def update_course(
         )
     except ValidationError as exc:
         return validation_redirect(f"/admin/courses/{course.id}", exc)
+    await log_admin_action(
+        db,
+        user,
+        "course.update",
+        "course",
+        course.id,
+        f"{course.title} · {course.slug}",
+    )
     await db.commit()
     return RedirectResponse(
         f"/admin/courses/{course.id}?success=updated", status_code=303
@@ -412,6 +490,14 @@ async def toggle_course(
     course = await db.get(Course, course_id)
     if course:
         course.is_published = not course.is_published
+        await log_admin_action(
+            db,
+            user,
+            "course.toggle",
+            "course",
+            course.id,
+            f"published={course.is_published}",
+        )
         await db.commit()
         return RedirectResponse(
             f"/admin/courses/{course.id}?success=course-toggled", status_code=303
@@ -428,6 +514,14 @@ async def delete_course(
         return RedirectResponse(
             "/admin/courses?error=course-not-found", status_code=303
         )
+    await log_admin_action(
+        db,
+        user,
+        "course.delete",
+        "course",
+        course.id,
+        f"{course.title} · {course.slug}",
+    )
     await db.delete(course)
     await db.commit()
     return RedirectResponse("/admin/courses?success=deleted", status_code=303)
@@ -468,17 +562,25 @@ async def create_course_lesson(
         )
     except ValidationError as exc:
         return validation_redirect(f"/admin/courses/{course.id}", exc)
-    db.add(
-        Lesson(
-            course_id=course.id,
-            title=title,
-            position=position,
-            video_provider=VideoProvider.YOUTUBE,
-            video_url=video_url,
-            duration_minutes=duration_minutes,
-            reward_points=reward_points,
-            content=content,
-        )
+    lesson = Lesson(
+        course_id=course.id,
+        title=title,
+        position=position,
+        video_provider=VideoProvider.YOUTUBE,
+        video_url=video_url,
+        duration_minutes=duration_minutes,
+        reward_points=reward_points,
+        content=content,
+    )
+    db.add(lesson)
+    await db.flush()
+    await log_admin_action(
+        db,
+        user,
+        "lesson.create",
+        "lesson",
+        lesson.id,
+        f"{lesson.title} · course #{course.id}",
     )
     await db.commit()
     return RedirectResponse(
@@ -521,6 +623,14 @@ async def update_lesson(
         )
     except ValidationError as exc:
         return validation_redirect(f"/admin/courses/{lesson.course_id}", exc)
+    await log_admin_action(
+        db,
+        user,
+        "lesson.update",
+        "lesson",
+        lesson.id,
+        f"{lesson.title} · course #{lesson.course_id}",
+    )
     await db.commit()
     return RedirectResponse(
         f"/admin/courses/{lesson.course_id}?success=lesson-updated", status_code=303
@@ -537,6 +647,14 @@ async def delete_lesson(
             "/admin/courses?error=lesson-not-found", status_code=303
         )
     course_id = lesson.course_id
+    await log_admin_action(
+        db,
+        user,
+        "lesson.delete",
+        "lesson",
+        lesson.id,
+        f"{lesson.title} · course #{course_id}",
+    )
     await db.delete(lesson)
     await db.commit()
     return RedirectResponse(
@@ -565,16 +683,24 @@ async def create_lesson(
         )
     except ValidationError as exc:
         return validation_redirect(f"/admin/courses/{course_id}", exc)
-    db.add(
-        Lesson(
-            course_id=course_id,
-            title=title,
-            position=position,
-            video_provider=VideoProvider.YOUTUBE,
-            video_url=video_url,
-            duration_minutes=duration_minutes,
-            content="Stay focused: complete this small step and claim your reward.",
-        )
+    lesson = Lesson(
+        course_id=course_id,
+        title=title,
+        position=position,
+        video_provider=VideoProvider.YOUTUBE,
+        video_url=video_url,
+        duration_minutes=duration_minutes,
+        content="Stay focused: complete this small step and claim your reward.",
+    )
+    db.add(lesson)
+    await db.flush()
+    await log_admin_action(
+        db,
+        user,
+        "lesson.create",
+        "lesson",
+        lesson.id,
+        f"{lesson.title} · course #{course_id}",
     )
     await db.commit()
     return RedirectResponse(
@@ -662,18 +788,25 @@ async def ai_save_quests(
                 if item["frequency"] == "weekly"
                 else QuestFrequency.DAILY
             )
-            db.add(
-                Quest(
-                    title=item["title"],
-                    description=item["description"],
-                    frequency=quest_frequency,
-                    target_metric=item["target_metric"],
-                    target_value=int(item["target_value"]),
-                    reward_points=int(item["reward_points"]),
-                    is_active=True,
-                )
+            quest = Quest(
+                title=item["title"],
+                description=item["description"],
+                frequency=quest_frequency,
+                target_metric=item["target_metric"],
+                target_value=int(item["target_value"]),
+                reward_points=int(item["reward_points"]),
+                is_active=True,
             )
+            db.add(quest)
             created += 1
+        await log_admin_action(
+            db,
+            user,
+            "ai.quests.save",
+            "quest",
+            None,
+            f"saved {created} generated quests",
+        )
         await db.commit()
         return RedirectResponse(
             f"/admin?success=ai-quests-generated&created={created}", status_code=303
@@ -726,15 +859,23 @@ async def create_quest(
         if frequency == QuestFrequency.WEEKLY.value
         else QuestFrequency.DAILY
     )
-    db.add(
-        Quest(
-            title=title,
-            description=description,
-            frequency=quest_frequency,
-            target_metric=target_metric,
-            target_value=target_value,
-            reward_points=reward_points,
-        )
+    quest = Quest(
+        title=title,
+        description=description,
+        frequency=quest_frequency,
+        target_metric=target_metric,
+        target_value=target_value,
+        reward_points=reward_points,
+    )
+    db.add(quest)
+    await db.flush()
+    await log_admin_action(
+        db,
+        user,
+        "quest.create",
+        "quest",
+        quest.id,
+        f"{quest.title} · {quest.frequency.value}",
     )
     await db.commit()
     return RedirectResponse("/admin", status_code=303)
@@ -747,6 +888,9 @@ async def toggle_quest(
     quest = await db.get(Quest, quest_id)
     if quest:
         quest.is_active = not quest.is_active
+        await log_admin_action(
+            db, user, "quest.toggle", "quest", quest.id, f"active={quest.is_active}"
+        )
         await db.commit()
     return RedirectResponse("/admin?success=quest-toggled", status_code=303)
 
@@ -849,6 +993,14 @@ async def ai_save_course_quiz(
                 )
             )
             created += 1
+        await log_admin_action(
+            db,
+            user,
+            "ai.quiz.save",
+            "course",
+            course_id,
+            f"saved {created} generated PvP questions",
+        )
         await db.commit()
         return RedirectResponse(
             f"/admin/courses/{course_id}?success=ai-quiz-generated&created={created}",
@@ -885,15 +1037,23 @@ async def create_pvp_question(
         )
     except ValidationError as exc:
         return validation_redirect("/admin", exc)
-    db.add(
-        PvpQuestion(
-            question=question,
-            option_a=option_a,
-            option_b=option_b,
-            option_c=option_c,
-            option_d=option_d,
-            correct_option=correct_option,
-        )
+    pvp_question = PvpQuestion(
+        question=question,
+        option_a=option_a,
+        option_b=option_b,
+        option_c=option_c,
+        option_d=option_d,
+        correct_option=correct_option,
+    )
+    db.add(pvp_question)
+    await db.flush()
+    await log_admin_action(
+        db,
+        user,
+        "pvp_question.create",
+        "pvp_question",
+        pvp_question.id,
+        pvp_question.question[:200],
     )
     await db.commit()
     return RedirectResponse("/admin", status_code=303)
@@ -906,5 +1066,13 @@ async def toggle_pvp_question(
     question = await db.get(PvpQuestion, question_id)
     if question:
         question.is_active = not question.is_active
+        await log_admin_action(
+            db,
+            user,
+            "pvp_question.toggle",
+            "pvp_question",
+            question.id,
+            f"active={question.is_active}",
+        )
         await db.commit()
     return RedirectResponse("/admin?success=question-toggled", status_code=303)
