@@ -5,7 +5,6 @@ from fastapi.responses import JSONResponse, RedirectResponse
 from sqlalchemy import func, select
 from sqlalchemy.orm import selectinload
 
-from app.db.session import AsyncSessionLocal
 from app.models.pvp import (
     BattleStatus,
     PvpBattle,
@@ -14,6 +13,8 @@ from app.models.pvp import (
     PvpBattleSubmission,
     PvpQuestion,
 )
+from app.core.config import get_settings
+from app.db.session import AsyncSessionLocal
 from app.models.user import User
 from app.routers.deps import DbSession, require_user
 from app.services.achievements import evaluate_pvp_achievements
@@ -29,6 +30,7 @@ router = APIRouter(prefix="/pvp", tags=["pvp"])
 ENTRY_FEE = 10
 REWARD = 25
 QUESTIONS_PER_BATTLE = 5
+settings = get_settings()
 
 
 def templates(request: Request):
@@ -314,6 +316,28 @@ async def create_battle(db: DbSession, user: User = Depends(require_user)):
         return RedirectResponse("/pvp?error=no-questions", status_code=303)
     if user.skill_points < ENTRY_FEE:
         return RedirectResponse("/pvp?error=not-enough-points", status_code=303)
+
+    cooldown_after = datetime.now(UTC) - timedelta(
+        seconds=settings.pvp_create_cooldown_seconds
+    )
+    recent_battle = await db.scalar(
+        select(PvpBattle.id)
+        .where(
+            PvpBattle.challenger_id == user.id, PvpBattle.created_at >= cooldown_after
+        )
+        .limit(1)
+    )
+    if recent_battle is not None:
+        return RedirectResponse("/pvp?error=create-cooldown", status_code=303)
+
+    waiting_battles_count = await db.scalar(
+        select(func.count(PvpBattle.id)).where(
+            PvpBattle.challenger_id == user.id,
+            PvpBattle.status == BattleStatus.WAITING,
+        )
+    )
+    if int(waiting_battles_count or 0) >= settings.pvp_max_waiting_battles_per_user:
+        return RedirectResponse("/pvp?error=too-many-waiting-battles", status_code=303)
 
     user.skill_points -= ENTRY_FEE
     battle = PvpBattle(

@@ -28,7 +28,14 @@ class Settings(BaseSettings):
     llm_base_url: str = "https://api.groq.com/openai/v1"
     llm_model: str = "llama-3.3-70b-versatile"
     llm_daily_limit_per_user: int = 20
+    llm_cooldown_seconds: int = 8
+    llm_max_custom_prompt_chars: int = 700
     llm_timeout_seconds: int = 30
+
+    pvp_create_cooldown_seconds: int = 20
+    pvp_max_waiting_battles_per_user: int = 3
+
+    trusted_hosts: str = "localhost,127.0.0.1,0.0.0.0,testserver"
 
     model_config = SettingsConfigDict(
         env_file=".env", env_file_encoding="utf-8", extra="ignore"
@@ -41,6 +48,10 @@ class Settings(BaseSettings):
             for steam_id in self.admin_steam_ids.split(",")
             if steam_id.strip()
         }
+
+    @property
+    def trusted_host_list(self) -> list[str]:
+        return [host.strip() for host in self.trusted_hosts.split(",") if host.strip()]
 
 
 @lru_cache

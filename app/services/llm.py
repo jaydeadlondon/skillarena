@@ -1,6 +1,6 @@
 import json
 import re
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import httpx
@@ -94,6 +94,22 @@ async def ensure_llm_available(db: AsyncSession, user: User) -> None:
     if used >= settings.llm_daily_limit_per_user:
         raise LLMServiceError("Daily AI request limit reached. Try again tomorrow.")
 
+    cooldown_after = datetime.now(UTC) - timedelta(
+        seconds=settings.llm_cooldown_seconds
+    )
+    recent_request = await db.scalar(
+        select(AIInteraction.id)
+        .where(
+            AIInteraction.user_id == user.id,
+            AIInteraction.created_at >= cooldown_after,
+        )
+        .limit(1)
+    )
+    if recent_request is not None:
+        raise LLMServiceError(
+            f"AI cooldown active. Wait {settings.llm_cooldown_seconds} seconds between requests."
+        )
+
 
 def compact_json_from_text(text: str) -> Any:
     """Extract JSON from plain text or fenced markdown returned by an LLM."""
@@ -124,7 +140,8 @@ def build_lesson_prompt(
 ) -> str:
     action_instruction = LESSON_ACTIONS.get(action, LESSON_ACTIONS["explain"])
     if custom_prompt:
-        action_instruction = f"User request: {custom_prompt[:700]}"
+        max_chars = get_settings().llm_max_custom_prompt_chars
+        action_instruction = f"User request: {custom_prompt[:max_chars]}"
     return (
         f"Task: {action_instruction}\n\n"
         f"Course: {lesson.course.title if lesson.course else 'Unknown'}\n"

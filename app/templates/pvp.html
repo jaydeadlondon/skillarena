@@ -8,6 +8,12 @@ block content %} {% if request.query_params.get('error') %}
   <p class="muted">
     No active PvP questions yet. Create some in the admin panel first.
   </p>
+  {% elif request.query_params.get('error') == 'create-cooldown' %}
+  <p class="muted">Please wait a few seconds before creating another battle.</p>
+  {% elif request.query_params.get('error') == 'too-many-waiting-battles' %}
+  <p class="muted">
+    You already have too many waiting battles. Start one of them first.
+  </p>
   {% else %}
   <p class="muted">{{ request.query_params.get('error') }}</p>
   {% endif %}

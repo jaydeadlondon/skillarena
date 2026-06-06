@@ -7,6 +7,7 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy import text
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.middleware.sessions import SessionMiddleware
+from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from app.core.config import get_settings
 from app.db.session import engine
@@ -34,6 +35,7 @@ logging.basicConfig(
 logger = logging.getLogger("skillarena")
 
 app = FastAPI(title=settings.app_name, debug=settings.app_env == "development")
+app.add_middleware(TrustedHostMiddleware, allowed_hosts=settings.trusted_host_list)
 app.add_middleware(
     SessionMiddleware,
     secret_key=settings.app_secret_key,
