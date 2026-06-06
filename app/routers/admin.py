@@ -5,6 +5,15 @@ from fastapi.responses import RedirectResponse
 from sqlalchemy import func, select
 from sqlalchemy.orm import selectinload
 
+from app.core.validation import (
+    ValidationError,
+    clamp_int,
+    clean_optional_text,
+    clean_text,
+    validate_choice,
+    validate_hex_color_or_css,
+    validate_url,
+)
 from app.models.ai import AIInteraction
 from app.models.course import Course, Lesson, VideoProvider
 from app.models.gamification import (
@@ -37,6 +46,13 @@ router = APIRouter(prefix="/admin", tags=["admin"])
 
 def templates(request: Request):
     return request.app.state.templates
+
+
+def validation_redirect(location: str, exc: ValidationError) -> RedirectResponse:
+    return RedirectResponse(
+        f"{location}?error=validation-{str(exc).replace(' ', '-').lower()}",
+        status_code=303,
+    )
 
 
 @router.get("")
@@ -197,16 +213,29 @@ async def create_cosmetic(
     price_points: int = Form(...),
     preview_value: str = Form(...),
 ):
-    item_type = item_type.strip()
-    if item_type not in {"profile_frame", "profile_background", "aura"}:
-        return RedirectResponse("/admin/cosmetics?error=invalid-type", status_code=303)
+    try:
+        item_type = validate_choice(
+            item_type.strip(),
+            allowed={"profile_frame", "profile_background", "aura"},
+            field_name="item type",
+        )
+        code = (
+            clean_text(code, max_length=80, field_name="code").lower().replace(" ", "_")
+        )
+        name = clean_text(name, max_length=120, field_name="name")
+        price_points = clamp_int(
+            price_points, min_value=0, max_value=100000, field_name="price"
+        )
+        preview_value = validate_hex_color_or_css(preview_value)
+    except ValidationError as exc:
+        return validation_redirect("/admin/cosmetics", exc)
     db.add(
         CosmeticItem(
-            code=code.strip().lower().replace(" ", "_"),
-            name=name.strip(),
+            code=code,
+            name=name,
             item_type=item_type,
-            price_points=max(0, price_points),
-            preview_value=preview_value.strip(),
+            price_points=price_points,
+            preview_value=preview_value,
             is_active=True,
         )
     )
@@ -229,12 +258,20 @@ async def update_cosmetic(
         return RedirectResponse(
             "/admin/cosmetics?error=item-not-found", status_code=303
         )
-    if item_type not in {"profile_frame", "profile_background", "aura"}:
-        return RedirectResponse("/admin/cosmetics?error=invalid-type", status_code=303)
-    cosmetic.name = name.strip()
-    cosmetic.item_type = item_type
-    cosmetic.price_points = max(0, price_points)
-    cosmetic.preview_value = preview_value.strip()
+    try:
+        item_type = validate_choice(
+            item_type.strip(),
+            allowed={"profile_frame", "profile_background", "aura"},
+            field_name="item type",
+        )
+        cosmetic.name = clean_text(name, max_length=120, field_name="name")
+        cosmetic.item_type = item_type
+        cosmetic.price_points = clamp_int(
+            price_points, min_value=0, max_value=100000, field_name="price"
+        )
+        cosmetic.preview_value = validate_hex_color_or_css(preview_value)
+    except ValidationError as exc:
+        return validation_redirect("/admin/cosmetics", exc)
     await db.commit()
     return RedirectResponse("/admin/cosmetics?success=updated", status_code=303)
 
@@ -303,6 +340,16 @@ async def create_course(
     description: str = Form(...),
     category: str = Form("General"),
 ):
+    try:
+        title = clean_text(title, max_length=180, field_name="title")
+        slug = clean_text(slug, max_length=200, field_name="slug").lower()
+        description = clean_text(description, max_length=5000, field_name="description")
+        category = (
+            clean_text(category, max_length=80, field_name="category", required=False)
+            or "General"
+        )
+    except ValidationError as exc:
+        return validation_redirect("/admin/courses", exc)
     db.add(
         Course(
             title=title,
@@ -333,12 +380,25 @@ async def update_course(
         return RedirectResponse(
             "/admin/courses?error=course-not-found", status_code=303
         )
-    course.title = title.strip()
-    course.slug = slug.strip()
-    course.description = description.strip()
-    course.category = category.strip() or "General"
-    course.reward_points = max(0, reward_points)
-    course.cover_image_url = cover_image_url.strip() or None
+    try:
+        course.title = clean_text(title, max_length=180, field_name="title")
+        course.slug = clean_text(slug, max_length=200, field_name="slug").lower()
+        course.description = clean_text(
+            description, max_length=5000, field_name="description"
+        )
+        course.category = (
+            clean_text(category, max_length=80, field_name="category", required=False)
+            or "General"
+        )
+        course.reward_points = clamp_int(
+            reward_points, min_value=0, max_value=100000, field_name="reward points"
+        )
+        course.cover_image_url = (
+            validate_url(cover_image_url, field_name="cover image URL", required=False)
+            or None
+        )
+    except ValidationError as exc:
+        return validation_redirect(f"/admin/courses/{course.id}", exc)
     await db.commit()
     return RedirectResponse(
         f"/admin/courses/{course.id}?success=updated", status_code=303
@@ -390,17 +450,34 @@ async def create_course_lesson(
         return RedirectResponse(
             "/admin/courses?error=course-not-found", status_code=303
         )
+    try:
+        title = clean_text(title, max_length=180, field_name="lesson title")
+        position = clamp_int(
+            position, min_value=1, max_value=10000, field_name="position"
+        )
+        video_url = validate_url(video_url, field_name="video URL")
+        duration_minutes = clamp_int(
+            duration_minutes, min_value=1, max_value=600, field_name="duration"
+        )
+        reward_points = clamp_int(
+            reward_points, min_value=0, max_value=10000, field_name="reward points"
+        )
+        content = (
+            clean_text(content, max_length=20000, field_name="content", required=False)
+            or "Stay focused: complete this small step and claim your reward."
+        )
+    except ValidationError as exc:
+        return validation_redirect(f"/admin/courses/{course.id}", exc)
     db.add(
         Lesson(
             course_id=course.id,
-            title=title.strip(),
+            title=title,
             position=position,
             video_provider=VideoProvider.YOUTUBE,
-            video_url=video_url.strip(),
-            duration_minutes=max(1, duration_minutes),
-            reward_points=max(0, reward_points),
-            content=content.strip()
-            or "Stay focused: complete this small step and claim your reward.",
+            video_url=video_url,
+            duration_minutes=duration_minutes,
+            reward_points=reward_points,
+            content=content,
         )
     )
     await db.commit()
@@ -426,12 +503,24 @@ async def update_lesson(
         return RedirectResponse(
             "/admin/courses?error=lesson-not-found", status_code=303
         )
-    lesson.title = title.strip()
-    lesson.position = position
-    lesson.video_url = video_url.strip()
-    lesson.duration_minutes = max(1, duration_minutes)
-    lesson.reward_points = max(0, reward_points)
-    lesson.content = content.strip()
+    try:
+        lesson.title = clean_text(title, max_length=180, field_name="lesson title")
+        lesson.position = clamp_int(
+            position, min_value=1, max_value=10000, field_name="position"
+        )
+        lesson.video_url = validate_url(video_url, field_name="video URL")
+        lesson.duration_minutes = clamp_int(
+            duration_minutes, min_value=1, max_value=600, field_name="duration"
+        )
+        lesson.reward_points = clamp_int(
+            reward_points, min_value=0, max_value=10000, field_name="reward points"
+        )
+        lesson.content = (
+            clean_text(content, max_length=20000, field_name="content", required=False)
+            or ""
+        )
+    except ValidationError as exc:
+        return validation_redirect(f"/admin/courses/{lesson.course_id}", exc)
     await db.commit()
     return RedirectResponse(
         f"/admin/courses/{lesson.course_id}?success=lesson-updated", status_code=303
@@ -465,6 +554,17 @@ async def create_lesson(
     video_url: str = Form(...),
     duration_minutes: int = Form(10),
 ):
+    try:
+        title = clean_text(title, max_length=180, field_name="lesson title")
+        position = clamp_int(
+            position, min_value=1, max_value=10000, field_name="position"
+        )
+        video_url = validate_url(video_url, field_name="video URL")
+        duration_minutes = clamp_int(
+            duration_minutes, min_value=1, max_value=600, field_name="duration"
+        )
+    except ValidationError as exc:
+        return validation_redirect(f"/admin/courses/{course_id}", exc)
     db.add(
         Lesson(
             course_id=course_id,
@@ -594,6 +694,33 @@ async def create_quest(
     target_value: int = Form(20),
     reward_points: int = Form(25),
 ):
+    try:
+        title = clean_text(title, max_length=160, field_name="quest title")
+        description = clean_text(
+            description, max_length=2000, field_name="quest description"
+        )
+        frequency = validate_choice(
+            frequency, allowed={"daily", "weekly"}, field_name="frequency"
+        )
+        target_metric = validate_choice(
+            target_metric,
+            allowed={
+                "study_minutes",
+                "focus_minutes",
+                "lessons_completed",
+                "pvp_wins",
+                "pvp_participation",
+            },
+            field_name="target metric",
+        )
+        target_value = clamp_int(
+            target_value, min_value=1, max_value=10000, field_name="target value"
+        )
+        reward_points = clamp_int(
+            reward_points, min_value=0, max_value=100000, field_name="reward points"
+        )
+    except ValidationError as exc:
+        return validation_redirect("/admin", exc)
     quest_frequency = (
         QuestFrequency.WEEKLY
         if frequency == QuestFrequency.WEEKLY.value
@@ -745,6 +872,19 @@ async def create_pvp_question(
     option_d: str = Form(...),
     correct_option: str = Form(...),
 ):
+    try:
+        question = clean_text(question, max_length=1000, field_name="question")
+        option_a = clean_text(option_a, max_length=255, field_name="option A")
+        option_b = clean_text(option_b, max_length=255, field_name="option B")
+        option_c = clean_text(option_c, max_length=255, field_name="option C")
+        option_d = clean_text(option_d, max_length=255, field_name="option D")
+        correct_option = validate_choice(
+            correct_option.upper()[:1],
+            allowed={"A", "B", "C", "D"},
+            field_name="correct option",
+        )
+    except ValidationError as exc:
+        return validation_redirect("/admin", exc)
     db.add(
         PvpQuestion(
             question=question,
@@ -752,7 +892,7 @@ async def create_pvp_question(
             option_b=option_b,
             option_c=option_c,
             option_d=option_d,
-            correct_option=correct_option.upper()[:1],
+            correct_option=correct_option,
         )
     )
     await db.commit()

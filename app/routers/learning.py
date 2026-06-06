@@ -3,6 +3,7 @@ from fastapi.responses import RedirectResponse
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
+from app.core.validation import clamp_int
 from app.models.course import Course, Lesson, LessonProgress
 from app.models.user import User
 from app.routers.deps import DbSession, require_user
@@ -97,7 +98,12 @@ async def save_progress(
         progress = LessonProgress(user_id=user.id, lesson_id=lesson_id)
         db.add(progress)
 
-    safe_watched_seconds = int(watched_seconds or 0)
+    safe_watched_seconds = clamp_int(
+        watched_seconds or 0,
+        min_value=0,
+        max_value=60 * 60 * 24,
+        field_name="watched seconds",
+    )
     progress.watched_seconds = max(progress.watched_seconds or 0, safe_watched_seconds)
 
     course_completed = False
