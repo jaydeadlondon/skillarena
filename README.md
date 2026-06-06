@@ -44,6 +44,8 @@ The interface is built in English with a dark RPG/gaming style.
 - Lesson pages with embedded legal video content.
 - AI Study Companion on lesson pages.
 - AI Dashboard Planner for personalized next-action recommendations.
+- AI request limits, cooldowns, and prompt size limits.
+- Input validation for admin content, onboarding, lesson progress, URLs, rewards, cosmetics, quests, and PvP question data.
 - YouTube iframe API support for real playback tracking.
 - Fallback manual lesson timer for non-YouTube embeds.
 - Lesson progress tracking.
@@ -225,7 +227,12 @@ LLM_API_KEY=put-your-llm-api-key-here
 LLM_BASE_URL=https://api.groq.com/openai/v1
 LLM_MODEL=llama-3.3-70b-versatile
 LLM_DAILY_LIMIT_PER_USER=20
+LLM_COOLDOWN_SECONDS=8
+LLM_MAX_CUSTOM_PROMPT_CHARS=700
 LLM_TIMEOUT_SECONDS=30
+PVP_CREATE_COOLDOWN_SECONDS=20
+PVP_MAX_WAITING_BATTLES_PER_USER=3
+TRUSTED_HOSTS=localhost,127.0.0.1,0.0.0.0,testserver
 ```
 
 A production-oriented environment template is available as:
