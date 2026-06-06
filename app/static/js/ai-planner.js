@@ -20,7 +20,10 @@
     button.disabled = true;
     setStatus("Thinking...");
     try {
-      const response = await fetch("/ai/dashboard/plan", { method: "POST" });
+      const response = await fetch("/ai/dashboard/plan", {
+        method: "POST",
+        headers: { "X-CSRF-Token": document.body.dataset.csrfToken || "" },
+      });
       const data = await response.json();
       if (!data.ok) {
         setStatus(data.error || "AI planner failed.");

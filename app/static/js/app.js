@@ -1,3 +1,38 @@
+function csrfToken() {
+  return document.body.dataset.csrfToken || "";
+}
+function csrfHeaders(extra) {
+  return Object.assign(
+    {},
+    extra || {},
+    csrfToken() ? { "X-CSRF-Token": csrfToken() } : {},
+  );
+}
+function injectCsrfIntoForms() {
+  const token = csrfToken();
+  if (!token) {
+    return;
+  }
+  document
+    .querySelectorAll('form[method="post"],form[method="POST"]')
+    .forEach((form) => {
+      if (!form.querySelector('input[name="csrf_token"]')) {
+        const input = document.createElement("input");
+        input.type = "hidden";
+        input.name = "csrf_token";
+        input.value = token;
+        form.appendChild(input);
+      }
+      try {
+        const url = new URL(
+          form.getAttribute("action") || window.location.href,
+          window.location.origin,
+        );
+        url.searchParams.set("csrf_token", token);
+        form.setAttribute("action", url.pathname + url.search);
+      } catch (e) {}
+    });
+}
 function detectActivityContext() {
   const path = window.location.pathname;
   let type = "general";
@@ -93,6 +128,7 @@ function spawnRewardConfetti() {
 }
 document.addEventListener("DOMContentLoaded", () => {
   localStorage.removeItem("focusMode");
+  injectCsrfIntoForms();
   const pop = document.querySelector("[data-reward-pop]");
   if (pop) {
     pop.classList.add("reward-pop");

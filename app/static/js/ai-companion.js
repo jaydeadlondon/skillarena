@@ -16,6 +16,9 @@
     : null;
   let activeToast = null;
   let toastShownAt = 0;
+  function csrfToken() {
+    return document.body.dataset.csrfToken || "";
+  }
   const MIN_THINKING_TOAST_MS = 900;
 
   function setStatus(text) {
@@ -117,6 +120,7 @@
     const form = new FormData();
     form.append("action", action);
     form.append("custom_prompt", prompt || "");
+    form.append("csrf_token", csrfToken());
     try {
       const response = await fetch(`/ai/lessons/${cfg.lessonId}/ask`, {
         method: "POST",
@@ -175,6 +179,7 @@
       try {
         const response = await fetch(`/ai/lessons/${cfg.lessonId}/history`, {
           method: "DELETE",
+          headers: { "X-CSRF-Token": csrfToken() },
         });
         const data = await response.json();
         if (data.ok && responses) {

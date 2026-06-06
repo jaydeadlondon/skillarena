@@ -10,6 +10,7 @@ from starlette.middleware.sessions import SessionMiddleware
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from app.core.config import get_settings
+from app.core.csrf import CSRFProtectionMiddleware, csrf_input, get_csrf_token
 from app.db.session import engine
 from app.routers import (
     achievements,
@@ -36,6 +37,7 @@ logger = logging.getLogger("skillarena")
 
 app = FastAPI(title=settings.app_name, debug=settings.app_env == "development")
 app.add_middleware(TrustedHostMiddleware, allowed_hosts=settings.trusted_host_list)
+app.add_middleware(CSRFProtectionMiddleware, exempt_paths={"/activity/heartbeat"})
 app.add_middleware(
     SessionMiddleware,
     secret_key=settings.app_secret_key,
@@ -46,6 +48,8 @@ app.add_middleware(
 
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 app.state.templates = Jinja2Templates(directory="app/templates")
+app.state.templates.env.globals["csrf_token"] = get_csrf_token
+app.state.templates.env.globals["csrf_input"] = csrf_input
 
 app.include_router(auth.router)
 app.include_router(activity.router)

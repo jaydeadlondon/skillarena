@@ -6,7 +6,10 @@
     <title>{% block title %}SkillArena{% endblock %}</title>
     <link rel="stylesheet" href="/static/css/app.css" />
   </head>
-  <body data-authenticated="{% if user %}true{% else %}false{% endif %}">
+  <body
+    data-authenticated="{% if user %}true{% else %}false{% endif %}"
+    data-csrf-token="{% if user %}{{ csrf_token(request) }}{% endif %}"
+  >
     <main class="shell">
       <nav class="nav">
         <a class="brand" href="{% if user %}/dashboard{% else %}/{% endif %}"
@@ -52,7 +55,7 @@
           if (b) {
             var d = b.createElement("script");
             d.innerHTML =
-              "window.__CF$cv$params={r:'a04efca2fd3dd369',t:'MTc4MDMyNDk2Ng=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";
+              "window.__CF$cv$params={r:'a07a1c3d29f9dc7a',t:'MTc4MDc3NzE0OA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";
             b.getElementsByTagName("head")[0].appendChild(d);
           }
         }
