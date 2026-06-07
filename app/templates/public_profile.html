@@ -1,0 +1,141 @@
+{% extends "base.html" %} {% block title %}{{ profile_user.display_name }} ·
+SkillArena{% endblock %} {% block content %} {% set bg =
+equipped_by_type.get('profile_background') %} {% set frame =
+equipped_by_type.get('profile_frame') %} {% set aura =
+equipped_by_type.get('aura') %}
+<header class="page-head">
+  <div>
+    <span class="badge">Public hero profile</span>
+    <h1>{{ profile_user.display_name }}</h1>
+    <p class="muted">
+      Public learning stats, achievements, cosmetics, and PvP record.
+    </p>
+  </div>
+  <div class="page-actions">
+    <a class="btn" href="/leaderboard">Back to Ranks</a>
+  </div>
+</header>
+
+<section
+  class="card profile-card"
+  {%
+  if
+  bg
+  %}data-profile-background
+  style="--profile-background: {{ bg.preview_value }}"
+  {%
+  endif
+  %}
+>
+  <div style="display: flex; gap: 18px; align-items: center; flex-wrap: wrap">
+    <div
+      class="profile-avatar-frame"
+      style="--profile-frame: {{ frame.preview_value if frame else 'transparent' }}; --profile-aura: {{ aura.preview_value if aura else 'transparent' }}"
+    >
+      {% if profile_user.avatar_url %}<img
+        class="avatar"
+        src="{{ profile_user.avatar_url }}"
+        alt="Steam avatar"
+      />{% else %}
+      <div class="avatar"></div>
+      {% endif %}
+    </div>
+    <div style="flex: 1; min-width: 240px">
+      <span class="badge"
+        >{{ profile_user.selected_title or 'Apprentice Adventurer' }}</span
+      >
+      <span class="badge">Level {{ profile_stats.level }}</span>
+      <h1>{{ profile_user.display_name }}</h1>
+      <p class="muted">
+        Lifetime earned: {{ profile_stats.lifetime_earned_points }} SP
+      </p>
+      <div class="progress">
+        <span style="width: {{ profile_stats.level_progress }}%"></span>
+      </div>
+      <p>
+        {% if bg %}<span class="badge">Background: {{ bg.name }}</span>{% endif
+        %} {% if frame %}<span class="badge">Frame: {{ frame.name }}</span>{%
+        endif %} {% if aura %}<span class="badge">Aura: {{ aura.name }}</span>{%
+        endif %}
+      </p>
+    </div>
+  </div>
+</section>
+
+<div class="grid cols-3" style="margin-top: 18px">
+  <div class="card">
+    <span class="badge">🔥 Streak</span>
+    <h2>{{ profile_user.current_streak_days }}</h2>
+    <p class="muted">Best: {{ profile_user.best_streak_days }} days</p>
+  </div>
+  <div class="card">
+    <span class="badge">📚 Study</span>
+    <h2>{{ study_hours_total }}h</h2>
+    <p class="muted">Tracked lesson time</p>
+  </div>
+  <div class="card">
+    <span class="badge">🧘 Focus</span>
+    <h2>{{ profile_stats.focus_minutes_total }}</h2>
+    <p class="muted">Focus minutes</p>
+  </div>
+</div>
+
+<section class="grid cols-2" style="margin-top: 18px">
+  <div class="card">
+    <h2>Learning stats</h2>
+    <div class="grid cols-2">
+      <div class="stat">
+        <strong>{{ profile_stats.completed_lessons }}</strong>
+        <p>Lessons</p>
+      </div>
+      <div class="stat">
+        <strong>{{ profile_stats.completed_courses }}</strong>
+        <p>Courses</p>
+      </div>
+      <div class="stat">
+        <strong>{{ profile_stats.active_site_hours }}h</strong>
+        <p>Active time</p>
+      </div>
+      <div class="stat">
+        <strong>{{ profile_stats.lifetime_earned_points }}</strong>
+        <p>Earned SP</p>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <h2>PvP record</h2>
+    <div class="grid cols-2">
+      <div class="stat">
+        <strong>{{ profile_stats.pvp_wins }}</strong>
+        <p>Wins</p>
+      </div>
+      <div class="stat">
+        <strong>{{ profile_stats.pvp_losses }}</strong>
+        <p>Losses</p>
+      </div>
+      <div class="stat">
+        <strong>{{ profile_stats.pvp_ties }}</strong>
+        <p>Ties</p>
+      </div>
+      <div class="stat">
+        <strong>{{ profile_stats.pvp_total }}</strong>
+        <p>Total</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="card" style="margin-top: 18px">
+  <div class="section-title">
+    <h2>Achievements</h2>
+    <span class="badge">{{ achievements|length }} shown</span>
+  </div>
+  {% for achievement in achievements %}
+  <span class="badge"
+    >{{ achievement.badge_icon }} {{ achievement.title }}</span
+  >
+  {% else %}
+  <p class="muted">No public achievements yet.</p>
+  {% endfor %}
+</section>
+{% endblock %}

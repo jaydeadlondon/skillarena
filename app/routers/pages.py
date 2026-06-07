@@ -199,15 +199,12 @@ async def course_detail(
     )
 
 
-@router.get("/profile")
-async def profile(request: Request, db: DbSession, user: User = Depends(require_user)):
-    await evaluate_all_achievements(db, user)
-    await db.commit()
+async def build_profile_context(db: DbSession, profile_user: User) -> dict:
     achievements = (
         (
             await db.execute(
                 select(Achievement)
-                .where(Achievement.users.any(user_id=user.id))
+                .where(Achievement.users.any(user_id=profile_user.id))
                 .order_by(Achievement.created_at.desc())
                 .limit(20)
             )
@@ -220,7 +217,8 @@ async def profile(request: Request, db: DbSession, user: User = Depends(require_
             await db.execute(
                 select(UserCosmetic)
                 .where(
-                    UserCosmetic.user_id == user.id, UserCosmetic.is_equipped.is_(True)
+                    UserCosmetic.user_id == profile_user.id,
+                    UserCosmetic.is_equipped.is_(True),
                 )
                 .options(selectinload(UserCosmetic.item))
             )
@@ -233,12 +231,12 @@ async def profile(request: Request, db: DbSession, user: User = Depends(require_
     }
     study_seconds = await db.scalar(
         select(func.coalesce(func.sum(LessonProgress.watched_seconds), 0)).where(
-            LessonProgress.user_id == user.id
+            LessonProgress.user_id == profile_user.id
         )
     )
     completed_lessons = await db.scalar(
         select(func.count(LessonProgress.id)).where(
-            LessonProgress.user_id == user.id,
+            LessonProgress.user_id == profile_user.id,
             LessonProgress.completed.is_(True),
         )
     )
@@ -255,40 +253,47 @@ async def profile(request: Request, db: DbSession, user: User = Depends(require_
     )
     completed_courses = 0
     for course in courses_list:
-        progress = await get_course_progress(db, user, course)
+        progress = await get_course_progress(db, profile_user, course)
         if progress["is_completed"]:
             completed_courses += 1
 
     focus_minutes_total = await db.scalar(
         select(func.coalesce(func.sum(FocusSession.duration_minutes), 0)).where(
-            FocusSession.user_id == user.id,
+            FocusSession.user_id == profile_user.id,
             FocusSession.completed.is_(True),
         )
     )
     active_site_seconds = await db.scalar(
         select(func.coalesce(func.sum(UserActivityDay.seconds), 0)).where(
-            UserActivityDay.user_id == user.id,
+            UserActivityDay.user_id == profile_user.id,
             UserActivityDay.activity_type == "site",
         )
     )
     pvp_total = await db.scalar(
         select(func.count(PvpBattle.id)).where(
-            (PvpBattle.challenger_id == user.id) | (PvpBattle.opponent_id == user.id)
+            (PvpBattle.challenger_id == profile_user.id)
+            | (PvpBattle.opponent_id == profile_user.id)
         )
     )
     pvp_wins = await db.scalar(
-        select(func.count(PvpBattle.id)).where(PvpBattle.winner_id == user.id)
+        select(func.count(PvpBattle.id)).where(PvpBattle.winner_id == profile_user.id)
     )
     pvp_ties = await db.scalar(
         select(func.count(PvpBattle.id)).where(
-            ((PvpBattle.challenger_id == user.id) | (PvpBattle.opponent_id == user.id)),
+            (
+                (PvpBattle.challenger_id == profile_user.id)
+                | (PvpBattle.opponent_id == profile_user.id)
+            ),
             PvpBattle.status == BattleStatus.FINISHED,
             PvpBattle.winner_id.is_(None),
         )
     )
     pvp_finished = await db.scalar(
         select(func.count(PvpBattle.id)).where(
-            ((PvpBattle.challenger_id == user.id) | (PvpBattle.opponent_id == user.id)),
+            (
+                (PvpBattle.challenger_id == profile_user.id)
+                | (PvpBattle.opponent_id == profile_user.id)
+            ),
             PvpBattle.status == BattleStatus.FINISHED,
         )
     )
@@ -297,24 +302,21 @@ async def profile(request: Request, db: DbSession, user: User = Depends(require_
     )
     lifetime_earned_points = await db.scalar(
         select(func.coalesce(func.sum(CurrencyTransaction.amount), 0)).where(
-            CurrencyTransaction.user_id == user.id,
+            CurrencyTransaction.user_id == profile_user.id,
             CurrencyTransaction.amount > 0,
         )
     )
     lifetime_earned_points = int(lifetime_earned_points or 0)
     level = max(1, lifetime_earned_points // 100 + 1)
     next_level_points = level * 100
-    level_progress = min(100, int(lifetime_earned_points % 100))
-    onboarding = await db.scalar(
-        select(UserOnboarding).where(UserOnboarding.user_id == user.id)
-    )
+    level_progress = min(100, int((lifetime_earned_points % 100)))
     recent_battles = (
         (
             await db.execute(
                 select(PvpBattle)
                 .where(
-                    (PvpBattle.challenger_id == user.id)
-                    | (PvpBattle.opponent_id == user.id)
+                    (PvpBattle.challenger_id == profile_user.id)
+                    | (PvpBattle.opponent_id == profile_user.id)
                 )
                 .order_by(PvpBattle.created_at.desc())
                 .limit(5)
@@ -323,7 +325,6 @@ async def profile(request: Request, db: DbSession, user: User = Depends(require_
         .scalars()
         .all()
     )
-
     profile_stats = {
         "completed_lessons": completed_lessons or 0,
         "completed_courses": completed_courses,
@@ -338,17 +339,55 @@ async def profile(request: Request, db: DbSession, user: User = Depends(require_
         "next_level_points": next_level_points,
         "level_progress": level_progress,
     }
+    return {
+        "achievements": achievements,
+        "equipped_by_type": equipped_by_type,
+        "study_hours_total": round((study_seconds or 0) / 3600, 1),
+        "profile_stats": profile_stats,
+        "recent_battles": recent_battles,
+    }
+
+
+@router.get("/profile")
+async def profile(request: Request, db: DbSession, user: User = Depends(require_user)):
+    await evaluate_all_achievements(db, user)
+    await db.commit()
+    context = await build_profile_context(db, user)
+    onboarding = await db.scalar(
+        select(UserOnboarding).where(UserOnboarding.user_id == user.id)
+    )
     return templates(request).TemplateResponse(
         request,
         "profile.html",
         {
             "request": request,
             "user": user,
-            "achievements": achievements,
-            "equipped_by_type": equipped_by_type,
-            "study_hours_total": round((study_seconds or 0) / 3600, 1),
-            "profile_stats": profile_stats,
             "onboarding": onboarding,
-            "recent_battles": recent_battles,
+            **context,
+        },
+    )
+
+
+@router.get("/u/{user_id}")
+async def public_profile(
+    user_id: int,
+    request: Request,
+    db: DbSession,
+    user: User = Depends(require_user),
+):
+    profile_user = await db.get(User, user_id)
+    if profile_user is None:
+        return RedirectResponse("/leaderboard?error=user-not-found", status_code=303)
+    await evaluate_all_achievements(db, profile_user)
+    await db.commit()
+    context = await build_profile_context(db, profile_user)
+    return templates(request).TemplateResponse(
+        request,
+        "public_profile.html",
+        {
+            "request": request,
+            "user": user,
+            "profile_user": profile_user,
+            **context,
         },
     )

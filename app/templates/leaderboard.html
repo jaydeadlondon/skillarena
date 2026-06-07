@@ -33,9 +33,9 @@
             alt="avatar"
           />{% else %}⚔️{% endif %}
         </span>
-        <span class="leaderboard-name"
+        <a class="leaderboard-name" href="/u/{{ ranked_user.id }}"
           >{{ ranked_user.display_name }}{% if ranked_user.id == user.id %}
-          <em>You</em>{% endif %}</span
+          <em>You</em>{% endif %}</a
         >
         <strong>{{ row.value }} {{ row.suffix }}</strong>
       </div>
