@@ -19,6 +19,7 @@ from app.routers import (
     ai,
     auth,
     focus,
+    leaderboard,
     learning,
     notifications,
     onboarding,
@@ -56,6 +57,7 @@ app.include_router(activity.router)
 app.include_router(achievements.router)
 app.include_router(ai.router)
 app.include_router(pages.router)
+app.include_router(leaderboard.router)
 app.include_router(learning.router)
 app.include_router(onboarding.router)
 app.include_router(notifications.router)

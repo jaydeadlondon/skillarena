@@ -1,0 +1,49 @@
+{% extends "base.html" %} {% block title %}Leaderboards · SkillArena{% endblock
+%} {% block content %}
+<header class="page-head">
+  <div>
+    <span class="badge">🏰 Hall of Heroes</span>
+    <h1>Leaderboards</h1>
+    <p class="muted">
+      Compare streaks, study time, focus minutes, PvP wins, and Skill Points.
+    </p>
+  </div>
+  <div class="page-actions">
+    <a class="btn" href="/profile">Your profile</a
+    ><a class="btn" href="/pvp">PvP lobby</a>
+  </div>
+</header>
+
+<section class="grid cols-2">
+  {% for title, rows in boards.items() %}
+  <div class="card leaderboard-card">
+    <div class="section-title">
+      <h2>{{ title }}</h2>
+      <span class="badge">Top {{ rows|length }}</span>
+    </div>
+    <div class="leaderboard-list">
+      {% for row in rows %} {% set ranked_user = row.user %}
+      <div
+        class="leaderboard-row {% if ranked_user.id == user.id %}you{% endif %}"
+      >
+        <span class="rank">#{{ loop.index }}</span>
+        <span class="leaderboard-avatar">
+          {% if ranked_user.avatar_url %}<img
+            src="{{ ranked_user.avatar_url }}"
+            alt="avatar"
+          />{% else %}⚔️{% endif %}
+        </span>
+        <span class="leaderboard-name"
+          >{{ ranked_user.display_name }}{% if ranked_user.id == user.id %}
+          <em>You</em>{% endif %}</span
+        >
+        <strong>{{ row.value }} {{ row.suffix }}</strong>
+      </div>
+      {% else %}
+      <div class="empty-state">No ranking data yet.</div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endfor %}
+</section>
+{% endblock %}

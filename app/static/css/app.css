@@ -986,3 +986,59 @@ form {
     font-size: 38px;
   }
 }
+
+/* Leaderboards */
+.leaderboard-list {
+  display: grid;
+  gap: 10px;
+}
+.leaderboard-row {
+  display: grid;
+  grid-template-columns: auto 42px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 10px 12px;
+  background: #0e1424;
+}
+.leaderboard-row.you {
+  border-color: rgba(247, 201, 72, 0.62);
+  background: linear-gradient(
+    180deg,
+    rgba(47, 38, 13, 0.92),
+    rgba(14, 20, 36, 0.95)
+  );
+}
+.leaderboard-row .rank {
+  color: var(--gold);
+  font-weight: 900;
+}
+.leaderboard-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: #111827;
+  border: 1px solid var(--line);
+  overflow: hidden;
+}
+.leaderboard-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.leaderboard-name em {
+  color: var(--gold);
+  font-style: normal;
+  font-size: 12px;
+}
+@media (max-width: 560px) {
+  .leaderboard-row {
+    grid-template-columns: auto 34px 1fr;
+  }
+  .leaderboard-row strong {
+    grid-column: 3;
+  }
+}
