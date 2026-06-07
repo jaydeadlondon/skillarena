@@ -70,6 +70,7 @@ The interface is built in English with a dark RPG/gaming style.
 - Learning streaks.
 - LeetCode-style streak indicator in the navigation bar.
 - Achievements and achievement gallery.
+- Leaderboards for streaks, Skill Points, study time, focus time, and PvP wins.
 - Reward notifications.
 - Reward popups and confetti animations.
 
@@ -96,7 +97,7 @@ The interface is built in English with a dark RPG/gaming style.
 
 ### Profile and customization
 
-- RPG-style user profile.
+- RPG-style private and public user profiles.
 - Steam avatar display.
 - Equipped profile cosmetics.
 - Profile frames, backgrounds, and auras.
@@ -357,6 +358,8 @@ docker compose exec web python scripts/grant_admin.py <steam_id_64>
 /learn/lessons/{id}       Lesson player
 /activity/heartbeat       Activity tracking endpoint
 /achievements             Achievement gallery
+/leaderboard              Leaderboards
+/u/{user_id}              Public user profile
 /ai/dashboard/plan        AI Dashboard Planner endpoint
 /ai/lessons/{id}/ask      AI Study Companion request endpoint
 /ai/lessons/{id}/history  AI Study Companion history endpoint
