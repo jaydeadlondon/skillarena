@@ -183,7 +183,16 @@ async def update_user_role(
             "/admin/users?error=cannot-demote-yourself", status_code=303
         )
     old_role = target.role.value
-    target.role = UserRole.ADMIN if role == UserRole.ADMIN.value else UserRole.USER
+    new_role = UserRole.ADMIN if role == UserRole.ADMIN.value else UserRole.USER
+    if target.role == UserRole.ADMIN and new_role != UserRole.ADMIN:
+        admin_count = await db.scalar(
+            select(func.count(User.id)).where(User.role == UserRole.ADMIN)
+        )
+        if int(admin_count or 0) <= 1:
+            return RedirectResponse(
+                "/admin/users?error=cannot-demote-last-admin", status_code=303
+            )
+    target.role = new_role
     await log_admin_action(
         db,
         user,

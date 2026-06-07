@@ -6,6 +6,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     app_name: str = "SkillArena"
+    app_version: str = "0.9.0"
     app_env: str = "development"
     app_secret_key: str = Field(default="dev-secret-change-before-production")
     app_base_url: str = "http://localhost:8000"

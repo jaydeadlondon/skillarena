@@ -210,6 +210,7 @@ Main environment variables:
 
 ```env
 APP_NAME=SkillArena
+APP_VERSION=0.9.0
 APP_ENV=development
 APP_SECRET_KEY=change-me-to-a-long-random-secret
 APP_BASE_URL=http://localhost:8000
@@ -264,6 +265,8 @@ If the image has already been built and dependencies have not changed, this is u
 ```bash
 docker compose up
 ```
+
+The Docker Compose web service includes a healthcheck against `/health`.
 
 ## Database management
 
@@ -469,7 +472,7 @@ Run tests:
 pytest
 ```
 
-The test suite includes unit tests and isolated SQLite-based database integration tests for rewards, quests, course completion rewards, shop ownership logic, PvP win/tie/submission behavior, audit logging, trusted host behavior, CSRF behavior, and LLM limit handling.
+The test suite includes unit tests and isolated SQLite-based database integration tests for rewards, quests, course completion rewards, shop ownership logic, PvP win/tie/submission behavior, audit logging, admin safety, trusted host behavior, CSRF behavior, and LLM limit handling.
 
 Run a syntax check:
 

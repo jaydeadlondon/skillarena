@@ -114,7 +114,11 @@ async def health() -> dict[str, str]:
 
 @app.get("/version")
 async def version() -> dict[str, str]:
-    return {"app": settings.app_name, "version": "0.1.0", "env": settings.app_env}
+    return {
+        "app": settings.app_name,
+        "version": settings.app_version,
+        "env": settings.app_env,
+    }
 
 
 @app.get("/health/db")

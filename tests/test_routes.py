@@ -22,6 +22,7 @@ async def test_version_route():
         response = await client.get("/version")
     assert response.status_code == 200
     assert response.json()["app"] == "SkillArena"
+    assert response.json()["version"] == "0.9.0"
 
 
 @pytest.mark.asyncio
