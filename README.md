@@ -41,6 +41,7 @@ The interface is built in English with a dark RPG/gaming style.
 
 - Course catalog.
 - Course detail pages.
+- Improved lesson player with previous/next navigation, course outline, resources, and formatted text lessons.
 - Lesson pages with embedded legal video content.
 - AI Study Companion on lesson pages.
 - AI Dashboard Planner for personalized next-action recommendations.
@@ -310,6 +311,12 @@ Database health:
 GET /health/db
 ```
 
+Application version:
+
+```text
+GET /version
+```
+
 ## Steam authentication
 
 Steam login:
@@ -461,6 +468,8 @@ Run tests:
 ```bash
 pytest
 ```
+
+The test suite includes unit tests and isolated SQLite-based database integration tests for rewards, quests, course completion rewards, shop ownership logic, PvP win/tie/submission behavior, audit logging, trusted host behavior, CSRF behavior, and LLM limit handling.
 
 Run a syntax check:
 
