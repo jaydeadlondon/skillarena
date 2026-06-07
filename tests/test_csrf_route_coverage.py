@@ -18,7 +18,9 @@ CSRF_PROTECTED_POST_ROUTES = [
 @pytest.mark.asyncio
 @pytest.mark.parametrize("path", CSRF_PROTECTED_POST_ROUTES)
 async def test_csrf_protected_routes_reject_cross_origin_posts(path: str):
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://testserver") as client:
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://testserver"
+    ) as client:
         response = await client.post(
             path,
             headers={"origin": "http://evil.example", "host": "testserver"},
@@ -45,7 +47,9 @@ async def test_csrf_protected_routes_allow_same_origin_then_require_auth(path: s
 
 @pytest.mark.asyncio
 async def test_logout_rejects_cross_origin_without_csrf():
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://testserver") as client:
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://testserver"
+    ) as client:
         response = await client.post(
             "/auth/logout",
             headers={"origin": "http://evil.example", "host": "testserver"},
