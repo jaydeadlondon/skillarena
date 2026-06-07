@@ -8,7 +8,6 @@ from sqlalchemy.orm import selectinload
 from app.core.validation import (
     ValidationError,
     clamp_int,
-    clean_optional_text,
     clean_text,
     validate_choice,
     validate_hex_color_or_css,
@@ -29,7 +28,6 @@ from app.models.user import User, UserRole
 from app.routers.deps import DbSession, require_admin
 from app.services.audit import log_admin_action
 from app.services.llm import (
-    LLMServiceError,
     build_quest_generation_prompt,
     build_quiz_generation_prompt,
     call_openai_compatible_chat,

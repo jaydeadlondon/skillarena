@@ -5,6 +5,8 @@ from fastapi.responses import JSONResponse, RedirectResponse
 from sqlalchemy import func, select
 from sqlalchemy.orm import selectinload
 
+from app.core.config import get_settings
+from app.db.session import AsyncSessionLocal
 from app.models.pvp import (
     BattleStatus,
     PvpBattle,
@@ -13,8 +15,6 @@ from app.models.pvp import (
     PvpBattleSubmission,
     PvpQuestion,
 )
-from app.core.config import get_settings
-from app.db.session import AsyncSessionLocal
 from app.models.user import User
 from app.routers.deps import DbSession, require_user
 from app.services.achievements import evaluate_pvp_achievements

@@ -309,7 +309,7 @@ async def build_profile_context(db: DbSession, profile_user: User) -> dict:
     lifetime_earned_points = int(lifetime_earned_points or 0)
     level = max(1, lifetime_earned_points // 100 + 1)
     next_level_points = level * 100
-    level_progress = min(100, int((lifetime_earned_points % 100)))
+    level_progress = min(100, int(lifetime_earned_points % 100))
     recent_battles = (
         (
             await db.execute(

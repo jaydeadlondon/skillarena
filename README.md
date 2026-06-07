@@ -210,7 +210,7 @@ Main environment variables:
 
 ```env
 APP_NAME=SkillArena
-APP_VERSION=0.9.0
+APP_VERSION=1.0.0
 APP_ENV=development
 APP_SECRET_KEY=change-me-to-a-long-random-secret
 APP_BASE_URL=http://localhost:8000
@@ -458,6 +458,12 @@ Run migrations:
 
 ```bash
 docker compose exec web python -m alembic upgrade head
+```
+
+Check migrations against a temporary clean SQLite database:
+
+```bash
+python scripts/check_migrations.py
 ```
 
 Seed demo data:

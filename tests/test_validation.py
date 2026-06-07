@@ -2,8 +2,8 @@ import pytest
 
 from app.core.validation import (
     ValidationError,
-    clean_text,
     clamp_int,
+    clean_text,
     validate_choice,
     validate_url,
 )

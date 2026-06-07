@@ -3,16 +3,16 @@ from fastapi.responses import RedirectResponse
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
+from app.core.config import get_settings
 from app.core.validation import clamp_int
 from app.models.course import Course, Lesson, LessonProgress
 from app.models.user import User
 from app.routers.deps import DbSession, require_user
 from app.services.achievements import evaluate_learning_achievements
 from app.services.course_progress import maybe_award_course_completion
+from app.services.llm import recent_lesson_interactions, user_llm_requests_today
 from app.services.rewards import add_skill_points
 from app.services.streaks import sync_user_streak
-from app.services.llm import recent_lesson_interactions, user_llm_requests_today
-from app.core.config import get_settings
 from app.services.video import to_embed_url, video_tracking_provider
 
 router = APIRouter(prefix="/learn", tags=["learning"])
