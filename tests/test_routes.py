@@ -1,30 +1,53 @@
-from fastapi.testclient import TestClient
+import pytest
+from httpx import ASGITransport, AsyncClient
 
 from app.main import app
 
 
-def test_health_route():
-    client = TestClient(app)
-    response = client.get("/health")
+@pytest.mark.asyncio
+async def test_health_route():
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://testserver"
+    ) as client:
+        response = await client.get("/health")
     assert response.status_code == 200
     assert response.json()["status"] == "ok"
 
 
-def test_home_route():
-    client = TestClient(app)
-    response = client.get("/")
+@pytest.mark.asyncio
+async def test_version_route():
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://testserver"
+    ) as client:
+        response = await client.get("/version")
+    assert response.status_code == 200
+    assert response.json()["app"] == "SkillArena"
+
+
+@pytest.mark.asyncio
+async def test_home_route():
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://testserver"
+    ) as client:
+        response = await client.get("/")
     assert response.status_code == 200
     assert "SkillArena" in response.text
 
 
-def test_unknown_route_404():
-    client = TestClient(app)
-    response = client.get("/definitely-not-existing")
+@pytest.mark.asyncio
+async def test_unknown_route_404():
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://testserver"
+    ) as client:
+        response = await client.get("/definitely-not-existing")
     assert response.status_code == 404
     assert "Quest not found" in response.text
 
 
-def test_post_without_csrf_is_forbidden():
-    client = TestClient(app)
-    response = client.post("/ai/dashboard/plan")
+@pytest.mark.asyncio
+async def test_post_without_csrf_is_forbidden():
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://testserver"
+    ) as client:
+        response = await client.post("/ai/dashboard/plan")
     assert response.status_code == 403

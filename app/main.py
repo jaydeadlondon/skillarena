@@ -1,4 +1,6 @@
 import logging
+from collections.abc import AsyncGenerator
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
@@ -37,7 +39,17 @@ logging.basicConfig(
 )
 logger = logging.getLogger("skillarena")
 
-app = FastAPI(title=settings.app_name, debug=settings.app_env == "development")
+
+@asynccontextmanager
+async def lifespan(app_: FastAPI) -> AsyncGenerator[None, None]:
+    logger.info("%s started in %s mode", settings.app_name, settings.app_env)
+    yield
+    logger.info("%s shutdown complete", settings.app_name)
+
+
+app = FastAPI(
+    title=settings.app_name, debug=settings.app_env == "development", lifespan=lifespan
+)
 app.add_middleware(TrustedHostMiddleware, allowed_hosts=settings.trusted_host_list)
 app.add_middleware(CSRFProtectionMiddleware, exempt_paths={"/activity/heartbeat"})
 app.add_middleware(
@@ -71,11 +83,6 @@ app.include_router(streaks.router)
 app.include_router(admin.router)
 
 
-@app.on_event("startup")
-async def startup_log() -> None:
-    logger.info("%s started in %s mode", settings.app_name, settings.app_env)
-
-
 @app.exception_handler(StarletteHTTPException)
 async def http_exception_handler(request: Request, exc: StarletteHTTPException):
     if exc.status_code in {403, 404}:
@@ -103,6 +110,11 @@ async def unhandled_exception_handler(request: Request, exc: Exception):
 @app.get("/health")
 async def health() -> dict[str, str]:
     return {"status": "ok", "app": settings.app_name, "env": settings.app_env}
+
+
+@app.get("/version")
+async def version() -> dict[str, str]:
+    return {"app": settings.app_name, "version": "0.1.0", "env": settings.app_env}
 
 
 @app.get("/health/db")
