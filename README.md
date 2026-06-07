@@ -472,7 +472,7 @@ Run tests:
 pytest
 ```
 
-The test suite includes unit tests and isolated SQLite-based database integration tests for rewards, quests, course completion rewards, shop ownership logic, PvP win/tie/submission behavior, audit logging, admin safety, trusted host behavior, CSRF behavior, and LLM limit handling.
+The test suite includes unit tests and isolated SQLite-based database integration tests for rewards, quests, course completion rewards, shop ownership logic, PvP win/tie/submission behavior, audit logging, admin safety, trusted host behavior, broad CSRF route coverage, and LLM limit handling.
 
 Run a syntax check:
 
