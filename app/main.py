@@ -29,6 +29,7 @@ from app.routers import (
     shop,
     streaks,
 )
+from app.services.formatting import format_lesson_content
 
 settings = get_settings()
 logging.basicConfig(
@@ -51,6 +52,7 @@ app.mount("/static", StaticFiles(directory="app/static"), name="static")
 app.state.templates = Jinja2Templates(directory="app/templates")
 app.state.templates.env.globals["csrf_token"] = get_csrf_token
 app.state.templates.env.globals["csrf_input"] = csrf_input
+app.state.templates.env.filters["lesson_format"] = format_lesson_content
 
 app.include_router(auth.router)
 app.include_router(activity.router)

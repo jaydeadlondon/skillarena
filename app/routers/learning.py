@@ -30,7 +30,7 @@ async def lesson_page(
         await db.execute(
             select(Lesson)
             .where(Lesson.id == lesson_id)
-            .options(selectinload(Lesson.course))
+            .options(selectinload(Lesson.course).selectinload(Course.lessons))
         )
     ).scalar_one()
     progress = (
@@ -41,6 +41,31 @@ async def lesson_page(
             )
         )
     ).scalar_one_or_none()
+    course_lessons = sorted(
+        lesson.course.lessons, key=lambda item: (item.position, item.id)
+    )
+    lesson_index = next(
+        (index for index, item in enumerate(course_lessons) if item.id == lesson.id), 0
+    )
+    previous_lesson = course_lessons[lesson_index - 1] if lesson_index > 0 else None
+    next_lesson = (
+        course_lessons[lesson_index + 1]
+        if lesson_index + 1 < len(course_lessons)
+        else None
+    )
+    outline_progress = (
+        (
+            await db.execute(
+                select(LessonProgress).where(
+                    LessonProgress.user_id == user.id,
+                    LessonProgress.lesson_id.in_([item.id for item in course_lessons]),
+                )
+            )
+        )
+        .scalars()
+        .all()
+    )
+    outline_progress_by_lesson = {item.lesson_id: item for item in outline_progress}
     watched_seconds = int(progress.watched_seconds or 0) if progress else 0
     duration_seconds = max(lesson.duration_minutes * 60, 1)
     watched_percent = min(100, int(watched_seconds * 100 / duration_seconds))
@@ -61,6 +86,10 @@ async def lesson_page(
             "watched_seconds": watched_seconds,
             "duration_seconds": duration_seconds,
             "watched_percent": watched_percent,
+            "course_lessons": course_lessons,
+            "previous_lesson": previous_lesson,
+            "next_lesson": next_lesson,
+            "outline_progress_by_lesson": outline_progress_by_lesson,
             "llm_enabled": settings.llm_enabled,
             "llm_daily_limit": settings.llm_daily_limit_per_user,
             "llm_used_today": ai_used_today,
