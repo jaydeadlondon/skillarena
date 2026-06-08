@@ -85,7 +85,8 @@ The interface is built in English with a dark RPG/gaming style.
 
 ### PvP quiz battles
 
-- PvP quiz lobby.
+- Premium-gated PvP quiz lobby.
+- Premium PvP contests.
 - Entry fee paid with Skill Points.
 - Server-validated quiz answers.
 - WebSocket live battle feed.
@@ -113,6 +114,7 @@ The interface is built in English with a dark RPG/gaming style.
 ### Cosmetic shop
 
 - Purchasable profile cosmetics.
+- Premium cosmetics catalog support.
 - Cosmetic inventory.
 - Equip and unequip actions.
 - Supported cosmetic types:
@@ -381,7 +383,9 @@ docker compose exec web python scripts/grant_admin.py <steam_id_64>
 /streaks                  Learning streaks
 /profile                  User profile
 /shop                     Cosmetic shop
+/premium                  Premium plan information
 /pvp                      PvP lobby
+/pvp/contests             Premium PvP contests
 /pvp/history              PvP battle history
 /pvp/{id}/play            PvP battle page
 /pvp/{id}/state           PvP battle state endpoint
