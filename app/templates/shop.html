@@ -36,6 +36,7 @@
         <span>{{ item.name[:1] }}</span>
       </div>
       <span class="badge">{{ item.item_type.replace('_', ' ') }}</span>
+      {% if item.is_premium %}<span class="badge">Premium</span>{% endif %}
       <h2>{{ item.name }}</h2>
       <p class="muted">Price: <strong>{{ item.price_points }}</strong> Skill Points</p>
       {% if owned %}
@@ -52,7 +53,7 @@
         {% endif %}
       {% else %}
         <form method="post" action="/shop/{{ item.id }}/buy">
-          <button class="btn primary" type="submit" {% if user.skill_points < item.price_points %}disabled{% endif %}>Buy</button>
+          <button class="btn primary" type="submit" {% if user.skill_points < item.price_points or (item.is_premium and user.plan != 'premium' and user.role.value != 'admin') %}disabled{% endif %}>{% if item.is_premium and user.plan != 'premium' and user.role.value != 'admin' %}Premium only{% else %}Buy{% endif %}</button>
         </form>
       {% endif %}
     </div>

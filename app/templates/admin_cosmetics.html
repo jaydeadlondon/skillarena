@@ -41,6 +41,10 @@ endblock %} {% block content %}
       value="#f7c948"
       required
     />
+    <label
+      ><input type="checkbox" name="is_premium" value="true" /> Premium
+      cosmetic</label
+    >
     <button class="btn primary" type="submit">Create</button>
   </form>
 </section>
@@ -57,7 +61,8 @@ endblock %} {% block content %}
     <h2>{{ item.name }}</h2>
     <p>
       <span class="badge">{{ item.item_type }}</span>
-      <span class="badge">{{ item.price_points }} SP</span>
+      <span class="badge">{{ item.price_points }} SP</span> {% if
+      item.is_premium %}<span class="badge">premium</span>{% endif %}
       <span class="badge"
         >{% if item.is_active %}active{% else %}inactive{% endif %}</span
       >
@@ -119,6 +124,20 @@ endblock %} {% block content %}
         value="{{ item.preview_value }}"
         required
       />
+      <label
+        ><input
+          type="checkbox"
+          name="is_premium"
+          value="true"
+          {%
+          if
+          item.is_premium
+          %}checked{%
+          endif
+          %}
+        />
+        Premium cosmetic</label
+      >
       <button class="btn primary" type="submit">Save</button>
     </form>
     <form

@@ -1,0 +1,53 @@
+{% extends "base.html" %} {% block title %}Premium · SkillArena{% endblock %} {%
+block content %} {% if request.query_params.get('error') == 'pvp-premium' %}
+<div class="card" style="border-color: #f7c948; margin-bottom: 18px">
+  <strong>PvP Arena requires Premium.</strong>
+  <p class="muted">Learning tools remain free for everyone.</p>
+</div>
+{% endif %}
+<header class="page-head">
+  <div>
+    <span class="badge">Supporter plan</span>
+    <h1>SkillArena Premium</h1>
+    <p class="muted">
+      Premium unlocks competitive and cosmetic features. Core learning stays
+      free.
+    </p>
+  </div>
+  <div class="page-actions">
+    <a class="btn" href="/courses">Keep learning</a>
+  </div>
+</header>
+<section class="grid cols-2">
+  <div class="card">
+    <h2>Free</h2>
+    <p class="muted">For learning without paywalls.</p>
+    <ul>
+      <li>Courses and lessons</li>
+      <li>AI Study Companion</li>
+      <li>AI Dashboard Planner</li>
+      <li>Quests and streaks</li>
+      <li>Focus sessions</li>
+      <li>Achievements</li>
+      <li>Basic cosmetics</li>
+    </ul>
+  </div>
+  <div class="card" style="border-color: rgba(247, 201, 72, 0.55)">
+    <h2>Premium</h2>
+    <p class="muted">For competitive and profile customization features.</p>
+    <ul>
+      <li>PvP Arena duels</li>
+      <li>Premium contests</li>
+      <li>Premium cosmetics catalog</li>
+      <li>Supporter profile status</li>
+      <li>Future private leagues and tournaments</li>
+    </ul>
+    {% if is_premium_user %}<span class="badge">Your plan: Premium</span>{% else
+    %}<span class="badge">Your plan: Free</span>
+    <p class="muted">
+      Payments are not connected yet. An admin can grant Premium manually.
+    </p>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

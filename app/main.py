@@ -26,6 +26,7 @@ from app.routers import (
     notifications,
     onboarding,
     pages,
+    premium,
     pvp,
     quests,
     shop,
@@ -76,6 +77,7 @@ app.include_router(learning.router)
 app.include_router(onboarding.router)
 app.include_router(notifications.router)
 app.include_router(focus.router)
+app.include_router(premium.router)
 app.include_router(pvp.router)
 app.include_router(quests.router)
 app.include_router(shop.router)

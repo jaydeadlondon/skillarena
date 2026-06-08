@@ -19,6 +19,9 @@ from app.models.gamification import (
 )
 from app.models.pvp import (
     BattleStatus,
+    PvpContest,
+    PvpContestEntry,
+    PvpContestStatus,
     PvpBattle,
     PvpBattleAnswer,
     PvpBattleQuestion,
@@ -41,6 +44,9 @@ __all__ = [
     "Lesson",
     "LessonProgress",
     "PvpBattle",
+    "PvpContest",
+    "PvpContestEntry",
+    "PvpContestStatus",
     "PvpBattleAnswer",
     "PvpBattleQuestion",
     "PvpBattleSubmission",

@@ -1,0 +1,39 @@
+{% extends "base.html" %} {% block title %}PvP Contests · SkillArena{% endblock
+%} {% block content %} {% if request.query_params.get('success') %}
+<div data-reward-pop>Contest updated ✨</div>
+{% endif %}
+<header class="page-head">
+  <div>
+    <a class="badge" href="/pvp">← PvP Arena</a>
+    <h1>Premium Contests</h1>
+    <p class="muted">Contest-style competitive events for Premium players.</p>
+  </div>
+  <div class="page-actions">
+    <form method="post" action="/pvp/contests/create-demo">
+      <button class="btn primary" type="submit">Create demo contest</button>
+    </form>
+  </div>
+</header>
+<section class="grid cols-2">
+  {% for contest in contests %} {% set entry =
+  entries_by_contest.get(contest.id) %}
+  <div class="card">
+    <span class="badge">{{ contest.status.value }}</span>
+    <span class="badge">+{{ contest.reward_points }} SP pool</span>
+    <h2>{{ contest.title }}</h2>
+    <p class="muted">{{ contest.description }}</p>
+    {% if entry %}
+    <p><span class="badge">Joined</span> Score: {{ entry.score }}</p>
+    {% else %}
+    <form method="post" action="/pvp/contests/{{ contest.id }}/join">
+      <button class="btn primary" type="submit">Join contest</button>
+    </form>
+    {% endif %}
+  </div>
+  {% else %}
+  <div class="empty-state">
+    No contests yet. Create a demo contest to test the flow.
+  </div>
+  {% endfor %}
+</section>
+{% endblock %}

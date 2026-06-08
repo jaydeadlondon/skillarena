@@ -8,6 +8,9 @@ from sqlalchemy.orm import selectinload
 from app.models.pvp import (
     BattleStatus,
     PvpBattle,
+    PvpContest,
+    PvpContestEntry,
+    PvpContestStatus,
     PvpBattleAnswer,
     PvpBattleQuestion,
     PvpBattleSubmission,
@@ -19,6 +22,7 @@ from app.models.user import User
 from app.routers.deps import DbSession, require_user
 from app.services.achievements import evaluate_pvp_achievements
 from app.services.analytics import track_event
+from app.services.plans import can_access_pvp
 from app.services.realtime import (
     LIVE_PVP_ROUND_SECONDS,
     PVP_DEADLINE_GRACE_SECONDS,
@@ -219,6 +223,10 @@ async def finish_battle_if_ready(db: DbSession, battle: PvpBattle) -> None:
 async def pvp_lobby(
     request: Request, db: DbSession, user: User = Depends(require_user)
 ):
+    if not can_access_pvp(user):
+        return templates(request).TemplateResponse(
+            request, "pvp_premium_gate.html", {"request": request, "user": user}
+        )
     battles = (
         (
             await db.execute(
@@ -244,10 +252,91 @@ async def pvp_lobby(
     )
 
 
+@router.get("/contests")
+async def pvp_contests(
+    request: Request, db: DbSession, user: User = Depends(require_user)
+):
+    if not can_access_pvp(user):
+        return templates(request).TemplateResponse(
+            request, "pvp_premium_gate.html", {"request": request, "user": user}
+        )
+    contests = (
+        (
+            await db.execute(
+                select(PvpContest).order_by(PvpContest.created_at.desc()).limit(20)
+            )
+        )
+        .scalars()
+        .all()
+    )
+    entries = (
+        (
+            await db.execute(
+                select(PvpContestEntry).where(PvpContestEntry.user_id == user.id)
+            )
+        )
+        .scalars()
+        .all()
+    )
+    entries_by_contest = {entry.contest_id: entry for entry in entries}
+    return templates(request).TemplateResponse(
+        request,
+        "pvp_contests.html",
+        {
+            "request": request,
+            "user": user,
+            "contests": contests,
+            "entries_by_contest": entries_by_contest,
+        },
+    )
+
+
+@router.post("/contests/create-demo")
+async def create_demo_contest(db: DbSession, user: User = Depends(require_user)):
+    if not can_access_pvp(user):
+        return RedirectResponse("/premium?error=pvp-premium", status_code=303)
+    contest = PvpContest(
+        title="Weekly Arena Contest",
+        description="Premium contest inspired by coding contests. Earn score through PvP wins.",
+        reward_points=150,
+        status=PvpContestStatus.ACTIVE,
+    )
+    db.add(contest)
+    await db.commit()
+    return RedirectResponse("/pvp/contests?success=contest-created", status_code=303)
+
+
+@router.post("/contests/{contest_id}/join")
+async def join_contest(
+    contest_id: int, db: DbSession, user: User = Depends(require_user)
+):
+    if not can_access_pvp(user):
+        return RedirectResponse("/premium?error=pvp-premium", status_code=303)
+    contest = await db.get(PvpContest, contest_id)
+    if not contest or contest.status != PvpContestStatus.ACTIVE:
+        return RedirectResponse(
+            "/pvp/contests?error=contest-not-found", status_code=303
+        )
+    existing = await db.scalar(
+        select(PvpContestEntry).where(
+            PvpContestEntry.contest_id == contest.id, PvpContestEntry.user_id == user.id
+        )
+    )
+    if existing:
+        return RedirectResponse("/pvp/contests?error=already-joined", status_code=303)
+    db.add(PvpContestEntry(contest_id=contest.id, user_id=user.id))
+    await db.commit()
+    return RedirectResponse("/pvp/contests?success=joined", status_code=303)
+
+
 @router.get("/history")
 async def pvp_history(
     request: Request, db: DbSession, user: User = Depends(require_user)
 ):
+    if not can_access_pvp(user):
+        return templates(request).TemplateResponse(
+            request, "pvp_premium_gate.html", {"request": request, "user": user}
+        )
     battles = (
         (
             await db.execute(
@@ -325,6 +414,8 @@ async def pvp_battle_websocket(websocket: WebSocket, battle_id: int):
 
 @router.post("/create")
 async def create_battle(db: DbSession, user: User = Depends(require_user)):
+    if not can_access_pvp(user):
+        return RedirectResponse("/premium?error=pvp-premium", status_code=303)
     active_questions_count = await db.scalar(
         select(func.count(PvpQuestion.id)).where(PvpQuestion.is_active.is_(True))
     )
@@ -407,6 +498,8 @@ async def battle_state(
 async def join_battle(
     battle_id: int, db: DbSession, user: User = Depends(require_user)
 ):
+    if not can_access_pvp(user):
+        return RedirectResponse("/premium?error=pvp-premium", status_code=303)
     battle = await db.get(PvpBattle, battle_id)
     if (
         not battle

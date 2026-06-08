@@ -28,6 +28,7 @@ class User(Base):
     best_streak_days: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     selected_title: Mapped[str | None] = mapped_column(String(80))
     selected_frame: Mapped[str | None] = mapped_column(String(80))
+    plan: Mapped[str] = mapped_column(String(20), default="free", nullable=False)
     focus_mode_enabled: Mapped[bool] = mapped_column(
         Boolean, default=False, nullable=False
     )

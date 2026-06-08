@@ -7,6 +7,7 @@ from app.models.gamification import CosmeticItem, UserCosmetic
 from app.models.user import User
 from app.routers.deps import DbSession, require_user
 from app.services.analytics import track_event
+from app.services.plans import can_access_premium_cosmetic
 
 router = APIRouter(prefix="/shop", tags=["shop"])
 
@@ -77,6 +78,8 @@ async def buy_item(item_id: int, db: DbSession, user: User = Depends(require_use
     if existing:
         return RedirectResponse("/shop?info=already-owned", status_code=303)
 
+    if item.is_premium and not can_access_premium_cosmetic(user):
+        return RedirectResponse("/premium?error=premium-cosmetic", status_code=303)
     if user.skill_points < item.price_points:
         return RedirectResponse("/shop?error=not-enough-points", status_code=303)
 

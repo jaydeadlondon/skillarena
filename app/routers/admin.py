@@ -218,6 +218,32 @@ async def update_user_role(
     return RedirectResponse("/admin/users?success=role-updated", status_code=303)
 
 
+@router.post("/users/{target_user_id}/plan")
+async def update_user_plan(
+    target_user_id: int,
+    db: DbSession,
+    user: User = Depends(require_admin),
+    plan: str = Form(...),
+):
+    target = await db.get(User, target_user_id)
+    if target is None:
+        return RedirectResponse("/admin/users?error=user-not-found", status_code=303)
+    if plan not in {"free", "premium"}:
+        return RedirectResponse("/admin/users?error=invalid-plan", status_code=303)
+    old_plan = target.plan
+    target.plan = plan
+    await log_admin_action(
+        db,
+        user,
+        "user.plan.update",
+        "user",
+        target.id,
+        f"{target.display_name}: {old_plan} -> {plan}",
+    )
+    await db.commit()
+    return RedirectResponse("/admin/users?success=plan-updated", status_code=303)
+
+
 @router.post("/users/{target_user_id}/points")
 async def adjust_user_points(
     target_user_id: int,
@@ -277,6 +303,7 @@ async def create_cosmetic(
     item_type: str = Form(...),
     price_points: int = Form(...),
     preview_value: str = Form(...),
+    is_premium: bool = Form(False),
 ):
     try:
         item_type = validate_choice(
@@ -300,6 +327,7 @@ async def create_cosmetic(
         item_type=item_type,
         price_points=price_points,
         preview_value=preview_value,
+        is_premium=is_premium,
         is_active=True,
     )
     db.add(cosmetic)
@@ -325,6 +353,7 @@ async def update_cosmetic(
     item_type: str = Form(...),
     price_points: int = Form(...),
     preview_value: str = Form(...),
+    is_premium: bool = Form(False),
 ):
     cosmetic = await db.get(CosmeticItem, item_id)
     if cosmetic is None:
@@ -343,6 +372,7 @@ async def update_cosmetic(
             price_points, min_value=0, max_value=100000, field_name="price"
         )
         cosmetic.preview_value = validate_hex_color_or_css(preview_value)
+        cosmetic.is_premium = is_premium
     except ValidationError as exc:
         return validation_redirect("/admin/cosmetics", exc)
     await log_admin_action(

@@ -22,6 +22,51 @@ class BattleStatus(StrEnum):
     CANCELLED = "cancelled"
 
 
+class PvpContestStatus(StrEnum):
+    DRAFT = "draft"
+    ACTIVE = "active"
+    FINISHED = "finished"
+
+
+class PvpContest(Base):
+    __tablename__ = "pvp_contests"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    title: Mapped[str] = mapped_column(String(160), nullable=False)
+    description: Mapped[str] = mapped_column(Text, default="", nullable=False)
+    status: Mapped[PvpContestStatus] = mapped_column(
+        default=PvpContestStatus.ACTIVE, nullable=False
+    )
+    reward_points: Mapped[int] = mapped_column(Integer, default=100, nullable=False)
+    created_at: Mapped[created_at]
+    updated_at: Mapped[updated_at]
+
+    entries = relationship(
+        "PvpContestEntry", back_populates="contest", cascade="all, delete-orphan"
+    )
+
+
+class PvpContestEntry(Base):
+    __tablename__ = "pvp_contest_entries"
+    __table_args__ = (
+        UniqueConstraint("contest_id", "user_id", name="uq_pvp_contest_user"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    contest_id: Mapped[int] = mapped_column(
+        ForeignKey("pvp_contests.id", ondelete="CASCADE"), nullable=False
+    )
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    score: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    created_at: Mapped[created_at]
+    updated_at: Mapped[updated_at]
+
+    contest = relationship("PvpContest", back_populates="entries")
+    user = relationship("User")
+
+
 class PvpQuestion(Base):
     __tablename__ = "pvp_questions"
 
