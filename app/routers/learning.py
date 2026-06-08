@@ -3,16 +3,17 @@ from fastapi.responses import RedirectResponse
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
-from app.core.config import get_settings
 from app.core.validation import clamp_int
 from app.models.course import Course, Lesson, LessonProgress
 from app.models.user import User
 from app.routers.deps import DbSession, require_user
 from app.services.achievements import evaluate_learning_achievements
+from app.services.analytics import track_event
 from app.services.course_progress import maybe_award_course_completion
-from app.services.llm import recent_lesson_interactions, user_llm_requests_today
 from app.services.rewards import add_skill_points
 from app.services.streaks import sync_user_streak
+from app.services.llm import recent_lesson_interactions, user_llm_requests_today
+from app.core.config import get_settings
 from app.services.video import to_embed_url, video_tracking_provider
 
 router = APIRouter(prefix="/learn", tags=["learning"])
@@ -148,10 +149,27 @@ async def save_progress(
         )
         await evaluate_learning_achievements(db, user)
         await sync_user_streak(db, user)
+        await track_event(
+            db,
+            user,
+            "lesson_completed",
+            "lesson",
+            lesson_id,
+            {"reward_points": lesson.reward_points if lesson else 10},
+        )
         if lesson and lesson.course:
             course_completed = await maybe_award_course_completion(
                 db, user, lesson.course
             )
+            if course_completed:
+                await track_event(
+                    db,
+                    user,
+                    "course_completed",
+                    "course",
+                    lesson.course.id,
+                    {"reward_points": lesson.course.reward_points},
+                )
 
     await db.commit()
 

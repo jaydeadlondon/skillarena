@@ -1,4 +1,5 @@
 from app.models.ai import AIInteraction
+from app.models.analytics import AnalyticsEvent
 from app.models.audit import AdminAuditLog
 from app.models.course import Course, Lesson, LessonProgress, VideoProvider
 from app.models.gamification import (
@@ -6,11 +7,11 @@ from app.models.gamification import (
     AchievementType,
     CosmeticItem,
     FocusSession,
+    UserCosmetic,
     Quest,
     QuestFrequency,
     UserAchievement,
     UserActivityDay,
-    UserCosmetic,
     UserNotification,
     UserOnboarding,
     UserQuest,
@@ -29,6 +30,7 @@ from app.models.user import CurrencyTransaction, User, UserRole
 __all__ = [
     "AIInteraction",
     "AdminAuditLog",
+    "AnalyticsEvent",
     "Achievement",
     "AchievementType",
     "BattleStatus",

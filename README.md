@@ -144,6 +144,7 @@ The interface is built in English with a dark RPG/gaming style.
 
 - Admin dashboard.
 - Admin audit log.
+- Admin analytics dashboard.
 - User management.
 - Role management.
 - Manual Skill Point adjustments.
@@ -392,6 +393,7 @@ docker compose exec web python scripts/grant_admin.py <steam_id_64>
 ```text
 /admin                    Admin dashboard
 /admin/audit              Admin audit log
+/admin/analytics          Admin analytics dashboard
 /admin/courses            Course management
 /admin/courses/{id}       Course and lesson editor
 /admin/users              User management

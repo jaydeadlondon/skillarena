@@ -8,6 +8,7 @@ from sqlalchemy.orm import selectinload
 from app.core.validation import (
     ValidationError,
     clamp_int,
+    clean_optional_text,
     clean_text,
     validate_choice,
     validate_hex_color_or_css,
@@ -26,8 +27,10 @@ from app.models.gamification import (
 from app.models.pvp import PvpQuestion
 from app.models.user import User, UserRole
 from app.routers.deps import DbSession, require_admin
+from app.services.analytics import build_admin_analytics, track_event
 from app.services.audit import log_admin_action
 from app.services.llm import (
+    LLMServiceError,
     build_quest_generation_prompt,
     build_quiz_generation_prompt,
     call_openai_compatible_chat,
@@ -124,6 +127,18 @@ async def admin_dashboard(
             "cosmetics": cosmetics,
             "stats": stats,
         },
+    )
+
+
+@router.get("/analytics")
+async def admin_analytics(
+    request: Request, db: DbSession, user: User = Depends(require_admin)
+):
+    analytics = await build_admin_analytics(db)
+    return templates(request).TemplateResponse(
+        request,
+        "admin_analytics.html",
+        {"request": request, "user": user, "analytics": analytics},
     )
 
 
@@ -814,6 +829,9 @@ async def ai_save_quests(
             None,
             f"saved {created} generated quests",
         )
+        await track_event(
+            db, user, "ai_quests_generated", "quest", None, {"created": created}
+        )
         await db.commit()
         return RedirectResponse(
             f"/admin?success=ai-quests-generated&created={created}", status_code=303
@@ -1007,6 +1025,9 @@ async def ai_save_course_quiz(
             "course",
             course_id,
             f"saved {created} generated PvP questions",
+        )
+        await track_event(
+            db, user, "ai_quiz_generated", "course", course_id, {"created": created}
         )
         await db.commit()
         return RedirectResponse(

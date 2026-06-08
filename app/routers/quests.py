@@ -3,6 +3,7 @@ from fastapi.responses import RedirectResponse
 
 from app.models.user import User
 from app.routers.deps import DbSession, require_user
+from app.services.analytics import track_event
 from app.services.quests import (
     claim_quest,
     get_daily_quest_cards,
@@ -54,5 +55,7 @@ async def claim_quest_reward(
     success, code = await claim_quest(db, user, quest_id)
     await db.commit()
     if success:
+        await track_event(db, user, "quest_claimed", "quest", quest_id)
+        await db.commit()
         return RedirectResponse("/quests?success=claimed", status_code=303)
     return RedirectResponse(f"/quests?error={code}", status_code=303)

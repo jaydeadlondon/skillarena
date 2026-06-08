@@ -1,12 +1,14 @@
 from urllib.parse import urljoin
 
 import httpx
+
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse, RedirectResponse
 
 from app.core.config import get_settings
 from app.models.user import User, UserRole
 from app.routers.deps import DbSession, user_by_steam_id
+from app.services.analytics import track_event
 from app.services.onboarding import has_completed_onboarding
 from app.services.steam import SteamService, SteamServiceError
 
@@ -16,6 +18,11 @@ steam = SteamService()
 
 
 def _steam_urls_from_request(request: Request) -> tuple[str, str]:
+    """Build Steam realm/return URL from the actual browser request.
+
+    This avoids a common local-dev problem where .env contains localhost, but the
+    user opens the app through 127.0.0.1, a LAN IP, or another host name.
+    """
     base_url = str(request.base_url).rstrip("/") + "/"
     realm = base_url.rstrip("/")
     return_to = urljoin(base_url, "auth/steam/callback")
@@ -63,6 +70,8 @@ async def mock_steam_login(request: Request, db: DbSession) -> RedirectResponse:
         await db.commit()
         await db.refresh(user)
 
+    await track_event(db, user, "user_login", "auth", user.id, {"method": "steam_mock"})
+    await db.commit()
     request.session["user_id"] = user.id
     next_url = (
         "/dashboard" if await has_completed_onboarding(db, user) else "/onboarding"
@@ -98,6 +107,7 @@ async def steam_callback(request: Request, db: DbSession) -> RedirectResponse:
         if is_configured_admin:
             user.role = UserRole.ADMIN
 
+    await track_event(db, user, "user_login", "auth", user.id, {"method": "steam"})
     await db.commit()
     await db.refresh(user)
     request.session["user_id"] = user.id

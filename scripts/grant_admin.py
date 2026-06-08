@@ -6,14 +6,15 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from sqlalchemy import select  # noqa: E402
-
 import app.models.ai  # noqa: F401,E402
+import app.models.analytics  # noqa: F401,E402
 import app.models.audit  # noqa: F401,E402
 import app.models.course  # noqa: F401,E402
 import app.models.gamification  # noqa: F401,E402
 import app.models.pvp  # noqa: F401,E402
 import app.models.user  # noqa: F401,E402
+from sqlalchemy import select  # noqa: E402
+
 from app.db.session import AsyncSessionLocal  # noqa: E402
 from app.models.user import User, UserRole  # noqa: E402
 

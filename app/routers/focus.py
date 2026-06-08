@@ -6,6 +6,7 @@ from app.models.gamification import FocusSession, UserOnboarding
 from app.models.user import User
 from app.routers.deps import DbSession, require_user
 from app.services.activity import add_activity_seconds
+from app.services.analytics import track_event
 from app.services.rewards import add_skill_points
 from app.services.streaks import sync_user_streak
 
@@ -93,6 +94,15 @@ async def complete_focus_session(
         db, user, reward, "Focus session completed", "focus_session", None
     )
     await sync_user_streak(db, user)
+    await db.flush()
+    await track_event(
+        db,
+        user,
+        "focus_completed",
+        "focus_session",
+        session.id,
+        {"duration_minutes": duration_minutes, "reward_points": reward},
+    )
     await db.commit()
     return RedirectResponse(
         f"/focus?success=completed&reward={reward}", status_code=303

@@ -72,6 +72,7 @@ class User(Base):
         "AIInteraction", back_populates="user", cascade="all, delete-orphan"
     )
     admin_audit_logs = relationship("AdminAuditLog", back_populates="admin_user")
+    analytics_events = relationship("AnalyticsEvent", back_populates="user")
 
 
 class CurrencyTransaction(Base):

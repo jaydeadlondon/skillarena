@@ -6,6 +6,7 @@ from sqlalchemy.orm import selectinload
 from app.models.gamification import CosmeticItem, UserCosmetic
 from app.models.user import User
 from app.routers.deps import DbSession, require_user
+from app.services.analytics import track_event
 
 router = APIRouter(prefix="/shop", tags=["shop"])
 
@@ -81,6 +82,14 @@ async def buy_item(item_id: int, db: DbSession, user: User = Depends(require_use
 
     user.skill_points -= item.price_points
     db.add(UserCosmetic(user_id=user.id, cosmetic_item_id=item.id, is_equipped=False))
+    await track_event(
+        db,
+        user,
+        "shop_purchase",
+        "cosmetic",
+        item.id,
+        {"price_points": item.price_points, "item_type": item.item_type},
+    )
     await db.commit()
     return RedirectResponse("/shop?success=purchased", status_code=303)
 

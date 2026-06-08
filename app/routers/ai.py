@@ -11,6 +11,7 @@ from app.models.gamification import FocusSession, UserOnboarding
 from app.models.user import User
 from app.routers.deps import DbSession, require_user
 from app.services.activity import get_activity_summary
+from app.services.analytics import track_event
 from app.services.course_progress import find_continue_lesson
 from app.services.llm import (
     LLMServiceError,
@@ -102,6 +103,14 @@ async def dashboard_ai_plan(db: DbSession, user: User = Depends(require_user)):
     try:
         summary = await build_dashboard_ai_summary(db, user)
         interaction = await ask_dashboard_planner(db, user, summary)
+        await track_event(
+            db,
+            user,
+            "ai_request",
+            "dashboard",
+            None,
+            {"prompt_type": "dashboard_planner"},
+        )
         await db.commit()
         await db.refresh(interaction)
         return {
@@ -181,6 +190,9 @@ async def ask_lesson_ai(
             lesson,
             action,
             custom_prompt.strip() or None,
+        )
+        await track_event(
+            db, user, "ai_request", "lesson", lesson.id, {"prompt_type": action}
         )
         await db.commit()
         await db.refresh(interaction)

@@ -5,8 +5,6 @@ from fastapi.responses import JSONResponse, RedirectResponse
 from sqlalchemy import func, select
 from sqlalchemy.orm import selectinload
 
-from app.core.config import get_settings
-from app.db.session import AsyncSessionLocal
 from app.models.pvp import (
     BattleStatus,
     PvpBattle,
@@ -15,9 +13,12 @@ from app.models.pvp import (
     PvpBattleSubmission,
     PvpQuestion,
 )
+from app.core.config import get_settings
+from app.db.session import AsyncSessionLocal
 from app.models.user import User
 from app.routers.deps import DbSession, require_user
 from app.services.achievements import evaluate_pvp_achievements
+from app.services.analytics import track_event
 from app.services.realtime import (
     LIVE_PVP_ROUND_SECONDS,
     PVP_DEADLINE_GRACE_SECONDS,
@@ -144,6 +145,7 @@ async def finish_battle_if_ready(db: DbSession, battle: PvpBattle) -> None:
     battle.status = BattleStatus.FINISHED
     challenger = await db.get(User, battle.challenger_id)
     opponent = await db.get(User, battle.opponent_id) if battle.opponent_id else None
+    winner = None
 
     if battle.challenger_score == battle.opponent_score:
         battle.winner_id = None
@@ -185,6 +187,20 @@ async def finish_battle_if_ready(db: DbSession, battle: PvpBattle) -> None:
     if opponent:
         await evaluate_pvp_achievements(db, opponent)
         await sync_user_streak(db, opponent)
+
+    await track_event(
+        db,
+        winner if battle.winner_id else None,
+        "pvp_finished",
+        "pvp",
+        battle.id,
+        {
+            "winner_id": battle.winner_id,
+            "challenger_score": battle.challenger_score,
+            "opponent_score": battle.opponent_score,
+            "result": "tie" if battle.winner_id is None else "win",
+        },
+    )
 
     await pvp_battle_manager.broadcast(
         battle.id,
@@ -346,6 +362,9 @@ async def create_battle(db: DbSession, user: User = Depends(require_user)):
     db.add(battle)
     await db.flush()
     await ensure_battle_questions(db, battle)
+    await track_event(
+        db, user, "pvp_created", "pvp", battle.id, {"entry_fee": ENTRY_FEE}
+    )
     await db.commit()
     return RedirectResponse(f"/pvp/{battle.id}/play", status_code=303)
 
@@ -405,6 +424,9 @@ async def join_battle(
     await pvp_battle_manager.broadcast(
         battle.id,
         {"type": "opponent_joined", "battle_id": battle.id, "opponent_id": user.id},
+    )
+    await track_event(
+        db, user, "pvp_joined", "pvp", battle.id, {"entry_fee": battle.entry_fee_points}
     )
     await db.commit()
     return RedirectResponse(f"/pvp/{battle.id}/play", status_code=303)

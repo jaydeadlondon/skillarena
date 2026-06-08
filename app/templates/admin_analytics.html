@@ -1,0 +1,101 @@
+{% extends "base.html" %} {% block title %}Admin Analytics · SkillArena{%
+endblock %} {% block content %}
+<header class="page-head">
+  <div>
+    <a class="badge" href="/admin">← Admin forge</a>
+    <h1>Analytics</h1>
+    <p class="muted">
+      Usage events, active users, AI activity, PvP activity, and recent tracked
+      events.
+    </p>
+  </div>
+</header>
+
+<section class="grid cols-3">
+  <div class="card">
+    <span class="badge">Today</span>
+    <h2>{{ analytics.events_today }}</h2>
+    <p class="muted">Tracked events</p>
+  </div>
+  <div class="card">
+    <span class="badge">7 days</span>
+    <h2>{{ analytics.events_week }}</h2>
+    <p class="muted">Tracked events</p>
+  </div>
+  <div class="card">
+    <span class="badge">Active</span>
+    <h2>{{ analytics.active_users_today }}</h2>
+    <p class="muted">
+      Users today · {{ analytics.active_users_week }} this week
+    </p>
+  </div>
+</section>
+
+<section class="grid cols-2" style="margin-top: 18px">
+  <div class="card">
+    <div class="section-title">
+      <h2>Today by event</h2>
+      <span class="badge">daily</span>
+    </div>
+    <table class="table">
+      {% for event, count in analytics.today_counts.items() %}
+      <tr>
+        <td>{{ event }}</td>
+        <td><strong>{{ count }}</strong></td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+  <div class="card">
+    <div class="section-title">
+      <h2>Last 7 days</h2>
+      <span class="badge">weekly</span>
+    </div>
+    <table class="table">
+      {% for event, count in analytics.week_counts.items() %}
+      <tr>
+        <td>{{ event }}</td>
+        <td><strong>{{ count }}</strong></td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+</section>
+
+<section class="card table-wrap" style="margin-top: 18px">
+  <div class="section-title">
+    <h2>Recent events</h2>
+    <span class="badge">latest 50</span>
+  </div>
+  <table class="table">
+    <tr>
+      <th>Time</th>
+      <th>User</th>
+      <th>Event</th>
+      <th>Reference</th>
+      <th>Metadata</th>
+    </tr>
+    {% for event in analytics.recent_events %}
+    <tr>
+      <td>{{ event.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+      <td>
+        {% if event.user %}{{ event.user.display_name }}{% else %}<span
+          class="muted"
+          >anonymous/system</span
+        >{% endif %}
+      </td>
+      <td><span class="badge">{{ event.event_type }}</span></td>
+      <td>
+        {{ event.reference_type or '-' }}{% if event.reference_id %} #{{
+        event.reference_id }}{% endif %}
+      </td>
+      <td class="muted">{{ event.event_metadata[:160] }}</td>
+    </tr>
+    {% else %}
+    <tr>
+      <td colspan="5" class="muted">No analytics events yet.</td>
+    </tr>
+    {% endfor %}
+  </table>
+</section>
+{% endblock %}
