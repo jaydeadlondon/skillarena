@@ -8,7 +8,7 @@ block content %} {% if request.query_params.get('error') == 'pvp-premium' %}
 <header class="page-head">
   <div>
     <span class="badge">Supporter plan</span>
-    <h1>SkillArena Premium</h1>
+    <h1>SkillArena <span class="premium-title-word">Premium</span></h1>
     <p class="muted">
       Premium unlocks competitive and cosmetic features. Core learning stays
       free.
@@ -32,7 +32,7 @@ block content %} {% if request.query_params.get('error') == 'pvp-premium' %}
       <li>Basic cosmetics</li>
     </ul>
   </div>
-  <div class="card" style="border-color: rgba(247, 201, 72, 0.55)">
+  <div class="card premium-plan-card">
     <h2>Premium</h2>
     <p class="muted">For competitive and profile customization features.</p>
     <ul>

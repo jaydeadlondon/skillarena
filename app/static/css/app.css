@@ -866,10 +866,26 @@ form {
   border-color: rgba(139, 92, 246, 0.34);
 }
 #aiPlannerResult {
-  white-space: pre-wrap;
   line-height: 1.65;
   border-color: rgba(247, 201, 72, 0.28);
   box-shadow: var(--shadow-soft);
+}
+#aiPlannerResult p {
+  margin: 8px 0;
+}
+#aiPlannerResult h3 {
+  margin: 10px 0 6px;
+  color: var(--gold);
+}
+#aiPlannerResult ul {
+  margin: 8px 0 8px 22px;
+}
+#aiPlannerResult code {
+  background: #0b1020;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 1px 5px;
+  color: var(--gold);
 }
 .lesson-content {
   white-space: pre-wrap;
@@ -1115,4 +1131,46 @@ form {
   .leaderboard-row strong {
     grid-column: 3;
   }
+}
+
+/* Premium navigation and page */
+.nav-links a.premium-pill {
+  border-color: rgba(139, 92, 246, 0.75) !important;
+  background: linear-gradient(180deg, #8b5cf6, #4c1d95) !important;
+  color: #fff !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.1px;
+  box-shadow: 0 10px 28px rgba(139, 92, 246, 0.18);
+}
+.nav-links a.premium-pill:hover {
+  box-shadow:
+    0 0 26px rgba(139, 92, 246, 0.38),
+    0 10px 28px rgba(0, 0, 0, 0.22);
+}
+.premium-title-word {
+  color: #a78bfa;
+  font-weight: 800;
+  text-shadow: 0 0 22px rgba(139, 92, 246, 0.28);
+}
+.premium-plan-card {
+  border-color: rgba(139, 92, 246, 0.75) !important;
+  background: radial-gradient(
+    circle at top,
+    rgba(167, 139, 250, 0.34),
+    rgba(91, 33, 182, 0.9) 42%,
+    rgba(30, 20, 60, 0.96) 100%
+  ) !important;
+  box-shadow: 0 28px 90px rgba(139, 92, 246, 0.22) !important;
+}
+.premium-plan-card h2 {
+  color: #f5f3ff;
+}
+.premium-plan-card .muted,
+.premium-plan-card li {
+  color: #ddd6fe;
+}
+.premium-plan-card .badge {
+  border-color: rgba(221, 214, 254, 0.35);
+  background: rgba(17, 24, 39, 0.35);
+  color: #f5f3ff;
 }

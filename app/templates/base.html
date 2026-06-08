@@ -22,13 +22,18 @@
           <a href="/quests">Quests</a>
           <a href="/focus">Focus</a>
           <a href="/pvp">PvP</a>
-          <a href="/premium">Premium</a>
           <a href="/leaderboard">Ranks</a>
           <a href="/shop">Shop</a>
           <a href="/profile">Profile</a>
           {% if user.role.value == 'admin' %}<a href="/admin">Admin</a>{% endif
           %}
           <span class="nav-spacer"></span>
+          <a
+            class="premium-pill"
+            href="/premium"
+            title="Premium competitive and cosmetic features"
+            >Premium</a
+          >
           <a class="streak-pill" href="/streaks" title="Current learning streak"
             >🔥 {{ user.current_streak_days }}</a
           >
