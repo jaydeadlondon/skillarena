@@ -462,6 +462,30 @@ async def main() -> None:
                 price_points=160,
                 preview_value="#fb923c",
             ),
+            dict(
+                code="royal_violet_aura",
+                name="Royal Violet Aura",
+                item_type="aura",
+                price_points=350,
+                preview_value="#a78bfa",
+                is_premium=True,
+            ),
+            dict(
+                code="mythic_gold_frame",
+                name="Mythic Gold Frame",
+                item_type="profile_frame",
+                price_points=450,
+                preview_value="#facc15",
+                is_premium=True,
+            ),
+            dict(
+                code="arcane_night_background",
+                name="Arcane Night Background",
+                item_type="profile_background",
+                price_points=400,
+                preview_value="#312e81",
+                is_premium=True,
+            ),
         ]
         for cosmetic_data in cosmetics:
             cosmetic = await db.scalar(
@@ -474,6 +498,7 @@ async def main() -> None:
                 cosmetic.item_type = cosmetic_data["item_type"]
                 cosmetic.price_points = cosmetic_data["price_points"]
                 cosmetic.preview_value = cosmetic_data["preview_value"]
+                cosmetic.is_premium = cosmetic_data.get("is_premium", False)
                 cosmetic.is_active = True
 
         if (

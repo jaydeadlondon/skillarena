@@ -1,0 +1,57 @@
+{% extends "base.html" %} {% block title %}{{ contest.title }} · SkillArena{%
+endblock %} {% block content %}
+<header class="page-head">
+  <div>
+    <a class="badge" href="/pvp/contests">← Contests</a>
+    <h1>{{ contest.title }}</h1>
+    <p class="muted">{{ contest.description }}</p>
+  </div>
+  <div class="page-actions"><a class="btn" href="/pvp">PvP lobby</a></div>
+</header>
+<section class="grid cols-3">
+  <div class="card">
+    <span class="badge">Status</span>
+    <h2>{{ contest.status.value }}</h2>
+    <p class="muted">Contest state</p>
+  </div>
+  <div class="card">
+    <span class="badge">Reward pool</span>
+    <h2>{{ contest.reward_points }}</h2>
+    <p class="muted">Skill Points</p>
+  </div>
+  <div class="card">
+    <span class="badge">Your score</span>
+    <h2>{% if user_entry %}{{ user_entry.score }}{% else %}0{% endif %}</h2>
+    <p class="muted">+1 for each PvP win while joined</p>
+  </div>
+</section>
+<section class="card table-wrap" style="margin-top: 18px">
+  <div class="section-title">
+    <h2>Contest leaderboard</h2>
+    <span class="badge">{{ entries|length }} players</span>
+  </div>
+  <table class="table">
+    <tr>
+      <th>Rank</th>
+      <th>Player</th>
+      <th>Score</th>
+    </tr>
+    {% for entry in entries %} {% set row_class = 'contest-you-row' if
+    entry.user_id == user.id else '' %}
+    <tr class="{{ row_class }}">
+      <td>#{{ loop.index }}</td>
+      <td>
+        {% if entry.user %}<a href="/u/{{ entry.user.id }}"
+          >{{ entry.user.display_name }}</a
+        >{% else %}<span class="muted">deleted user</span>{% endif %}
+      </td>
+      <td><strong>{{ entry.score }}</strong></td>
+    </tr>
+    {% else %}
+    <tr>
+      <td colspan="3" class="muted">No entries yet.</td>
+    </tr>
+    {% endfor %}
+  </table>
+</section>
+{% endblock %}

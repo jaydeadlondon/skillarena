@@ -1132,6 +1132,10 @@ form {
     grid-column: 3;
   }
 }
+.contest-you-row {
+  outline: 2px solid rgba(247, 201, 72, 0.45);
+  background: rgba(247, 201, 72, 0.08);
+}
 
 /* Premium navigation and page */
 .nav-links a.premium-pill {

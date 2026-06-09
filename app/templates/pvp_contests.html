@@ -29,6 +29,9 @@
       <button class="btn primary" type="submit">Join contest</button>
     </form>
     {% endif %}
+    <p>
+      <a class="btn" href="/pvp/contests/{{ contest.id }}">Open leaderboard</a>
+    </p>
   </div>
   {% else %}
   <div class="empty-state">

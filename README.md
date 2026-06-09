@@ -86,7 +86,7 @@ The interface is built in English with a dark RPG/gaming style.
 ### PvP quiz battles
 
 - Premium-gated PvP quiz lobby.
-- Premium PvP contests.
+- Premium PvP contests with contest entries and PvP-win scoring.
 - Entry fee paid with Skill Points.
 - Server-validated quiz answers.
 - WebSocket live battle feed.
@@ -484,7 +484,7 @@ Run tests:
 pytest
 ```
 
-The test suite includes unit tests and isolated SQLite-based database integration tests for rewards, quests, course completion rewards, shop ownership logic, PvP win/tie/submission behavior, audit logging, admin safety, trusted host behavior, broad CSRF route coverage, and LLM limit handling.
+The test suite includes unit tests and isolated SQLite-based database integration tests for rewards, quests, course completion rewards, shop ownership logic, PvP win/tie/submission behavior, premium contest scoring, audit logging, admin safety, trusted host behavior, broad CSRF route coverage, and LLM limit handling.
 
 Run a syntax check:
 

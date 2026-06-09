@@ -184,6 +184,22 @@ async def finish_battle_if_ready(db: DbSession, battle: PvpBattle) -> None:
                 db, winner, prize, "PvP battle won", "pvp", battle.id
             )
             await evaluate_pvp_achievements(db, winner)
+            active_contest_entries = (
+                (
+                    await db.execute(
+                        select(PvpContestEntry)
+                        .join(PvpContestEntry.contest)
+                        .where(
+                            PvpContestEntry.user_id == winner.id,
+                            PvpContest.status == PvpContestStatus.ACTIVE,
+                        )
+                    )
+                )
+                .scalars()
+                .all()
+            )
+            for entry in active_contest_entries:
+                entry.score += 1
 
     if challenger:
         await evaluate_pvp_achievements(db, challenger)
@@ -287,6 +303,47 @@ async def pvp_contests(
             "user": user,
             "contests": contests,
             "entries_by_contest": entries_by_contest,
+        },
+    )
+
+
+@router.get("/contests/{contest_id}")
+async def pvp_contest_detail(
+    contest_id: int, request: Request, db: DbSession, user: User = Depends(require_user)
+):
+    if not can_access_pvp(user):
+        return templates(request).TemplateResponse(
+            request, "pvp_premium_gate.html", {"request": request, "user": user}
+        )
+    contest = await db.get(PvpContest, contest_id)
+    if not contest:
+        return RedirectResponse(
+            "/pvp/contests?error=contest-not-found", status_code=303
+        )
+    entries = (
+        (
+            await db.execute(
+                select(PvpContestEntry)
+                .where(PvpContestEntry.contest_id == contest.id)
+                .options(selectinload(PvpContestEntry.user))
+                .order_by(
+                    PvpContestEntry.score.desc(), PvpContestEntry.created_at.asc()
+                )
+            )
+        )
+        .scalars()
+        .all()
+    )
+    user_entry = next((entry for entry in entries if entry.user_id == user.id), None)
+    return templates(request).TemplateResponse(
+        request,
+        "pvp_contest_detail.html",
+        {
+            "request": request,
+            "user": user,
+            "contest": contest,
+            "entries": entries,
+            "user_entry": user_entry,
         },
     )
 
