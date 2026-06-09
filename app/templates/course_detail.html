@@ -7,6 +7,9 @@ request.query_params.get('course_completed') %}
 {% endif %}
 <div class="card">
   <span class="badge">{{ course.category }}</span>
+  <span class="badge">{{ course.difficulty }}</span>
+  <span class="badge">{{ course.estimated_minutes }} min</span>
+  {% if course.is_featured %}<span class="badge">⭐ featured</span>{% endif %}
   {% if course_progress.is_completed %}<span class="badge"
     >✅ Course completed</span
   >{% endif %}

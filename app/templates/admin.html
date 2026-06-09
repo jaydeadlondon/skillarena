@@ -55,7 +55,22 @@ block content %}
         name="slug"
         placeholder="slug"
         required
-      /><input class="input" name="category" placeholder="Category" /><textarea
+      /><input class="input" name="category" placeholder="Category" /><select
+        name="difficulty"
+      >
+        <option value="beginner">Beginner</option>
+        <option value="intermediate">Intermediate</option>
+        <option value="advanced">Advanced</option></select
+      ><input
+        class="input"
+        type="number"
+        name="estimated_minutes"
+        value="60"
+        placeholder="Estimated minutes"
+      /><label
+        ><input type="checkbox" name="is_featured" value="true" /> Featured
+        course</label
+      ><textarea
         name="description"
         placeholder="Description"
         required

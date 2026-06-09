@@ -134,44 +134,14 @@ endblock %} {% block content %}
   </aside>
 </section>
 
-<section class="grid cols-2" style="margin-top: 18px">
-  <section class="card lesson-notes">
-    <div class="section-title">
-      <h2>Lesson notes</h2>
-      <span class="badge">Text material</span>
-    </div>
-    <div class="lesson-content formatted-lesson-content">
-      {{ lesson.content|lesson_format }}
-    </div>
-  </section>
-
-  <section class="card lesson-resources">
-    <div class="section-title">
-      <h2>Resources</h2>
-      <span class="badge">Quick actions</span>
-    </div>
-    <div class="grid">
-      <a
-        class="lesson-row"
-        href="{{ lesson.video_url }}"
-        target="_blank"
-        rel="noopener noreferrer"
-        ><strong>Open original video</strong
-        ><span class="badge">external</span></a
-      >
-      <a class="lesson-row" href="/focus"
-        ><strong>Start focus session</strong><span class="badge">focus</span></a
-      >
-      <a class="lesson-row" href="/quests"
-        ><strong>Check related quests</strong
-        ><span class="badge">quests</span></a
-      >
-      <a class="lesson-row" href="/courses/{{ course.slug }}"
-        ><strong>Back to course page</strong
-        ><span class="badge">course</span></a
-      >
-    </div>
-  </section>
+<section class="card lesson-notes" style="margin-top: 18px">
+  <div class="section-title">
+    <h2>Lesson notes</h2>
+    <span class="badge">Text material</span>
+  </div>
+  <div class="lesson-content formatted-lesson-content">
+    {{ lesson.content|lesson_format }}
+  </div>
 </section>
 
 <section class="card ai-companion" style="margin-top: 18px">

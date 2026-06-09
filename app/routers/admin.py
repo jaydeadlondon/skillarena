@@ -458,6 +458,9 @@ async def create_course(
     slug: str = Form(...),
     description: str = Form(...),
     category: str = Form("General"),
+    difficulty: str = Form("beginner"),
+    estimated_minutes: int = Form(60),
+    is_featured: bool = Form(False),
 ):
     try:
         title = clean_text(title, max_length=180, field_name="title")
@@ -467,6 +470,17 @@ async def create_course(
             clean_text(category, max_length=80, field_name="category", required=False)
             or "General"
         )
+        difficulty = validate_choice(
+            difficulty,
+            allowed={"beginner", "intermediate", "advanced"},
+            field_name="difficulty",
+        )
+        estimated_minutes = clamp_int(
+            estimated_minutes,
+            min_value=5,
+            max_value=10000,
+            field_name="estimated minutes",
+        )
     except ValidationError as exc:
         return validation_redirect("/admin/courses", exc)
     course = Course(
@@ -474,6 +488,9 @@ async def create_course(
         slug=slug,
         description=description,
         category=category,
+        difficulty=difficulty,
+        estimated_minutes=estimated_minutes,
+        is_featured=is_featured,
         is_published=True,
     )
     db.add(course)
@@ -494,6 +511,9 @@ async def update_course(
     slug: str = Form(...),
     description: str = Form(...),
     category: str = Form("General"),
+    difficulty: str = Form("beginner"),
+    estimated_minutes: int = Form(60),
+    is_featured: bool = Form(False),
     reward_points: int = Form(100),
     cover_image_url: str = Form(""),
 ):
@@ -512,6 +532,18 @@ async def update_course(
             clean_text(category, max_length=80, field_name="category", required=False)
             or "General"
         )
+        course.difficulty = validate_choice(
+            difficulty,
+            allowed={"beginner", "intermediate", "advanced"},
+            field_name="difficulty",
+        )
+        course.estimated_minutes = clamp_int(
+            estimated_minutes,
+            min_value=5,
+            max_value=10000,
+            field_name="estimated minutes",
+        )
+        course.is_featured = is_featured
         course.reward_points = clamp_int(
             reward_points, min_value=0, max_value=100000, field_name="reward points"
         )

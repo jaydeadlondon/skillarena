@@ -55,6 +55,68 @@ SkillArena{% endblock %} {% block content %}
           value="{{ course.category }}"
       /></label>
       <label
+        >Difficulty
+        <select name="difficulty">
+          <option
+            value="beginner"
+            {%
+            if
+            course.difficulty=""
+            ="beginner"
+            %}selected{%
+            endif
+            %}
+          >
+            Beginner
+          </option>
+          <option
+            value="intermediate"
+            {%
+            if
+            course.difficulty=""
+            ="intermediate"
+            %}selected{%
+            endif
+            %}
+          >
+            Intermediate
+          </option>
+          <option
+            value="advanced"
+            {%
+            if
+            course.difficulty=""
+            ="advanced"
+            %}selected{%
+            endif
+            %}
+          >
+            Advanced
+          </option>
+        </select>
+      </label>
+      <label
+        >Estimated minutes<input
+          class="input"
+          type="number"
+          name="estimated_minutes"
+          value="{{ course.estimated_minutes }}"
+      /></label>
+      <label
+        ><input
+          type="checkbox"
+          name="is_featured"
+          value="true"
+          {%
+          if
+          course.is_featured
+          %}checked{%
+          endif
+          %}
+        />
+        Featured course</label
+      >
+      <label
         >Reward points<input
           class="input"
           type="number"

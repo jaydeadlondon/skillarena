@@ -17,6 +17,9 @@ block content %} {% if request.query_params.get('lesson_completed') %}
   = card.progress %}
   <a class="card" href="/courses/{{ course.slug }}">
     <span class="badge">{{ course.category }}</span>
+    <span class="badge">{{ course.difficulty }}</span>
+    <span class="badge">{{ course.estimated_minutes }} min</span>
+    {% if course.is_featured %}<span class="badge">⭐ featured</span>{% endif %}
     {% if progress.is_completed %}<span class="badge">✅ completed</span>{%
     endif %}
     <h2>{{ course.title }}</h2>

@@ -29,6 +29,22 @@
       placeholder="Category"
       value="General"
     />
+    <select name="difficulty">
+      <option value="beginner">Beginner</option>
+      <option value="intermediate">Intermediate</option>
+      <option value="advanced">Advanced</option>
+    </select>
+    <input
+      class="input"
+      type="number"
+      name="estimated_minutes"
+      value="60"
+      placeholder="Estimated minutes"
+    />
+    <label
+      ><input type="checkbox" name="is_featured" value="true" /> Featured
+      course</label
+    >
     <textarea name="description" placeholder="Description" required></textarea>
     <button class="btn primary" type="submit">Create course</button>
   </form>
@@ -39,6 +55,9 @@
   <div class="card">
     <span class="badge">#{{ course.id }}</span>
     <span class="badge">{{ course.category }}</span>
+    <span class="badge">{{ course.difficulty }}</span>
+    <span class="badge">{{ course.estimated_minutes }} min</span>
+    {% if course.is_featured %}<span class="badge">Featured</span>{% endif %}
     <span class="badge"
       >{% if course.is_published %}Published{% else %}Hidden{% endif %}</span
     >

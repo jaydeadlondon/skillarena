@@ -112,7 +112,7 @@ async def save_progress(
         await db.execute(
             select(Lesson)
             .where(Lesson.id == lesson_id)
-            .options(selectinload(Lesson.course))
+            .options(selectinload(Lesson.course).selectinload(Course.lessons))
         )
     ).scalar_one_or_none()
     progress = (

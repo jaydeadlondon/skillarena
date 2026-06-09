@@ -48,6 +48,19 @@ async def dashboard(
     courses_count = await db.scalar(
         select(func.count(Course.id)).where(Course.is_published.is_(True))
     )
+    featured_courses = (
+        (
+            await db.execute(
+                select(Course)
+                .where(Course.is_published.is_(True), Course.is_featured.is_(True))
+                .options(selectinload(Course.lessons))
+                .order_by(Course.title)
+                .limit(3)
+            )
+        )
+        .scalars()
+        .all()
+    )
     completed_lessons = await db.scalar(
         select(func.count(LessonProgress.id)).where(
             LessonProgress.user_id == user.id,
@@ -125,6 +138,7 @@ async def dashboard(
             "request": request,
             "user": user,
             "courses_count": courses_count or 0,
+            "featured_courses": featured_courses,
             "completed_lessons": completed_lessons or 0,
             "streak_timeline": streak_timeline,
             "activity_summary": activity_summary,
@@ -309,7 +323,7 @@ async def build_profile_context(db: DbSession, profile_user: User) -> dict:
     lifetime_earned_points = int(lifetime_earned_points or 0)
     level = max(1, lifetime_earned_points // 100 + 1)
     next_level_points = level * 100
-    level_progress = min(100, int(lifetime_earned_points % 100))
+    level_progress = min(100, int((lifetime_earned_points % 100)))
     recent_battles = (
         (
             await db.execute(

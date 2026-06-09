@@ -39,7 +39,7 @@ The interface is built in English with a dark RPG/gaming style.
 
 ### Learning
 
-- Course catalog.
+- Course catalog with categories, difficulty, estimated duration, and featured course metadata.
 - Course detail pages.
 - Improved lesson player with previous/next navigation, course outline, resources, and formatted text lessons.
 - Lesson pages with embedded legal video content.

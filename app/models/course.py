@@ -23,7 +23,12 @@ class Course(Base):
     )
     description: Mapped[str] = mapped_column(Text, nullable=False)
     category: Mapped[str] = mapped_column(String(80), default="General", nullable=False)
+    difficulty: Mapped[str] = mapped_column(
+        String(40), default="beginner", nullable=False
+    )
+    estimated_minutes: Mapped[int] = mapped_column(Integer, default=60, nullable=False)
     cover_image_url: Mapped[str | None] = mapped_column(Text)
+    is_featured: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     is_published: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     reward_points: Mapped[int] = mapped_column(Integer, default=100, nullable=False)
     created_at: Mapped[created_at]

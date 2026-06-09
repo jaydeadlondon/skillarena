@@ -81,7 +81,24 @@
   ></div>
 </section>
 
-{% if continue_lesson %}
+{% if featured_courses %}
+<section class="card" style="margin-top: 18px">
+  <div class="section-title">
+    <h2>Featured courses</h2>
+    <a class="btn" href="/courses">All courses</a>
+  </div>
+  <div class="grid cols-3">
+    {% for course in featured_courses %}
+    <a class="card" href="/courses/{{ course.slug }}">
+      <span class="badge">{{ course.difficulty }}</span>
+      <span class="badge">{{ course.estimated_minutes }} min</span>
+      <h2>{{ course.title }}</h2>
+      <p class="muted">{{ course.description }}</p>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+{% endif %} {% if continue_lesson %}
 <section class="card" style="margin-top: 18px">
   <span class="badge">Continue where you left off</span>
   <h2>{{ continue_course.title }}</h2>
