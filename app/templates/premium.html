@@ -4,6 +4,14 @@ block content %} {% if request.query_params.get('error') == 'pvp-premium' %}
   <strong>PvP Arena requires Premium.</strong>
   <p class="muted">Learning tools remain free for everyone.</p>
 </div>
+{% endif %} {% if request.query_params.get('error') ==
+'telegram-bot-not-configured' %}
+<div class="card" style="border-color: #fb7185; margin-bottom: 18px">
+  <strong>Telegram bot is not configured.</strong>
+  <p class="muted">
+    Set TELEGRAM_BOT_USERNAME and TELEGRAM_BOT_TOKEN in the environment.
+  </p>
+</div>
 {% endif %}
 <header class="page-head">
   <div>
@@ -42,10 +50,43 @@ block content %} {% if request.query_params.get('error') == 'pvp-premium' %}
       <li>Supporter profile status</li>
       <li>Future private leagues and tournaments</li>
     </ul>
-    {% if is_premium_user %}<span class="badge">Your plan: Premium</span>{% else
-    %}<span class="badge">Your plan: Free</span>
+    {% if is_premium_user %}
+    <span class="badge">Your plan: Premium</span>
+    {% if user.premium_until %}
     <p class="muted">
-      Payments are not connected yet. An admin can grant Premium manually.
+      Premium until {{ user.premium_until.strftime('%Y-%m-%d') }}
+    </p>
+    {% endif %} {% else %}
+    <span class="badge">Your plan: Free</span>
+    <p class="muted">
+      Pay with Telegram Stars. You will be redirected to the SkillArena Telegram
+      bot.
+    </p>
+    <div class="premium-plan-grid">
+      <form method="post" action="/telegram/premium/start/1m">
+        <button class="btn primary premium-buy-button" type="submit">
+          <span>1 month</span><strong>99 ⭐</strong>
+        </button>
+      </form>
+      <form method="post" action="/telegram/premium/start/3m">
+        <button class="btn primary premium-buy-button" type="submit">
+          <span>3 months</span><strong>299 ⭐</strong>
+        </button>
+      </form>
+      <form method="post" action="/telegram/premium/start/6m">
+        <button class="btn primary premium-buy-button" type="submit">
+          <span>6 months</span><strong>419 ⭐</strong>
+        </button>
+      </form>
+      <form method="post" action="/telegram/premium/start/12m">
+        <button class="btn primary premium-buy-button" type="submit">
+          <span>1 year</span><strong>600 ⭐</strong>
+        </button>
+      </form>
+    </div>
+    <p class="muted">
+      If Telegram payments are not configured yet, an admin can grant Premium
+      manually.
     </p>
     {% endif %}
   </div>

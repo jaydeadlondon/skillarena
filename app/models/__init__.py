@@ -17,6 +17,7 @@ from app.models.gamification import (
     UserQuest,
     UserStreakDay,
 )
+from app.models.telegram_payment import TelegramPayment
 from app.models.pvp import (
     BattleStatus,
     PvpContest,
@@ -53,6 +54,7 @@ __all__ = [
     "PvpQuestion",
     "Quest",
     "QuestFrequency",
+    "TelegramPayment",
     "User",
     "UserAchievement",
     "UserActivityDay",

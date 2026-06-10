@@ -86,6 +86,7 @@ The interface is built in English with a dark RPG/gaming style.
 ### PvP quiz battles
 
 - Premium-gated PvP quiz lobby.
+- Telegram Stars premium payment foundation with 1, 3, 6, and 12 month plans.
 - Premium PvP contests with contest entries and PvP-win scoring.
 - Entry fee paid with Skill Points.
 - Server-validated quiz answers.
@@ -240,6 +241,19 @@ LLM_MAX_CUSTOM_PROMPT_CHARS=700
 LLM_TIMEOUT_SECONDS=30
 PVP_CREATE_COOLDOWN_SECONDS=20
 PVP_MAX_WAITING_BATTLES_PER_USER=3
+
+TELEGRAM_BOT_TOKEN=
+TELEGRAM_BOT_USERNAME=
+TELEGRAM_WEBHOOK_SECRET=
+TELEGRAM_PREMIUM_DAYS_1M=30
+TELEGRAM_PREMIUM_DAYS_3M=90
+TELEGRAM_PREMIUM_DAYS_6M=180
+TELEGRAM_PREMIUM_DAYS_12M=365
+TELEGRAM_STARS_PRICE_1M=99
+TELEGRAM_STARS_PRICE_3M=299
+TELEGRAM_STARS_PRICE_6M=419
+TELEGRAM_STARS_PRICE_12M=600
+
 TRUSTED_HOSTS=localhost,127.0.0.1,0.0.0.0,testserver
 ```
 
@@ -384,6 +398,8 @@ docker compose exec web python scripts/grant_admin.py <steam_id_64>
 /profile                  User profile
 /shop                     Cosmetic shop
 /premium                  Premium plan information
+/telegram/premium/start/{plan_code} Telegram Stars premium checkout start
+/telegram/webhook         Telegram bot webhook
 /pvp                      PvP lobby
 /pvp/contests             Premium PvP contests
 /pvp/history              PvP battle history

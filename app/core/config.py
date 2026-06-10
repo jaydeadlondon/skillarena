@@ -36,6 +36,18 @@ class Settings(BaseSettings):
     pvp_create_cooldown_seconds: int = 20
     pvp_max_waiting_battles_per_user: int = 3
 
+    telegram_bot_token: str = ""
+    telegram_bot_username: str = ""
+    telegram_webhook_secret: str = ""
+    telegram_premium_days_1m: int = 30
+    telegram_premium_days_3m: int = 90
+    telegram_premium_days_6m: int = 180
+    telegram_premium_days_12m: int = 365
+    telegram_stars_price_1m: int = 99
+    telegram_stars_price_3m: int = 299
+    telegram_stars_price_6m: int = 419
+    telegram_stars_price_12m: int = 600
+
     trusted_hosts: str = "localhost,127.0.0.1,0.0.0.0,testserver"
 
     model_config = SettingsConfigDict(

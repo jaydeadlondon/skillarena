@@ -31,6 +31,7 @@ from app.routers import (
     quests,
     shop,
     streaks,
+    telegram,
 )
 from app.services.formatting import format_lesson_content
 
@@ -52,7 +53,9 @@ app = FastAPI(
     title=settings.app_name, debug=settings.app_env == "development", lifespan=lifespan
 )
 app.add_middleware(TrustedHostMiddleware, allowed_hosts=settings.trusted_host_list)
-app.add_middleware(CSRFProtectionMiddleware, exempt_paths={"/activity/heartbeat"})
+app.add_middleware(
+    CSRFProtectionMiddleware, exempt_paths={"/activity/heartbeat", "/telegram/webhook"}
+)
 app.add_middleware(
     SessionMiddleware,
     secret_key=settings.app_secret_key,
@@ -82,6 +85,7 @@ app.include_router(pvp.router)
 app.include_router(quests.router)
 app.include_router(shop.router)
 app.include_router(streaks.router)
+app.include_router(telegram.router)
 app.include_router(admin.router)
 
 

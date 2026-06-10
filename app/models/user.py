@@ -1,6 +1,7 @@
+from datetime import datetime
 from enum import StrEnum
 
-from sqlalchemy import Boolean, Enum, ForeignKey, Integer, String, Text
+from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base, created_at, updated_at
@@ -29,6 +30,7 @@ class User(Base):
     selected_title: Mapped[str | None] = mapped_column(String(80))
     selected_frame: Mapped[str | None] = mapped_column(String(80))
     plan: Mapped[str] = mapped_column(String(20), default="free", nullable=False)
+    premium_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     focus_mode_enabled: Mapped[bool] = mapped_column(
         Boolean, default=False, nullable=False
     )
@@ -74,6 +76,9 @@ class User(Base):
     )
     admin_audit_logs = relationship("AdminAuditLog", back_populates="admin_user")
     analytics_events = relationship("AnalyticsEvent", back_populates="user")
+    telegram_payments = relationship(
+        "TelegramPayment", back_populates="user", cascade="all, delete-orphan"
+    )
 
 
 class CurrencyTransaction(Base):

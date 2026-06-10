@@ -1178,3 +1178,51 @@ form {
   background: rgba(17, 24, 39, 0.35);
   color: #f5f3ff;
 }
+.premium-plan-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-auto-rows: 64px;
+  gap: 12px;
+  margin: 16px 0;
+  align-items: stretch;
+}
+.premium-plan-grid form {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+}
+.premium-plan-card .premium-plan-grid .premium-buy-button {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  display: flex !important;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  text-align: center;
+  margin: 0 !important;
+  padding: 10px 8px !important;
+  box-sizing: border-box;
+  white-space: nowrap;
+}
+.premium-buy-button span {
+  display: block;
+  font-size: 13px;
+  line-height: 1;
+  opacity: 0.92;
+}
+.premium-buy-button strong {
+  display: block;
+  font-size: 18px;
+  line-height: 1;
+}
+@media (max-width: 560px) {
+  .premium-plan-grid {
+    grid-template-columns: 1fr;
+    grid-auto-rows: 60px;
+  }
+}

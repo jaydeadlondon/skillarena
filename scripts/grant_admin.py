@@ -12,6 +12,7 @@ import app.models.audit  # noqa: F401,E402
 import app.models.course  # noqa: F401,E402
 import app.models.gamification  # noqa: F401,E402
 import app.models.pvp  # noqa: F401,E402
+import app.models.telegram_payment  # noqa: F401,E402
 import app.models.user  # noqa: F401,E402
 from sqlalchemy import select  # noqa: E402
 
