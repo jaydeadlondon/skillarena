@@ -62,6 +62,8 @@ def test_telegram_successful_payment_activates_premium(monkeypatch):
                     "successful_payment": {
                         "invoice_payload": "premium_test_payload",
                         "telegram_payment_charge_id": "charge",
+                        "currency": "XTR",
+                        "total_amount": 99,
                     },
                 }
             },

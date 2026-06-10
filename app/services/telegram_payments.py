@@ -15,6 +15,8 @@ PAYMENT_PENDING = "pending"
 PAYMENT_SUCCEEDED = "succeeded"
 PAYMENT_FAILED = "failed"
 
+TELEGRAM_STARS_CURRENCY = "XTR"
+
 PLAN_LABELS = {
     "1m": "1 month",
     "3m": "3 months",
@@ -115,7 +117,7 @@ async def send_stars_invoice(payment: TelegramPayment, chat_id: int) -> None:
             "title": f"SkillArena Premium · {label}",
             "description": f"Premium access for {payment.premium_days} days.",
             "payload": payment.payload,
-            "currency": "XTR",
+            "currency": TELEGRAM_STARS_CURRENCY,
             "prices": [{"label": f"Premium {label}", "amount": payment.stars_amount}],
             "provider_token": "",
         },
@@ -129,6 +131,16 @@ async def answer_pre_checkout_query(
     if error_message:
         payload["error_message"] = error_message
     await telegram_api("answerPreCheckoutQuery", payload)
+
+
+def telegram_payment_amount_matches(
+    payment: TelegramPayment, payload: dict[str, Any]
+) -> bool:
+    currency = payload.get("currency")
+    total_amount = payload.get("total_amount")
+    return currency == TELEGRAM_STARS_CURRENCY and int(total_amount or -1) == int(
+        payment.stars_amount
+    )
 
 
 async def activate_telegram_payment(

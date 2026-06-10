@@ -3,11 +3,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.user import User
 from app.services.analytics import track_event
 from app.services.telegram_payments import (
+    PAYMENT_SUCCEEDED,
     activate_telegram_payment,
     answer_pre_checkout_query,
     find_payment_by_payload,
     send_stars_invoice,
     telegram_api,
+    telegram_payment_amount_matches,
 )
 
 
@@ -64,6 +66,11 @@ async def process_telegram_update(db: AsyncSession, update: dict) -> dict:
                 "Payment was not found or already processed.",
             )
             return {"ok": True, "action": "pre_checkout_rejected"}
+        if not telegram_payment_amount_matches(payment, pre_checkout):
+            await answer_pre_checkout_query(
+                pre_checkout.get("id"), False, "Payment amount mismatch."
+            )
+            return {"ok": True, "action": "pre_checkout_amount_mismatch"}
         await answer_pre_checkout_query(pre_checkout.get("id"), True)
         return {"ok": True, "action": "pre_checkout_ok", "payment_id": payment.id}
 
@@ -78,6 +85,26 @@ async def process_telegram_update(db: AsyncSession, update: dict) -> dict:
                     "Payment was received, but SkillArena could not find the linked order. Contact support.",
                 )
             return {"ok": True, "action": "paid_payment_not_found"}
+        if payment.status == PAYMENT_SUCCEEDED:
+            if chat_id:
+                await send_message(
+                    chat_id,
+                    "This payment has already been processed. Premium is already active.",
+                )
+            return {
+                "ok": True,
+                "action": "payment_already_processed",
+                "payment_id": payment.id,
+            }
+        if not telegram_payment_amount_matches(payment, successful_payment):
+            payment.status = "failed"
+            if chat_id:
+                await send_message(chat_id, "Payment amount mismatch. Contact support.")
+            return {
+                "ok": True,
+                "action": "paid_amount_mismatch",
+                "payment_id": payment.id,
+            }
         await activate_telegram_payment(
             db, payment, from_user.get("id"), successful_payment
         )
