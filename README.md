@@ -494,6 +494,24 @@ Seed demo data:
 docker compose exec web python scripts/seed_demo.py
 ```
 
+Run Telegram bot polling locally instead of webhook:
+
+```bash
+python scripts/run_telegram_bot.py
+```
+
+Set Telegram webhook for a public HTTPS application URL:
+
+```bash
+python scripts/set_telegram_webhook.py
+```
+
+Delete Telegram webhook:
+
+```bash
+python scripts/delete_telegram_webhook.py
+```
+
 Run tests:
 
 ```bash
